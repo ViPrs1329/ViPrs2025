@@ -1,1 +1,6 @@
 # ViPrs 2025
+
+## Notes
+- We should make use of team 254's LazySparkMax class to reduce CAN bus overhead
+- We should also make use of the command2 programming paradigm (ie. subsystems and commands)
+- We should make use of sensor call caching to reduce the CAN bus overhead
