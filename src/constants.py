@@ -1,18 +1,16 @@
 
-
+import numpy
 
 class convert:
     def in2m(inches):
         return 0.0254 * inches
     
     def rev2rad(rev):
-        return rev * 2 * Stacy.pi
+        return rev * 2 * numpy.pi
 
     def rad2rev(radians):
-        return radians / (2 * Stacy.pi)
+        return radians / (2 * numpy.pi)
     
-    def count2rev(count):
-        return count / armConsts.countsPerRev
     
 
 class CANIDs:
