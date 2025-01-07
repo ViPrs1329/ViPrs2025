@@ -58,7 +58,6 @@ while(1):
         # offset = abs(center - webcamWidth)
         # return offset
         return item["area"]
-
     if len(areasDict) != 0:
       areasDict = sorted(areasDict, key=keyVal)
       x, y, w, h = areasDict[-1]["rect"]
