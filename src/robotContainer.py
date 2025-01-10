@@ -2,14 +2,15 @@
 import commands2.button
 from commands2 import SequentialCommandGroup
 from commands2.button import CommandXboxController
-
+from subsystems.SwerveDriveSubsystem import DriveTrain
 
 class RobotContainer:
     """
     This class is where the bulk of the robot's resources are declared. Here, subsystems
     are instantiated and commands and button bindings are configured.
     """
-    def __init__(self):
+    def __init__(self) -> None:
+        self.drivetrain = DriveTrain()
         self.initSubsystems()
         self.initControls()
         self.initCommands()
