@@ -12,66 +12,74 @@ import commands2
 
 
 class MyRobot(commands2.TimedCommandRobot):
-    autonomousCommand = None
-    def robotInit(self):
-        """
-        This function is called upon program startup and
-        should be used for any initialization code.
-        """
-        print("robotInit()")
+  def startRumble(self):
+    self.xboxController.setRumble(self.xboxController.RumbleType.kRightRumble,1)
+    self.xboxController.setRumble(self.xboxController.RumbleType.kLeftRumble,1)
 
-    def robotPeriodic(self):
-        print("robotPeriodic()")
-        
-    
-    def autonomousInit(self):
-        """This function is run once each time the robot enters autonomous mode."""
-        print("autonomousInit()")
-        
-        pass
+  def stopRumble(self):
+    self.xboxController.setRumble(self.xboxController.RumbleType.kRightRumble,0)
+    self.xboxController.setRumble(self.xboxController.RumbleType.kLeftRumble,0)
 
-    def autonomousPeriodic(self):
-        """This function is called periodically during autonomous."""
-        print("autonomousPeriodic()")
+  autonomousCommand = None
+  def robotInit(self):
+    """
+    This function is called upon program startup and
+    should be used for any initialization code.
+    """
+    print("robotInit()")
 
-        pass
-
-    def disabledInit(self):
-        """This function is called initially when disabledd"""
-        print("disabledInit()")
-
-    def disabledPeriodic(self):
-        pass
-
-    def teleopInit(self): 
-        """This function is called once each time the robot enters teleoperated mode."""
-        print("teleopInit()")
-        
-        
-    def teleopPeriodic(self):
-        """This function is called periodically during teleoperated mode."""
-        print("teleopPeriodic()")
+  def robotPeriodic(self):
+    print("robotPeriodic()")
         
 
-    def testInit(self): 
-        """This function is called once each time the robot enters test mode."""
-        print("testInit()")
+  def autonomousInit(self):
+    """This function is run once each time the robot enters autonomous mode."""
+    print("autonomousInit()")
         
-        
-    def testPeriodic(self): 
-        """This function is called periodically during test mode."""
-        print("testPeriodic()")
-        pass
+    pass
 
-    def simulationInit(self):
-        print("Simulation init...")
+  def autonomousPeriodic(self):
+    """This function is called periodically during autonomous."""
+    print("autonomousPeriodic()")
+
+    pass
+
+  def disabledInit(self):
+    """This function is called initially when disabledd"""
+    print("disabledInit()")
+
+  def disabledPeriodic(self):
+    pass
+
+  def teleopInit(self): 
+    """This function is called once each time the robot enters teleoperated mode."""
+    print("teleopInit()")
+        
+        
+  def teleopPeriodic(self):
+    """This function is called periodically during teleoperated mode."""
+    print("teleopPeriodic()")
         
 
-    def SimulationPeriodic(self):
-        """"This function is called periodically during the simulation mode"""
-        print("SimulationPeriodic()")
+  def testInit(self): 
+    """This function is called once each time the robot enters test mode."""
+    print("testInit()")
+        
+        
+  def testPeriodic(self): 
+    """This function is called periodically during test mode."""
+    print("testPeriodic()")
+    pass
+
+  def simulationInit(self):
+    print("Simulation init...")
+        
+
+  def SimulationPeriodic(self):
+    """"This function is called periodically during the simulation mode"""
+    print("SimulationPeriodic()")
         
 
 
 if __name__ == "__main__":
-    wpilib.run(MyRobot)
+  wpilib.run(MyRobot)
