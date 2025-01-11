@@ -26,10 +26,10 @@ class CANIDs:
 
     # Encoders
 
-    EncoderModuleRotation1 = 100
-    EncoderModuleRotation2 = 100
-    EncoderModuleRotation3 = 100
-    EncoderModuleRotation4 = 100
+    EncoderModuleRotation1 = 10
+    EncoderModuleRotation2 = 11
+    EncoderModuleRotation3 = 9
+    EncoderModuleRotation4 = 12
 
 class inputConsts:
     inputScale = 0.8
