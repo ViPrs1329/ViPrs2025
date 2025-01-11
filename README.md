@@ -8,3 +8,4 @@
 
 ## Important Commands
 py -3 -m robotpy deploy --skip-tests
+py -3 -m robotpy sync
