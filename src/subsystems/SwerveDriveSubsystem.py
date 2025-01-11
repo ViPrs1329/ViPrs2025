@@ -43,15 +43,15 @@ class DriveTrain(commands2.Subsystem):
     # Need to replace CAN ids with their respective
     # ids from constants.CANIDs
 
-    self.backLeftRotation = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
-    self.backRightRotation = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
-    self.frontLeftRotation = rev.CANSparkMax(1, rev.CANSparkMax.MotorType.kBrushless)
-    self.frontRightRotation = rev.CANSparkMax(3, rev.CANSparkMax.MotorType.kBrushless)
+    self.backLeftRotation = rev.SparkMax(1, rev.SparkMax.MotorType.kBrushless)
+    self.backRightRotation = rev.SparkMax(1, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftRotation = rev.SparkMax(1, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightRotation = rev.SparkMax(3, rev.SparkMax.MotorType.kBrushless)
 
-    self.backLeftDrive = rev.CANSparkMax(8, rev.CANSparkMax.MotorType.kBrushless)
-    self.backRightDrive = rev.CANSparkMax(6, rev.CANSparkMax.MotorType.kBrushless)
-    self.frontLeftDrive = rev.CANSparkMax(2, rev.CANSparkMax.MotorType.kBrushless)
-    self.frontRightDrive = rev.CANSparkMax(4, rev.CANSparkMax.MotorType.kBrushless)
+    self.backLeftDrive = rev.SparkMax(8, rev.SparkMax.MotorType.kBrushless)
+    self.backRightDrive = rev.SparkMax(6, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftDrive = rev.SparkMax(2, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightDrive = rev.SparkMax(4, rev.SparkMax.MotorType.kBrushless)
 
     # Drive encoders
 
