@@ -67,7 +67,7 @@ class DriveTrain(commands2.Subsystem):
     self.BrightEnc = CANcoder(CANIDs.EncoderModuleRotation2)
     self.BleftEnc = CANcoder(CANIDs.EncoderModuleRotation1)
 
-    # PID Setup (needs tuning)
+    # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
     Kp = 4
     self.BleftPID = controller.PIDController(Kp,0,.000)
