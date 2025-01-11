@@ -13,6 +13,7 @@ import rev
 import math
 import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
+import constants
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -86,20 +87,23 @@ class MyRobot(commands2.TimedCommandRobot):
     self.stopRumble()
     self.drivetrain.resetHarder()
     self.systemTempCheck()
-        
+
+  def inputCurve(input: float):
+    return (input ** 3) * constants.controller.scale
+
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
     print("teleopPeriodic()")
-    xSpeed = self.drivingXboxController.getLeftY()
-    ySpeed = self.drivingXboxController.getLeftX()
+    xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
+    ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
     tSpeed = -self.drivingXboxController.getRightX()
 
-    if abs(xSpeed) <.10:
-      xspeed=0
-    if abs(ySpeed) <.10:
-      yspeed=0
-    if abs(tSpeed) <.10:
-      tspeed=0
+    if abs(xSpeed) < constants.controller.XYdeadzone:
+      xSpeed=0
+    if abs(ySpeed) < constants.controller.XYdeadzone:
+      ySpeed=0
+    if abs(tSpeed) < constants.controller.Tdeadzone:
+      tSpeed=0
 
     yaw = self.drivetrain.gyro.get_yaw().value_as_double
 

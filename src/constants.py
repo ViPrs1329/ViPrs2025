@@ -1,6 +1,11 @@
 
 import numpy
 
+class controller:
+    scale = 0.5
+    XYdeadzone = 0.03
+    Tdeadzone = 0.1
+
 class convert:
     def in2m(inches):
         return 0.0254 * inches
