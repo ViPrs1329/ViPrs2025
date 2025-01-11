@@ -25,14 +25,6 @@ class MyRobot(commands2.TimedCommandRobot):
       self.drivetrain.backRightRotation,
       self.drivetrain.frontLeftRotation,
       self.drivetrain.frontRightRotation,
-      self.drivetrain.intake.intakeRotation,
-      self.drivetrain.intake.intakeDrive,
-      self.shooter.shooterDrive1,
-      self.shooter.shooterDrive2,
-      self.shooter.feedMotor,
-      self.shooter.rotationMotor,
-      self.climber.leftClimber,
-      self.climber.rightClimber
     ]
 
     burntFlag = False
