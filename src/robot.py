@@ -55,14 +55,15 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    self.drivingXboxController = wpilib.XboxController(0)
     self.drivetrain = DriveTrain()
 
     print("robotInit()")
 
   def robotPeriodic(self):
-    print("robotPeriodic()")
+    # print("robotPeriodic()")
+    pass
         
-
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
@@ -84,21 +85,20 @@ class MyRobot(commands2.TimedCommandRobot):
     print("teleopInit()")
     self.stopRumble()
     self.drivetrain.resetHarder()
-    self.drivingXboxController = wpilib.XboxController(0)
     self.systemTempCheck()
         
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
     print("teleopPeriodic()")
-    xSpeed = self.drivingXboxController.getLeftX()
-    ySpeed = self.drivingXboxController.getLeftY()
-    tSpeed = self.drivingXboxController.getRightX()
+    xSpeed = self.drivingXboxController.getLeftY()
+    ySpeed = self.drivingXboxController.getLeftX()
+    tSpeed = -self.drivingXboxController.getRightX()
 
-    if abs(xspeed) <.10:
+    if abs(xSpeed) <.10:
       xspeed=0
-    if abs(yspeed) <.10:
+    if abs(ySpeed) <.10:
       yspeed=0
-    if abs(tspeed) <.10:
+    if abs(tSpeed) <.10:
       tspeed=0
 
     yaw = self.drivetrain.gyro.get_yaw().value_as_double
@@ -111,7 +111,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     heading = h2 * (math.pi * 2)
 
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xspeed, yspeed, -tspeed, Rotation2d(heading))
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
         
 

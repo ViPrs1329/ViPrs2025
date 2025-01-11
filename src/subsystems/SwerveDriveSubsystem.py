@@ -53,12 +53,41 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive = rev.SparkMax(1, rev.SparkMax.MotorType.kBrushless)
     self.frontRightDrive = rev.SparkMax(7, rev.SparkMax.MotorType.kBrushless)
 
+    # Set the configs
+    self.backLeftRotationConfig = rev.SparkBaseConfig()
+    self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backRightRotationConfig = rev.SparkBaseConfig()
+    self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontLeftRotationConfig = rev.SparkBaseConfig()
+    self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontRightRotationConfig = rev.SparkBaseConfig()
+    self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+
+    self.backLeftDriveConfig = rev.SparkBaseConfig()
+    self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backRightDriveConfig = rev.SparkBaseConfig()
+    self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontLeftDriveConfig = rev.SparkBaseConfig()
+    self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontRightDriveConfig = rev.SparkBaseConfig()
+    self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    
+    self.backLeftRotation.configure(self.backLeftRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.backRightRotation.configure(self.backRightRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.frontLeftRotation.configure(self.frontLeftRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.frontRightRotation.configure(self.frontRightRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+
+    self.backLeftDrive.configure(self.backLeftDriveConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.backRightDrive.configure(self.backRightDriveConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.frontLeftDrive.configure(self.frontLeftDriveConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+    self.frontRightDrive.configure(self.frontRightDriveConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+
     # Drive encoders
 
-    self.frontRightDriveEnc = self.frontRightDrive.getEncoder(rev.SparkRelativeEncoder.Type.kHallSensor, 42)
-    self.frontLeftDriveEnc = self.frontLeftDrive.getEncoder(rev.SparkRelativeEncoder.Type.kHallSensor, 42)
-    self.backRightDriveEnc = self.backRightDrive.getEncoder(rev.SparkRelativeEncoder.Type.kHallSensor, 42)
-    self.backLeftDriveEnc = self.backLeftDrive.getEncoder(rev.SparkRelativeEncoder.Type.kHallSensor, 42)
+    self.frontRightDriveEnc = self.frontRightDrive.getAbsoluteEncoder()
+    self.frontLeftDriveEnc = self.frontLeftDrive.getAbsoluteEncoder()
+    self.backRightDriveEnc = self.backRightDrive.getAbsoluteEncoder()
+    self.backLeftDriveEnc = self.backLeftDrive.getAbsoluteEncoder()
 
     # Need to add correct CANcoder ids in constants.py
 
@@ -70,22 +99,22 @@ class DriveTrain(commands2.Subsystem):
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
     Kp = 4
-    self.BleftPID = controller.PIDController(Kp,0,.000)
+    self.BleftPID = controller.PIDController(Kp,0,0)
     self.BleftPID.enableContinuousInput(-.5,.5)
     self.BleftPID.setSetpoint(0.0)
-    self.BrightPID = controller.PIDController(Kp,0,.000)
+    self.BrightPID = controller.PIDController(Kp,0,0)
     self.BrightPID.enableContinuousInput(-.5,.5)
     self.BrightPID.setSetpoint(0.0)
-    self.FleftPID = controller.PIDController(Kp,0,.000)
+    self.FleftPID = controller.PIDController(Kp,0,0)
     self.FleftPID.enableContinuousInput(-.5,.5)
     self.FleftPID.setSetpoint(0.0)
-    self.FrightPID = controller.PIDController(Kp,0,.000)
+    self.FrightPID = controller.PIDController(Kp,0,0)
     self.FrightPID.enableContinuousInput(-.5,.5)
     self.FrightPID.setSetpoint(0.0)
 
     # Gyro init
 
-    self.gyro = Pigeon2(14)
+    self.gyro = Pigeon2(13)
     self.gyro.set_yaw(0)
 
     # Kinematics (need to get back from design on exact measurments)
@@ -177,24 +206,15 @@ class DriveTrain(commands2.Subsystem):
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
     frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
 
-    frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
-    Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
-    frontRightOptimized = SwerveModuleState.optimize(frontRight,
-    Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
-    backLeftOptimized = SwerveModuleState.optimize(backLeft,
-    Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
-    backRightOptimized = SwerveModuleState.optimize(backRight,
-    Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
+    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
+    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
+    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
+    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
 
-    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeftOptimized.angle.radians())))
-    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeftOptimized.angle.radians())))
-    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRightOptimized.angle.radians())))
-    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRightOptimized.angle.radians())))
-
-    self.backLeftDrive.set(-backLeftOptimized.speed)
-    self.backRightDrive.set(backRightOptimized.speed)
-    self.frontLeftDrive.set(frontLeftOptimized.speed)
-    self.frontRightDrive.set(frontRightOptimized.speed)
+    self.backLeftDrive.set(-backLeft.speed)
+    self.backRightDrive.set(backRight.speed)
+    self.frontLeftDrive.set(frontLeft.speed)
+    self.frontRightDrive.set(frontRight.speed)
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
     self.lastChassisSpeed = speeds
@@ -213,27 +233,22 @@ class DriveTrain(commands2.Subsystem):
       moduleStates, 
       maxModSpeed
     )
+    frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
+    frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
+    backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
+    frontRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
 
-    frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
-    Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
-    frontRightOptimized = SwerveModuleState.optimize(frontRight,
-    Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
-    backLeftOptimized = SwerveModuleState.optimize(backLeft,
-    Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
-    backRightOptimized = SwerveModuleState.optimize(backRight,
-    Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
-
-    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeftOptimized.angle.radians())))
-    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeftOptimized.angle.radians())))
-    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRightOptimized.angle.radians())))
-    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRightOptimized.angle.radians())))
+    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
+    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
+    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
+    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
 
     # probably fine at 13 (can change if needed)
     maxVoltage = 13
-    self.backLeftDrive.setVoltage(-(backLeftOptimized.speed/maxModSpeed)*maxVoltage)
-    self.backRightDrive.setVoltage((backRightOptimized.speed/maxModSpeed)*maxVoltage)
-    self.frontLeftDrive.setVoltage((frontLeftOptimized.speed/maxModSpeed)*maxVoltage)
-    self.frontRightDrive.setVoltage((frontRightOptimized.speed/maxModSpeed)*maxVoltage)
+    self.backLeftDrive.setVoltage(-(backLeft.speed/maxModSpeed)*maxVoltage)
+    self.backRightDrive.setVoltage((backRight.speed/maxModSpeed)*maxVoltage)
+    self.frontLeftDrive.setVoltage((frontLeft.speed/maxModSpeed)*maxVoltage)
+    self.frontRightDrive.setVoltage((frontRight.speed/maxModSpeed)*maxVoltage)
 
   def stopMotors(self):
     self.frontLeftDrive.set(0)
