@@ -14,6 +14,7 @@ import math
 import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
 import constants
+import numpy as np
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -89,7 +90,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
 
   def inputCurve(input: float):
-    return (input ** 3) * constants.controller.scale
+    return -(np.sign(input)) * (math.sqrt(1 - input * input) - 1) * constants.controller.scale
 
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
