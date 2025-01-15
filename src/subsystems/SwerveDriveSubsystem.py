@@ -119,10 +119,12 @@ class DriveTrain(commands2.Subsystem):
 
     # Kinematics (need to get back from design on exact measurments)
 
-    frontrightlocation = Translation2d(.381, .381) 
-    frontleftlocation = Translation2d(.381, -.381) 
-    backleftlocation = Translation2d(-.381, -.381)         
-    backrightlocation = Translation2d(-.381, .381)    
+    lv = 0.381 #location value
+
+    frontrightlocation = Translation2d(lv, lv) 
+    frontleftlocation = Translation2d(lv, -lv) 
+    backleftlocation = Translation2d(-lv, -lv)         
+    backrightlocation = Translation2d(-lv, lv)    
 
     self.lastChassisSpeed = ChassisSpeeds(0,0,0)
 
@@ -163,7 +165,7 @@ class DriveTrain(commands2.Subsystem):
     nonYPose = self.odometry.getPose()
     return nonYPose
   
-  def shouldFlipPath(self):
+  def shouldFlipPath(self): #checks if the alliance is red, therefore should mirror the path to account for being on opposite side of field
     return DriverStation.getAlliance() == DriverStation.Alliance.kRed
   
   def getChassisSpeed(self) -> ChassisSpeeds:
@@ -172,7 +174,7 @@ class DriveTrain(commands2.Subsystem):
   def updateOdometry(self) -> None: # weee neeeed thiiiis!
     yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double - 90)
 
-    a = self.odometry.update(
+    a = self.odometry.update( 
       yaw,
       (
         getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),

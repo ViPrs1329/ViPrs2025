@@ -90,14 +90,26 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
 
   def inputCurve(input: float):
-    return -(np.sign(input)) * (math.sqrt(1 - input * input) - 1) * constants.controller.scale
+    return (input ** 3)
 
+  def tinputCurve(input: float):
+    return (input ** 3) * constants.controller.tscale
+
+  def distanceCorrectedInputCurve(x: float, y: float):
+    d = math.sqrt(x * x + y * y)
+    print(x)
+    print(y)
+    print(d)
+    s = MyRobot.inputCurve(d)
+    return x * s * constants.controller.scale, y * s * constants.controller.scale
+  
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
     print("teleopPeriodic()")
-    xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
-    ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
-    tSpeed = -self.drivingXboxController.getRightX()
+    xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
+    # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
+    # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
+    tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
     if abs(xSpeed) < constants.controller.XYdeadzone:
       xSpeed=0
