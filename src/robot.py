@@ -101,7 +101,13 @@ class MyRobot(commands2.TimedCommandRobot):
     print(y)
     print(d)
     s = MyRobot.inputCurve(d)
-    return x * s * constants.controller.scale, y * s * constants.controller.scale
+    sx = x * s * constants.controller.scale
+    sy = y * s * constants.controller.scale
+    if sx * sx + sy * sy > 1:
+      scale = 1 / math.sqrt(sx * sx + sy * sy)
+      sx *= scale
+      sy *= scale
+    return sx, sy
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
