@@ -10,8 +10,6 @@ class convert:
 
     def rad2rev(radians):
         return radians / (2 * numpy.pi)
-    
-    
 
 class CANIDs:
     # Swerve CAD IDs
@@ -31,6 +29,7 @@ class inputConsts:
 
 class driveConsts:
     wheelDiameter = 4
+    maximumSpeed = 1
 
 
 class intakeConsts:
