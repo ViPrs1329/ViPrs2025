@@ -23,7 +23,7 @@ class CANIDs:
     SwerveModule_Rotation4 = 8
 
 class inputConsts:
-    inputScale = 0.8
+    inputScale = 1
     inputDeadZone = 0.1
     rampRate = 0.05
 
