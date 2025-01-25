@@ -39,6 +39,8 @@ class DriveTrain(commands2.Subsystem):
   def __init__(self) -> None:
     super().__init__()
     
+    self.robotOdometryPosition = Pose2d()
+
     # Drivetrain init 
     # Need to replace CAN ids with their respective
     # ids from constants.CANIDs
@@ -92,10 +94,10 @@ class DriveTrain(commands2.Subsystem):
 
     # Drive encoders
 
-    self.frontRightDriveEnc = self.frontRightDrive.getAbsoluteEncoder()
-    self.frontLeftDriveEnc = self.frontLeftDrive.getAbsoluteEncoder()
-    self.backRightDriveEnc = self.backRightDrive.getAbsoluteEncoder()
-    self.backLeftDriveEnc = self.backLeftDrive.getAbsoluteEncoder()
+    self.frontRightDriveEnc = self.frontRightDrive.getEncoder()
+    self.frontLeftDriveEnc = self.frontLeftDrive.getEncoder()
+    self.backRightDriveEnc = self.backRightDrive.getEncoder()
+    self.backLeftDriveEnc = self.backLeftDrive.getEncoder()
 
     # Need to add correct CANcoder ids in constants.py
 
@@ -180,21 +182,21 @@ class DriveTrain(commands2.Subsystem):
     return self.lastChassisSpeed
   
   def updateOdometry(self) -> None: # weee neeeed thiiiis!
-    yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double - 90)
+    # yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double - 90)
 
-    a = self.odometry.update( 
-      yaw,
-      (
-        getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
-        getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
-        getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
-        getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
-      )
-    )
+    # a = self.odometry.update( 
+    #   yaw,
+    #   (
+    #     getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
+    #     getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
+    #     getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
+    #     getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
+    #   )
+    # )
 
     yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double)
-
-    a = self.odometry.update(
+    print(self.frontLeftDriveEnc.getPosition())
+    self.robotOdometryPosition = self.odometry.update(
       yaw,
       (
         getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
@@ -206,13 +208,13 @@ class DriveTrain(commands2.Subsystem):
 
   def periodic(self) -> None:
     self.updateOdometry()
-    print(
-f"""
+#     print(
+# f"""
 
-back rightr: {self.backRightRotation.getOutputCurrent()}
-back leftr: {self.backRightRotation.getOutputCurrent()}
-front rightr: {self.backRightRotation.getOutputCurrent()}
-front leftr: {self.backRightRotation.getOutputCurrent()}""")
+# back rightr: {self.backRightRotation.getOutputCurrent()}
+# back leftr: {self.backRightRotation.getOutputCurrent()}
+# front rightr: {self.backRightRotation.getOutputCurrent()}
+# front leftr: {self.backRightRotation.getOutputCurrent()}""")
 
   def resetMotors(self) -> None:
     pass # if we need it

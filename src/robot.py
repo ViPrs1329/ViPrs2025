@@ -8,7 +8,7 @@ import time
 import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
-from wpimath.geometry import Rotation2d
+from wpimath.geometry import Rotation2d, Pose2d
 import rev
 import math
 import commands2
@@ -66,6 +66,7 @@ class MyRobot(commands2.TimedCommandRobot):
     table = inst.getTable("datatable")
     self.controllerXPub = table.getDoubleTopic("controller x").publish()
     self.controllerYPub = table.getDoubleTopic("controller y").publish()
+    self.robotPosition = table.getStructTopic("robot pose", Pose2d).publish()
     print("robotInit()")
 
   def robotPeriodic(self):
@@ -120,7 +121,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
     self.controllerXPub.set(xSpeed)
     self.controllerYPub.set(ySpeed)
-    
+
     tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
     if abs(xSpeed) < constants.controller.XYdeadzone:
@@ -143,6 +144,7 @@ class MyRobot(commands2.TimedCommandRobot):
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
         
+    self.robotPosition.set(self.drivetrain.robotOdometryPosition)
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""
