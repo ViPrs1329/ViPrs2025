@@ -97,17 +97,14 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def distanceCorrectedInputCurve(x: float, y: float):
     d = math.sqrt(x * x + y * y)
-    print(x)
-    print(y)
-    print(d)
     s = MyRobot.inputCurve(d)
-    sx = x * s * constants.controller.scale
-    sy = y * s * constants.controller.scale
+    sx = x * s
+    sy = y * s
     if sx * sx + sy * sy > 1:
       scale = 1 / math.sqrt(sx * sx + sy * sy)
       sx *= scale
       sy *= scale
-    return sx, sy
+    return sx * constants.controller.scale, sy * constants.controller.scale
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""

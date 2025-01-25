@@ -2,7 +2,7 @@
 import numpy
 
 class controller:
-    scale = 0.75
+    scale = 0.5
     tscale = 1
     XYdeadzone = 0.03
     Tdeadzone = 0.1
