@@ -108,7 +108,7 @@ class MyRobot(commands2.TimedCommandRobot):
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
-    print("teleopPeriodic()")
+    # print("teleopPeriodic()")
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())

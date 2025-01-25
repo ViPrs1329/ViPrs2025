@@ -56,21 +56,29 @@ class DriveTrain(commands2.Subsystem):
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
     self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backLeftRotationConfig.smartCurrentLimit(10)
     self.backRightRotationConfig = rev.SparkBaseConfig()
     self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backRightRotationConfig.smartCurrentLimit(10)
     self.frontLeftRotationConfig = rev.SparkBaseConfig()
     self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontLeftRotationConfig.smartCurrentLimit(10)
     self.frontRightRotationConfig = rev.SparkBaseConfig()
     self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontRightRotationConfig.smartCurrentLimit(10)
 
     self.backLeftDriveConfig = rev.SparkBaseConfig()
-    self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backLeftDriveConfig.smartCurrentLimit(10)
     self.backRightDriveConfig = rev.SparkBaseConfig()
-    self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.backRightDriveConfig.smartCurrentLimit(10)
     self.frontLeftDriveConfig = rev.SparkBaseConfig()
-    self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontLeftDriveConfig.smartCurrentLimit(10)
     self.frontRightDriveConfig = rev.SparkBaseConfig()
-    self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+    self.frontRightDriveConfig.smartCurrentLimit(10)
     
     self.backLeftRotation.configure(self.backLeftRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
     self.backRightRotation.configure(self.backRightRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -198,6 +206,13 @@ class DriveTrain(commands2.Subsystem):
 
   def periodic(self) -> None:
     self.updateOdometry()
+    print(
+f"""
+
+back rightr: {self.backRightRotation.getOutputCurrent()}
+back leftr: {self.backRightRotation.getOutputCurrent()}
+front rightr: {self.backRightRotation.getOutputCurrent()}
+front leftr: {self.backRightRotation.getOutputCurrent()}""")
 
   def resetMotors(self) -> None:
     pass # if we need it
