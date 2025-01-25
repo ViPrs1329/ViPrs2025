@@ -15,6 +15,7 @@ import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
 import constants
 import numpy as np
+import ntcore
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -60,6 +61,11 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingXboxController = wpilib.XboxController(0)
     self.drivetrain = DriveTrain()
 
+    # initialize network tables
+    inst = ntcore.NetworkTableInstance.getDefault()
+    table = inst.getTable("datatable")
+    self.controllerXPub = table.getDoubleTopic("controller x").publish()
+    self.controllerYPub = table.getDoubleTopic("controller y").publish()
     print("robotInit()")
 
   def robotPeriodic(self):
@@ -112,6 +118,9 @@ class MyRobot(commands2.TimedCommandRobot):
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
+    self.controllerXPub.set(xSpeed)
+    self.controllerYPub.set(ySpeed)
+    
     tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
     if abs(xSpeed) < constants.controller.XYdeadzone:
