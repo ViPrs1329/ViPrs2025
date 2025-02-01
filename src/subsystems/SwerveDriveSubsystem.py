@@ -40,6 +40,7 @@ class DriveTrain(commands2.Subsystem):
     super().__init__()
     
     self.robotOdometryPosition = Pose2d()
+    self.combinedPosition = Pose2d()
 
     # Drivetrain init 
     # Need to replace CAN ids with their respective
@@ -205,6 +206,9 @@ class DriveTrain(commands2.Subsystem):
         getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
       )
     )
+    robotRotationPose = self.odometry.getPose()
+    # we get the rotation and translations seperatly as Pose2d objects and then combine them
+    self.combinedPosition = Pose2d(x = self.robotOdometryPosition.x, y = self.robotOdometryPosition.y, rotation = robotRotationPose.rotation())
 
   def periodic(self) -> None:
     self.updateOdometry()
