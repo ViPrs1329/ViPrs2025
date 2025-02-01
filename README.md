@@ -7,5 +7,5 @@
 - We should make use of sensor call caching to reduce the CAN bus overhead
 
 ## Important Commands
-py -3 -m robotpy deploy --skip-tests
-py -3 -m robotpy sync
+python -m robotpy deploy --skip-tests
+python -m robotpy sync
