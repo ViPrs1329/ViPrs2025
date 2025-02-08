@@ -16,6 +16,8 @@ from subsystems.SwerveDriveSubsystem import DriveTrain
 import constants
 import numpy as np
 import ntcore
+from pathplannerlib.auto import PathPlannerAuto
+from commands.slowDownCommand import ToggleSlow
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -73,6 +75,12 @@ class MyRobot(commands2.TimedCommandRobot):
     # print("robotPeriodic()")
     pass
         
+  def getAutonomousCommand(cmd):
+        # This method loads the auto when it is called, however, it is recommended
+        # to first load your paths/autos when code starts, then return the
+        # pre-loaded auto/path
+        return PathPlannerAuto(cmd)
+
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
@@ -95,6 +103,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.stopRumble()
     self.drivetrain.resetHarder()
     self.systemTempCheck()
+    self.drivingXboxController.rightTrigger()
 
   def inputCurve(input: float):
     return (input ** 3)
@@ -144,7 +153,7 @@ class MyRobot(commands2.TimedCommandRobot):
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
         
-    self.robotPosition.set(self.drivetrain.combinedPosition)
+    self.robotPosition.set(self.drivetrain.robotOdometryPosition)
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""

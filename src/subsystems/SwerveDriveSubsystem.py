@@ -2,6 +2,12 @@ import rev
 import math
 import commands2
 
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.config import RobotConfig, PIDConstants
+from wpilib import DriverStation
+
+
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds, SwerveDrive4Odometry, SwerveModulePosition
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
@@ -40,11 +46,14 @@ class DriveTrain(commands2.Subsystem):
     super().__init__()
     
     self.robotOdometryPosition = Pose2d()
-    self.combinedPosition = Pose2d()
+    # self.combinedPosition = Pose2d()
 
     # Drivetrain init 
     # Need to replace CAN ids with their respective
     # ids from constants.CANIDs
+
+    #used for autobuilder
+    config = RobotConfig.fromGUISettings()
 
     self.backLeftRotation = rev.SparkMax(4, rev.SparkMax.MotorType.kBrushless)
     self.backRightRotation = rev.SparkMax(6, rev.SparkMax.MotorType.kBrushless)
@@ -122,6 +131,26 @@ class DriveTrain(commands2.Subsystem):
     self.FrightPID = controller.PIDController(Kp,0,0)
     self.FrightPID.enableContinuousInput(-.5,.5)
     self.FrightPID.setSetpoint(0.0)
+    
+    AutoBuilder.configure(
+            self.getPose, # Robot pose supplier
+            self.resetPose, # Method to reset odometry (will be called if your auto has a starting pose)
+            self.getRobotRelativeSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            lambda speeds, feedforwards: self.driveRobotRelative(speeds), # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds. Also outputs individual module feedforwards
+            PPHolonomicDriveController( # PPHolonomicController is the built in path following controller for holonomic drive trains
+                PIDConstants(5.0, 0.0, 0.0), # Translation PID constants
+                PIDConstants(5.0, 0.0, 0.0) # Rotation PID constants
+            ),
+            config, # The robot configuration
+            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
+            self # Reference to this subsystem to set requirements
+        )
+
+    def shouldFlipPath():
+            # Boolean supplier that controls when the path will be mirrored for the red alliance
+            # This will flip the path being followed to the red side of the field.
+            # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+            return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
     # Gyro init
 
@@ -182,7 +211,7 @@ class DriveTrain(commands2.Subsystem):
   def getChassisSpeed(self) -> ChassisSpeeds:
     return self.lastChassisSpeed
   
-  def updateOdometry(self) -> None: # weee neeeed thiiiis!
+  def updateOdometry(self) -> None: # weee maybe neeeed thiiiis!
     # yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double - 90)
 
     # a = self.odometry.update( 
@@ -206,9 +235,9 @@ class DriveTrain(commands2.Subsystem):
         getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
       )
     )
-    robotRotationPose = self.odometry.getPose()
-    # we get the rotation and translations seperatly as Pose2d objects and then combine them
-    self.combinedPosition = Pose2d(x = self.robotOdometryPosition.x, y = self.robotOdometryPosition.y, rotation = robotRotationPose.rotation())
+    # robotRotationPose = self.odometry.getPose()
+    # # we get the rotation and translations seperatly as Pose2d objects and then combine them
+    # self.combinedPosition = Pose2d(x = self.robotOdometryPosition.x, y = self.robotOdometryPosition.y, rotation = robotRotationPose.rotation())
 
   def periodic(self) -> None:
     self.updateOdometry()

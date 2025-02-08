@@ -20,7 +20,7 @@ class convert:
     
 
 class CANIDs:
-    # Swerve CAD IDs
+    # Swerve CAN IDs
     SwerveModuleDrive1 = 1
     SwerveModuleRotation1 = 2
     SwerveModuleDrive2 = 3
@@ -37,6 +37,16 @@ class CANIDs:
     EncoderModuleRotation3 = 9
     EncoderModuleRotation4 = 12
 
+    # End Effector CAN IDs
+    arm = 100
+    intake1 = 101
+    intake2 = 102
+    algae = 103
+
+    # Elevator CAN IDs
+    elevator1 = 100
+    elevator2 = 101
+
 class inputConsts:
     inputScale = 0.8
     inputDeadZone = 0.1
@@ -44,9 +54,9 @@ class inputConsts:
 
 class driveConsts:
     wheelDiameter = 4
+    slowScale = 0.3
 
-
-class intakeConsts:
+class endEffectorConsts:
     pass
 
 class elevatorConsts:
