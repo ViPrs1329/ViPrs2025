@@ -42,6 +42,16 @@ def getSwerveModPos(rotEnc : CANcoder, driveEnc: rev.SparkRelativeEncoder) -> Sw
     )
 
 class DriveTrain(commands2.Subsystem):
+  def shouldFlipPath():
+          # Boolean supplier that controls when the path will be mirrored for the red alliance
+          # This will flip the path being followed to the red side of the field.
+          # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+          return DriverStation.getAlliance() == DriverStation.Alliance.kRed
+
+  def resetPose(self):
+      pass
+  def getRobotRelativeSpeeds(self):
+    pass
   def __init__(self) -> None:
     super().__init__()
     
@@ -145,12 +155,6 @@ class DriveTrain(commands2.Subsystem):
             self.shouldFlipPath, # Supplier to control path flipping based on alliance color
             self # Reference to this subsystem to set requirements
         )
-
-    def shouldFlipPath():
-            # Boolean supplier that controls when the path will be mirrored for the red alliance
-            # This will flip the path being followed to the red side of the field.
-            # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-            return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
     # Gyro init
 

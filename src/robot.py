@@ -47,6 +47,7 @@ class MyRobot(commands2.TimedCommandRobot):
         print("!!! ---------------- MOTORS TOO HOT ------------------- !!!")
         
   def startRumble(self):
+    return
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kRightRumble,1)
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kLeftRumble,1)
 
@@ -103,7 +104,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.stopRumble()
     self.drivetrain.resetHarder()
     self.systemTempCheck()
-    self.drivingXboxController.rightTrigger()
+    # self.drivingXboxController.rightTrigger()
 
   def inputCurve(input: float):
     return (input ** 3)
