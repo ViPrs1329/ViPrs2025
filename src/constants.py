@@ -21,21 +21,21 @@ class convert:
 
 class CANIDs:
     # Swerve CAD IDs
-    SwerveModuleDrive1 = 1
-    SwerveModuleRotation1 = 2
-    SwerveModuleDrive2 = 3
-    SwerveModuleRotation2 = 4
+    SwerveModuleDrive1 = 11
+    SwerveModuleRotation1 = 10
+    SwerveModuleDrive2 = 13
+    SwerveModuleRotation2 = 12
     SwerveModuleDrive3 = 5
-    SwerveModuleRotation3 = 6
-    SwerveModuleDrive4 = 7
+    SwerveModuleRotation3 = 4
+    SwerveModuleDrive4 = 9
     SwerveModuleRotation4 = 8
 
     # Encoders
 
-    EncoderModuleRotation1 = 10
-    EncoderModuleRotation2 = 11
-    EncoderModuleRotation3 = 9
-    EncoderModuleRotation4 = 12
+    EncoderModuleRotation1 = 20
+    EncoderModuleRotation2 = 17
+    EncoderModuleRotation3 = 19
+    EncoderModuleRotation4 = 18
 
 class inputConsts:
     inputScale = 0.8

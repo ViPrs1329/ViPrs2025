@@ -12,7 +12,7 @@ from wpimath.geometry import Rotation2d, Pose2d
 import rev
 import math
 import commands2
-from subsystems.SwerveDriveSubsystem import DriveTrain
+from subsystems.SwerveDriveSubsystem import DriveTrain, Elevator
 import constants
 import numpy as np
 import ntcore
@@ -27,7 +27,9 @@ class MyRobot(commands2.TimedCommandRobot):
       self.drivetrain.backLeftRotation,
       self.drivetrain.backRightRotation,
       self.drivetrain.frontLeftRotation,
-      self.drivetrain.frontRightRotation,
+      self.drivetrain.frontRightRotation#,
+      #self.elevator.leftElevatorMotor,
+      #self.elevator.rightElevatorMotor
     ]
 
     burntFlag = False

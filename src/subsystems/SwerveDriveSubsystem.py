@@ -46,15 +46,15 @@ class DriveTrain(commands2.Subsystem):
     # Need to replace CAN ids with their respective
     # ids from constants.CANIDs
 
-    self.backLeftRotation = rev.SparkMax(4, rev.SparkMax.MotorType.kBrushless)
-    self.backRightRotation = rev.SparkMax(6, rev.SparkMax.MotorType.kBrushless)
-    self.frontLeftRotation = rev.SparkMax(2, rev.SparkMax.MotorType.kBrushless)
-    self.frontRightRotation = rev.SparkMax(8, rev.SparkMax.MotorType.kBrushless)
+    self.backLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotation2, rev.SparkMax.MotorType.kBrushless)
+    self.backRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotation3, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotation1, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotation4, rev.SparkMax.MotorType.kBrushless)
 
-    self.backLeftDrive = rev.SparkMax(3, rev.SparkMax.MotorType.kBrushless)
-    self.backRightDrive = rev.SparkMax(5, rev.SparkMax.MotorType.kBrushless)
-    self.frontLeftDrive = rev.SparkMax(1, rev.SparkMax.MotorType.kBrushless)
-    self.frontRightDrive = rev.SparkMax(7, rev.SparkMax.MotorType.kBrushless)
+    self.backLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDrive2, rev.SparkMax.MotorType.kBrushless)
+    self.backRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive3, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDrive1, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive4, rev.SparkMax.MotorType.kBrushless)
 
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
@@ -125,7 +125,7 @@ class DriveTrain(commands2.Subsystem):
 
     # Gyro init
 
-    self.gyro = Pigeon2(13)
+    self.gyro = Pigeon2(21)
     self.gyro.set_yaw(0)
 
     # Kinematics (need to get back from design on exact measurments)
