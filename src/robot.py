@@ -12,7 +12,7 @@ from wpimath.geometry import Rotation2d, Pose2d
 import rev
 import math
 import commands2
-from subsystems.SwerveDriveSubsystem import DriveTrain, Elevator
+from subsystems.SwerveDriveSubsystem import DriveTrain
 import constants
 import numpy as np
 import ntcore
