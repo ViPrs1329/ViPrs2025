@@ -196,7 +196,7 @@ class DriveTrain(commands2.Subsystem):
     # )
 
     yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double)
-    print(self.frontLeftDriveEnc.getPosition())
+    #print(self.frontLeftDriveEnc.getPosition())
     self.robotOdometryPosition = self.odometry.update(
       yaw,
       (
@@ -229,15 +229,42 @@ class DriveTrain(commands2.Subsystem):
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
     frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
 
-    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
-    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
-    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
-    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
+    bldSpeed = -backLeft.speed
+    brdSpeed = backRight.speed
+    fldSpeed = frontLeft.speed
+    frdSpeed = frontRight.speed
 
-    self.backLeftDrive.set(-backLeft.speed)
-    self.backRightDrive.set(backRight.speed)
-    self.frontLeftDrive.set(frontLeft.speed)
-    self.frontRightDrive.set(frontRight.speed)
+    blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
+    flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
+    brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
+    frrSpeed = self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
+
+    dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
+    rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
+
+
+    for i in range(len(dSpeedList)):
+       if abs(dSpeedList[i])<0.5: #drive deadzone
+          dSpeedList[i]=0
+
+    for i in range(len(rSpeedList)):
+       if abs(rSpeedList[i])<0.5: #rotation deadzone
+          rSpeedList[i]=0
+
+    self.backLeftRotation.set(rSpeedList[0])
+    self.frontLeftRotation.set(rSpeedList[1])
+    self.backRightRotation.set(rSpeedList[2])
+    self.frontRightRotation.set(rSpeedList[3])
+
+    self.backLeftDrive.set(dSpeedList[0])
+    self.backRightDrive.set(dSpeedList[1])
+    self.frontLeftDrive.set(dSpeedList[2])
+    self.frontRightDrive.set(dSpeedList[3])
+
+    #print(dSpeedList)
+    #print(rSpeedList)
+    #print('\n')
+
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
     self.lastChassisSpeed = speeds
@@ -268,10 +295,23 @@ class DriveTrain(commands2.Subsystem):
 
     # probably fine at 13 (can change if needed)
     maxVoltage = 13
-    self.backLeftDrive.setVoltage(-(backLeft.speed/maxModSpeed)*maxVoltage)
-    self.backRightDrive.setVoltage((backRight.speed/maxModSpeed)*maxVoltage)
-    self.frontLeftDrive.setVoltage((frontLeft.speed/maxModSpeed)*maxVoltage)
-    self.frontRightDrive.setVoltage((frontRight.speed/maxModSpeed)*maxVoltage)
+
+    blSpeed=-(backLeft.speed/maxModSpeed)*maxVoltage
+    brSpeed=(backRight.speed/maxModSpeed)*maxVoltage
+    flSpeed=(frontLeft.speed/maxModSpeed)*maxVoltage
+    frSpeed=(frontRight.speed/maxModSpeed)*maxVoltage
+
+    speedsList = [blSpeed, brSpeed, flSpeed, frSpeed]
+
+    for i in speedsList:
+       if i<1: #voltage deadzone
+          i=0
+
+    self.backLeftDrive.setVoltage(blSpeed)
+    self.backRightDrive.setVoltage(brSpeed)
+    self.frontLeftDrive.setVoltage(flSpeed)
+    self.frontRightDrive.setVoltage(frSpeed)
+
 
   def stopMotors(self):
     self.frontLeftDrive.set(0)
