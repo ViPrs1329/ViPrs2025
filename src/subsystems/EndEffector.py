@@ -2,6 +2,8 @@
 #
 # This file defines the EndEffector subsystem, which controls the
 # Algae Intake and Coral Intake mechanisms of the robot.
+# 
+# Fill out CANIDs
 
 import rev
 import commands2
