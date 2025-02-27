@@ -205,12 +205,18 @@ class EndEffector(commands2.Subsystem):
                 print(f"Error checking coral position: {e}")
         return False
 
-    def intakeCoral(self, speed=endEffectorConsts.CORAL_INTAKE_SPEED):
+    def intakeCoral(self, speed=None):
         """Intake coral at given speed until properly positioned.
         
+        Args:
+            speed (float, optional): The speed to run the intake. Defaults to CORAL_INTAKE_SPEED.
+            
         Returns:
             bool: True if finished (coral positioned), False otherwise
         """
+        if speed is None:
+            speed = endEffectorConsts.CORAL_INTAKE_SPEED
+            
         if not self.isCoralPositioned():
             self.setCoralIntakeLeftSpeed(speed)
             self.setCoralIntakeRightSpeed(speed)
