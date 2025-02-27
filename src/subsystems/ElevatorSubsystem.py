@@ -9,7 +9,7 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpilib import DriverStation
 from wpimath import controller
 
-from constants import CANIDs
+import constants
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
@@ -19,17 +19,17 @@ class Elevator(commands2.Subsystem):
 
     # Motor initiation
 
-    self.LEM = rev.SparkFlex(15, rev.SparkFlex.MotorType.kBrushless)
-    self.REM = rev.SparkFlex(16, rev.SparkFlex.MotorType.kBrushless)
+    self.LEM = rev.SparkFlex(constants.CANIDs.ElevatorLeftID, rev.SparkFlex.MotorType.kBrushless)
+    self.REM = rev.SparkFlex(constants.CANIDs.ElevatorRightID, rev.SparkFlex.MotorType.kBrushless)
 
     # Set configs
 
     self.LEMConfig = rev.SparkBaseConfig()
     self.LEMConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.LEMConfig.smartCurrentLimit(10)
+    self.LEMConfig.smartCurrentLimit(constants.elevatorConsts.currentLimit)
     self.REMConfig = rev.SparkBaseConfig()
     self.REMConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.REMConfig.smartCurrentLimit(10)
+    self.REMConfig.smartCurrentLimit(constants.elevatorConsts.currentLimit)
 
     # actually configure
 

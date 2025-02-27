@@ -20,7 +20,7 @@ class convert:
     
 
 class CANIDs:
-    # Swerve CAD IDs
+    # Swerve CAN IDs
     SwerveModuleDrive1 = 11
     SwerveModuleRotation1 = 10
     SwerveModuleDrive2 = 13
@@ -30,12 +30,30 @@ class CANIDs:
     SwerveModuleDrive4 = 9
     SwerveModuleRotation4 = 8
 
-    # Encoders
-
+    # Swerve CAN Encoders
     EncoderModuleRotation1 = 20
     EncoderModuleRotation2 = 17
     EncoderModuleRotation3 = 19
     EncoderModuleRotation4 = 18
+
+    # Pigeon CAN ID
+    PigeonID = 21
+
+
+    # Elevator CAN IDs
+    ElevatorLeftID = 15 # Verify 
+    ElevatorRightID = 16 # Verify
+
+    # End Effector CAN IDs
+    EECoralLeftID = 24 # Verify
+    EECoralRightID = 25 # Verify
+    EECoralInSensorID = 26 # Verify
+    EECoralStopSensorID = 27 # Verify
+
+    EEAlgaeArmRotationID = 28 # Verify
+    EEAlgaeIntakeID = 29 # Verify
+    
+
 
 class inputConsts:
     inputScale = 0.8
@@ -44,13 +62,17 @@ class inputConsts:
 
 class driveConsts:
     wheelDiameter = 4
+    currentLimit = 10
 
 
-class intakeConsts:
+class endEffectorConsts:
+    coralCurrentLimit = 20
+    algaeRotCurrentLimit = 20
+    algaeIntakeCurrentLimit = 20
     pass
 
 class elevatorConsts:
-    pass
+    currentLimit = 10
 
 
 

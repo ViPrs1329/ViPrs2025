@@ -8,7 +8,7 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpilib import DriverStation
 from wpimath import controller
 
-from constants import CANIDs
+from constants import CANIDs, driveConsts
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
@@ -59,29 +59,29 @@ class DriveTrain(commands2.Subsystem):
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
     self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backLeftRotationConfig.smartCurrentLimit(10)
+    self.backLeftRotationConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.backRightRotationConfig = rev.SparkBaseConfig()
     self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backRightRotationConfig.smartCurrentLimit(10)
+    self.backRightRotationConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.frontLeftRotationConfig = rev.SparkBaseConfig()
     self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontLeftRotationConfig.smartCurrentLimit(10)
+    self.frontLeftRotationConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.frontRightRotationConfig = rev.SparkBaseConfig()
     self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontRightRotationConfig.smartCurrentLimit(10)
+    self.frontRightRotationConfig.smartCurrentLimit(driveConsts.currentLimit)
 
     self.backLeftDriveConfig = rev.SparkBaseConfig()
     self.backLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backLeftDriveConfig.smartCurrentLimit(10)
+    self.backLeftDriveConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.backRightDriveConfig = rev.SparkBaseConfig()
     self.backRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backRightDriveConfig.smartCurrentLimit(10)
+    self.backRightDriveConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.frontLeftDriveConfig = rev.SparkBaseConfig()
     self.frontLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontLeftDriveConfig.smartCurrentLimit(10)
+    self.frontLeftDriveConfig.smartCurrentLimit(driveConsts.currentLimit)
     self.frontRightDriveConfig = rev.SparkBaseConfig()
     self.frontRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontRightDriveConfig.smartCurrentLimit(10)
+    self.frontRightDriveConfig.smartCurrentLimit(driveConsts.currentLimit)
     
     self.backLeftRotation.configure(self.backLeftRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
     self.backRightRotation.configure(self.backRightRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -125,7 +125,7 @@ class DriveTrain(commands2.Subsystem):
 
     # Gyro init
 
-    self.gyro = Pigeon2(21)
+    self.gyro = Pigeon2(CANIDs.PigeonID)
     self.gyro.set_yaw(0)
 
     # Kinematics (need to get back from design on exact measurments)
