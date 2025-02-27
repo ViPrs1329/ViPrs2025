@@ -1,5 +1,29 @@
 import wpilib
 
+class SparkRelativeEncoder:
+    """Simulation for SparkRelativeEncoder"""
+    
+    class Type:
+        kHallSensor = 0
+        kQuadrature = 1
+    
+    def __init__(self, spark_max):
+        self.spark_max = spark_max
+        self._position = 0
+        self._velocity = 0
+    
+    def getPosition(self):
+        """Get the encoder position."""
+        return self.spark_max._position * 42  # Convert to encoder counts
+    
+    def getVelocity(self):
+        """Get the encoder velocity."""
+        return self.spark_max._speed * 42 * 60  # RPM
+    
+    def setPosition(self, position):
+        """Set the encoder position."""
+        self.spark_max._position = position / 42
+
 class SimSparkMax:
     """Simulation replacement for rev.SparkMax"""
     

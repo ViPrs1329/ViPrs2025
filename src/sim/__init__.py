@@ -22,6 +22,13 @@ def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0
                 rev_module = type('rev', (), {})()
                 
                 # Add our simulation classes
+                # Add SparkRelativeEncoder to the rev_module
+                rev_module.SparkRelativeEncoder = type('SparkRelativeEncoder', (), {
+                    'Type': type('Type', (), {
+                        'kHallSensor': 0,
+                        'kQuadrature': 1
+                    })
+                })
                 rev_module.SparkMax = SimSparkMax
                 rev_module.SparkFlex = SimSparkFlex
                 rev_module.SparkBaseConfig = SparkBaseConfig
