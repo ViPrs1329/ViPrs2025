@@ -1,28 +1,5 @@
 import wpilib
-
-class SparkRelativeEncoder:
-    """Simulation for SparkRelativeEncoder"""
-    
-    class Type:
-        kHallSensor = 0
-        kQuadrature = 1
-    
-    def __init__(self, spark_max):
-        self.spark_max = spark_max
-        self._position = 0
-        self._velocity = 0
-    
-    def getPosition(self):
-        """Get the encoder position."""
-        return self.spark_max._position * 42  # Convert to encoder counts
-    
-    def getVelocity(self):
-        """Get the encoder velocity."""
-        return self.spark_max._speed * 42 * 60  # RPM
-    
-    def setPosition(self, position):
-        """Set the encoder position."""
-        self.spark_max._position = position / 42
+import ntcore
 
 class SimSparkMax:
     """Simulation replacement for rev.SparkMax"""
@@ -44,23 +21,54 @@ class SimSparkMax:
         self._voltage = 0
         self._temperature = 30  # Default temp 30°C
         
-        # Create sim objects through WPILib
-        self.sim_motor = wpilib.simulation.PWMSim(device_id % 20)  # Use modulo to keep in PWM range
-        self.sim_collection = self.sim_motor.getSimCollection()
+        # Use a simulated motor
+        pwm_channel = (device_id % 20)  # Make sure it stays in valid PWM range
+        # Only create PWM if we don't exceed available channels
+        if pwm_channel < wpilib.PWM.kPwmChannels:
+            self.pwm = wpilib.PWM(pwm_channel)
+            self.sim_motor = wpilib.simulation.PWMSim(pwm_channel)
+        else:
+            self.pwm = None
+            self.sim_motor = None
         
-        # Create a NetworkTables entry for monitoring
-        import ntcore
-        nt = ntcore.NetworkTableInstance.getDefault()
-        self.table = nt.getTable(f"Sim/SparkMax/{device_id}")
+        # Create NetworkTables entries for monitoring
+        self.nt = ntcore.NetworkTableInstance.getDefault()
+        self.table = self.nt.getTable(f"Sim/SparkMax/{device_id}")
         self.speed_pub = self.table.getDoubleTopic("speed").publish()
         self.position_pub = self.table.getDoubleTopic("position").publish()
         self.temperature_pub = self.table.getDoubleTopic("temperature").publish()
+        self.current_pub = self.table.getDoubleTopic("current").publish()
+        
+        # Initialize values
+        self.speed_pub.set(0)
+        self.position_pub.set(0)
+        self.temperature_pub.set(30)
+        self.current_pub.set(0)
+        
+        print(f"Created simulation SparkMax ID={device_id}")
     
     def set(self, speed):
         """Set the motor speed."""
         self._speed = speed if not self._inverted else -speed
-        self.sim_motor.setSpeed(self._speed)
+        
+        # Update PWM if available
+        if self.pwm:
+            try:
+                self.pwm.setSpeed(self._speed)
+            except:
+                pass  # Ignore PWM errors in simulation
+        
+        # Update NetworkTables
         self.speed_pub.set(self._speed)
+        self.current_pub.set(abs(self._speed * 30))  # Simulate current based on speed
+        
+        # Simulate temperature rising with speed
+        self._temperature = 30 + abs(self._speed * 10)
+        self.temperature_pub.set(self._temperature)
+        
+        # Update position based on speed (simple simulation)
+        self._position += self._speed * 0.02  # Assuming 20ms update rate
+        self.position_pub.set(self._position)
     
     def setVoltage(self, voltage):
         """Set the motor voltage."""
@@ -86,8 +94,6 @@ class SimSparkMax:
     
     def getMotorTemperature(self):
         """Get the motor temperature."""
-        # Simulate temperature rising with speed
-        self._temperature = 30 + abs(self._speed) * 10
         return self._temperature
     
     def restoreFactoryDefaults(self):
@@ -105,13 +111,6 @@ class SimSparkMax:
     def configure(self, config, reset_mode=None, persist_mode=None):
         """Configure the motor controller."""
         pass
-    
-    def periodic(self):
-        """Update simulation state."""
-        # Update position based on speed
-        self._position += self._speed * 0.02  # 20ms update
-        self.position_pub.set(self._position)
-        self.temperature_pub.set(self._temperature)
 
 # Alias SparkFlex to the same simulation class for now
 SimSparkFlex = SimSparkMax
@@ -119,10 +118,12 @@ SimSparkFlex = SimSparkMax
 class SimEncoder:
     """Simulation for a SparkMax encoder."""
     
+    class Type:
+        kHallSensor = 0
+        kQuadrature = 1
+    
     def __init__(self, spark_max):
         self.spark_max = spark_max
-        self._position = 0
-        self._velocity = 0
     
     def getPosition(self):
         """Get the encoder position."""

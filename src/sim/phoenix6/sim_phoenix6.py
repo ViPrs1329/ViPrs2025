@@ -12,8 +12,8 @@ class Pigeon2:
         self._roll = 0
         
         # Create a NetworkTables entry for monitoring/control
-        nt = ntcore.NetworkTableInstance.getDefault()
-        self.table = nt.getTable(f"Sim/Pigeon2/{device_id}")
+        self.nt = ntcore.NetworkTableInstance.getDefault()
+        self.table = self.nt.getTable(f"Sim/Pigeon2/{device_id}")
         self.yaw_pub = self.table.getDoubleTopic("yaw").publish()
         self.pitch_pub = self.table.getDoubleTopic("pitch").publish()
         self.roll_pub = self.table.getDoubleTopic("roll").publish()
@@ -22,6 +22,8 @@ class Pigeon2:
         self.yaw_pub.set(0)
         self.pitch_pub.set(0)
         self.roll_pub.set(0)
+        
+        print(f"Created simulation Pigeon2 ID={device_id}")
     
     def set_yaw(self, yaw):
         """Set the yaw angle."""
@@ -49,6 +51,7 @@ class SimStatusSignal:
     
     def __init__(self, value):
         self.value_as_double = value
+        self._value = value  # Some code might access this directly
 
 class CANcoder:
     """Simulation for a CANcoder."""
@@ -58,10 +61,12 @@ class CANcoder:
         self._position = 0.0  # Absolute position in rotations (0-1)
         
         # Create a NetworkTables entry for monitoring/control
-        nt = ntcore.NetworkTableInstance.getDefault()
-        self.table = nt.getTable(f"Sim/CANcoder/{device_id}")
+        self.nt = ntcore.NetworkTableInstance.getDefault()
+        self.table = self.nt.getTable(f"Sim/CANcoder/{device_id}")
         self.position_pub = self.table.getDoubleTopic("position").publish()
         self.position_pub.set(0)
+        
+        print(f"Created simulation CANcoder ID={device_id}")
     
     def get_position(self):
         """Get the absolute position."""
