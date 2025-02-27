@@ -69,7 +69,13 @@ class endEffectorConsts:
     coralCurrentLimit = 20
     algaeRotCurrentLimit = 20
     algaeIntakeCurrentLimit = 20
-    pass
+    
+    # LaserCAN thresholds (in mm)
+    CORAL_DETECTION_THRESHOLD = 50  # Distance that indicates coral is present
+    CORAL_STOP_THRESHOLD = 30  # Distance that indicates coral is in position
+    
+    # Intake speeds
+    CORAL_INTAKE_SPEED = 0.7
 
 class elevatorConsts:
     currentLimit = 10

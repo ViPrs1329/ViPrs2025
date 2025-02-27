@@ -101,3 +101,34 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor.set(0)
         self.coral_intake_right_motor.set(0)
 
+    def isCoralDetected(self) -> bool:
+        """Check if coral is detected at entrance of intake."""
+        measurement = self.coral_intake_LC.get_measurement()
+        if measurement:
+            distance, status = measurement
+            # Use a threshold distance defined in constants.py
+            return status == 0 and distance < endEffectorConsts.CORAL_DETECTION_THRESHOLD
+        return False
+    
+    def isCoralPositioned(self) -> bool:
+        """Check if coral has reached correct position inside intake."""
+        measurement = self.coral_stop_LC.get_measurement()
+        if measurement:
+            distance, status = measurement
+            return status == 0 and distance < endEffectorConsts.CORAL_STOP_THRESHOLD
+        return False
+
+    def intakeCoral(self, speed=0.7):
+        """Intake coral at given speed until properly positioned."""
+        if not self.isCoralPositioned():
+            self.setCoralIntakeLeftSpeed(speed)
+            self.setCoralIntakeRightSpeed(speed)
+            return False  # Not finished
+        else:
+            self.stopCoralIntake()
+            return True  # Finished
+        
+    def stopCoralIntake(self):
+        """Stop the coral intake motors."""
+        self.setCoralIntakeLeftSpeed(0)
+        self.setCoralIntakeRightSpeed(0)

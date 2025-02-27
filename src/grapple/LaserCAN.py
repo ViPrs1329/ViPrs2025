@@ -24,6 +24,14 @@ class LaserCAN:
         self.device.writePacket(data.ljust(8, b'\x00'), api_id)
 
     def get_measurement(self):
+        """Request a measurement from the LaserCAN sensor.
+        
+        Returns:
+            tuple: (distance_mm, status) where:
+                - distance_mm (int): Distance in millimeters
+                - status (int): Status code (0=Good, 1=SignalFail, 2=OutOfRange, etc.)
+            or None if no measurement received
+        """
         """Request a measurement from the LaserCAN sensor."""
         self.send_command(self.LASERCAN_API_GET_MEASUREMENT)
         if self.device.readPacketTimeout(self.LASERCAN_API_GET_MEASUREMENT, 100, self.can_data):
@@ -45,6 +53,14 @@ class LaserCAN:
         """Set the region of interest for the sensor."""
         roi_data = struct.pack('<BBBB', x, y, width, height)
         self.send_command(self.LASERCAN_API_SET_ROI, roi_data)
+
+    def get_measurement_safe(self, default_distance=8000, default_status=255):
+        """Get measurement with fallback values if read fails."""
+        result = self.get_measurement()
+        if result is None:
+            print(f"Warning: LaserCAN ID {self.device.getDeviceID()} read failed, using defaults")
+            return default_distance, default_status
+        return result
 
 '''
 # Example usage
