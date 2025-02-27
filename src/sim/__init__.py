@@ -14,17 +14,17 @@ def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0
         # Override hardware libraries with simulation versions
         if name == 'rev':
             # First, try to import our simulation version
-            sim_path = "sim.revlib.sim_sparkmax"
             try:
-                sim_module = original_import(sim_path, globals, locals, fromlist, level)
+                # Import the specific simulation module directly
+                from sim.revlib.sim_sparkmax import SimSparkMax, SimSparkFlex, SparkBaseConfig
                 
                 # Create a fake module to return
                 rev_module = type('rev', (), {})()
                 
                 # Add our simulation classes
-                rev_module.SparkMax = sim_module.SimSparkMax
-                rev_module.SparkFlex = sim_module.SimSparkFlex
-                rev_module.SparkBaseConfig = sim_module.SparkBaseConfig
+                rev_module.SparkMax = SimSparkMax
+                rev_module.SparkFlex = SimSparkFlex
+                rev_module.SparkBaseConfig = SparkBaseConfig
                 rev_module.SparkBase = type('SparkBase', (), {
                     'ResetMode': type('ResetMode', (), {
                         'kResetSafeParameters': 0
@@ -35,28 +35,30 @@ def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0
                 })()
                 
                 # Add the motor types and other necessary attributes
-                rev_module.CANSparkMax = sim_module.SimSparkMax
+                rev_module.CANSparkMax = SimSparkMax
                 
                 return rev_module
-            except ImportError:
+            except ImportError as e:
+                print(f"Error importing simulation modules: {e}")
                 # If our simulation version fails, try the original
                 pass
         
         elif name == 'phoenix6.hardware':
             # Import our simulation version
-            sim_path = "sim.phoenix6.sim_phoenix6"
             try:
-                sim_module = original_import(sim_path, globals, locals, fromlist, level)
+                # Import the specific simulation classes directly
+                from sim.phoenix6.sim_phoenix6 import Pigeon2, CANcoder
                 
                 # Create a fake module to return
                 phoenix_module = type('phoenix6.hardware', (), {})()
                 
                 # Add our simulation classes
-                phoenix_module.Pigeon2 = sim_module.Pigeon2
-                phoenix_module.CANcoder = sim_module.CANcoder
+                phoenix_module.Pigeon2 = Pigeon2
+                phoenix_module.CANcoder = CANcoder
                 
                 return phoenix_module
-            except ImportError:
+            except ImportError as e:
+                print(f"Error importing phoenix6 simulation modules: {e}")
                 # If our simulation version fails, try the original
                 pass
     
