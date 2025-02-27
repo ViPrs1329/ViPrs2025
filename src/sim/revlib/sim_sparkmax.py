@@ -21,13 +21,22 @@ class SimSparkMax:
         self._voltage = 0
         self._temperature = 30  # Default temp 30°C
         
-        # Use a simulated motor
-        pwm_channel = (device_id % 20)  # Make sure it stays in valid PWM range
-        # Only create PWM if we don't exceed available channels
-        if pwm_channel < wpilib.PWM.kPwmChannels:
-            self.pwm = wpilib.PWM(pwm_channel)
-            self.sim_motor = wpilib.simulation.PWMSim(pwm_channel)
-        else:
+        # Use a simulated motor - with a safety check on PWM channels
+        # In WPILib 2025, we need to use a different approach than kPwmChannels
+        # The default number of PWM channels is typically 10 in WPILib
+        MAX_PWM_CHANNELS = 10
+        pwm_channel = (device_id % MAX_PWM_CHANNELS)  # Make sure it stays in valid PWM range
+        
+        # Only try to create a PWM channel if it's in a valid range
+        try:
+            if pwm_channel < MAX_PWM_CHANNELS:
+                self.pwm = wpilib.PWM(pwm_channel)
+                self.sim_motor = wpilib.simulation.PWMSim(pwm_channel)
+            else:
+                self.pwm = None
+                self.sim_motor = None
+        except Exception as e:
+            print(f"Warning: Could not create PWM for device {device_id}: {e}")
             self.pwm = None
             self.sim_motor = None
         

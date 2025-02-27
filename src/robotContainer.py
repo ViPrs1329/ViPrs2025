@@ -1,8 +1,11 @@
-
-import commands2.button
+import commands2
+from commands2.button import CommandXboxController, Trigger
+from commands2 import button
 from commands2 import SequentialCommandGroup
-from commands2.button import CommandXboxController
+
 from subsystems.SwerveDriveSubsystem import DriveTrain
+from subsystems.EndEffector import EndEffector
+from commands.IntakeCommands import IntakeCoralCommand
 
 class RobotContainer:
     """
@@ -10,36 +13,49 @@ class RobotContainer:
     are instantiated and commands and button bindings are configured.
     """
     def __init__(self) -> None:
+        # Create controllers
+        self.driverController = CommandXboxController(0)
+        self.operatorController = CommandXboxController(1)
+        
+        # Initialize subsystems
         self.drivetrain = DriveTrain()
-        self.initSubsystems()
-        self.initControls()
+        self.endEffector = EndEffector()
+        
+        # Initialize commands
         self.initCommands()
+        
+        # Configure button bindings
         self.configureButtonBindings()
-
-    def initSubsystems(self):
-        """Instantiate the robot's subsystems."""
-        
-        pass
-
-    def initControls(self):
-        """Instantiate the robot's control objects"""
-        
-        pass
 
     def initCommands(self):
         """Instantiate the robot's commands."""
+        # Create commands
+        self.intakeCoralCommand = IntakeCoralCommand(self.endEffector)
         
-        pass
+        # Set default commands
+        # No default commands needed at this time
 
     def configureButtonBindings(self):
         """Configure the button bindings for user input."""
-               
-        pass
+        # Driver controls
+        # Example: self.driverController.a().onTrue(commands2.InstantCommand(lambda: self.drivetrain.resetGyro()))
+        
+        # Operator controls - Intake Coral with the X button
+        self.operatorController.x().onTrue(self.intakeCoralCommand)
+        
+        # Additional controls can be added here
 
+    def getAutonomousCommand(self):
+        """Return the command to run in autonomous mode."""
+        # Return the auto command here
+        return commands2.InstantCommand()  # Placeholder
+        
     def updateHardware(self):
         """Call the update methods of each subsystem."""
+        # Used for updating hardware state if needed
         pass
 
     def cacheSensors(self):
         """Retrieve and cache sensor data from each subsystem."""
+        # Used for caching sensor data to minimize CAN bus traffic
         pass
