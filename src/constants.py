@@ -29,6 +29,10 @@ class CANIDs:
     SwerveModuleRotation3 = 4
     SwerveModuleDrive4 = 9
     SwerveModuleRotation4 = 8
+    
+    # Elevator motors
+    ElevatorLeft = 15
+    ElevatorRight = 16
 
     # Encoders
 
@@ -36,6 +40,12 @@ class CANIDs:
     EncoderModuleRotation2 = 17
     EncoderModuleRotation3 = 19
     EncoderModuleRotation4 = 18
+
+    #end effector ids
+    CoralLeft = 100
+    CoralRight = 100
+    AlgaeArm = 100
+    AlgaeIntake = 100
 
 class inputConsts:
     inputScale = 0.8

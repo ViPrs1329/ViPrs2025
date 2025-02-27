@@ -261,9 +261,9 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
 
-    #print(dSpeedList)
-    #print(rSpeedList)
-    #print('\n')
+    print(dSpeedList)
+    print(rSpeedList)
+    print('\n')
 
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:

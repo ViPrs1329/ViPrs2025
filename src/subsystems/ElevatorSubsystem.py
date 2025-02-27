@@ -19,8 +19,8 @@ class Elevator(commands2.Subsystem):
 
     # Motor initiation
 
-    self.LEM = rev.SparkFlex(15, rev.SparkFlex.MotorType.kBrushless)
-    self.REM = rev.SparkFlex(16, rev.SparkFlex.MotorType.kBrushless)
+    self.LEM = rev.SparkFlex(CANIDs.ElevatorLeft, rev.SparkFlex.MotorType.kBrushless)
+    self.REM = rev.SparkFlex(CANIDs.ElevatorRight, rev.SparkFlex.MotorType.kBrushless)
 
     # Set configs
 
@@ -35,6 +35,10 @@ class Elevator(commands2.Subsystem):
 
     self.LEM.configure(self.LEMConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
     self.REM.configure(self.REMConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+
+  def drive(self, v):
+    self.LEM.set(v)
+    self.LEM.set(-v)
 
   def stopMotors(self):
     self.LEM.set(0)

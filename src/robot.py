@@ -62,6 +62,7 @@ class MyRobot(commands2.TimedCommandRobot):
     """
     self.drivingXboxController = wpilib.XboxController(0)
     self.drivetrain = DriveTrain()
+    #self.elevator = Elevator()
 
     # initialize network tables
     inst = ntcore.NetworkTableInstance.getDefault()
@@ -109,7 +110,7 @@ class MyRobot(commands2.TimedCommandRobot):
     s = MyRobot.inputCurve(d)
     sx = x * s
     sy = y * s
-    if sx * sx + sy * sy > 1:
+    if d > 1:
       scale = 1 / math.sqrt(sx * sx + sy * sy)
       sx *= scale
       sy *= scale
@@ -122,6 +123,8 @@ class MyRobot(commands2.TimedCommandRobot):
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
+    print('X Speed - ' + str(xSpeed))
+    print('Y Speed - ' + str(ySpeed))
     self.controllerXPub.set(xSpeed)
     self.controllerYPub.set(ySpeed)
 
@@ -143,7 +146,7 @@ class MyRobot(commands2.TimedCommandRobot):
     h2 = h / 360
 
     heading = h2 * (math.pi * 2)
-    print(xSpeed, ySpeed, tSpeed)
+    #print(xSpeed, ySpeed, tSpeed)
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
         
