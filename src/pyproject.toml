@@ -23,7 +23,7 @@ robotpy_extras = [
     # "playingwithfusion",
     "rev",
     # "romi",
-    # "sim",
+    "sim",
     # "xrp",
     "ntcore"
 ]

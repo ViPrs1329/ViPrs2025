@@ -6,6 +6,11 @@
 #
 import time
 import wpilib
+
+# If in simulation mode, load simulation hooks
+if wpilib.RobotBase.isSimulation():
+    import sim
+
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Rotation2d, Pose2d
@@ -16,6 +21,8 @@ from subsystems.SwerveDriveSubsystem import DriveTrain, Elevator
 import constants
 import numpy as np
 import ntcore
+
+
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -159,12 +166,32 @@ class MyRobot(commands2.TimedCommandRobot):
     pass
 
   def simulationInit(self):
-    print("Simulation init...")
-        
+      print("Simulation init...")
+      # Initialize any simulation-specific components
+      self.simulation_table = ntcore.NetworkTableInstance.getDefault().getTable("simulation")
+      
+      # If you have LaserCAN sensors in EndEffector subsystem
+      if hasattr(self, 'endEffector'):
+          # Create network table entries for sensor values
+          self.coral_entry_distance = self.simulation_table.getDoubleTopic("coral_entry_distance").publish()
+          self.coral_stop_distance = self.simulation_table.getDoubleTopic("coral_stop_distance").publish()
+          
+          # Set initial values
+          self.coral_entry_distance.set(1000)  # 1000mm (nothing detected)
+          self.coral_stop_distance.set(1000)   # 1000mm (nothing detected)
 
   def SimulationPeriodic(self):
-    """"This function is called periodically during the simulation mode"""
-    print("SimulationPeriodic()")
+      # Update simulation values periodically
+      if hasattr(self, 'endEffector'):
+          # Get values from Network Tables that could be set by simulator GUI
+          entry_distance = self.simulation_table.getDoubleTopic("coral_entry_distance").subscribe(1000).get()
+          stop_distance = self.simulation_table.getDoubleTopic("coral_stop_distance").subscribe(1000).get()
+          
+          # Update the simulated sensors
+          if hasattr(self.endEffector.coral_intake_LC, 'sim_device'):
+              self.endEffector.coral_intake_LC.sim_device.set_simulated_distance(entry_distance)
+          if hasattr(self.endEffector.coral_stop_LC, 'sim_device'):
+              self.endEffector.coral_stop_LC.sim_device.set_simulated_distance(stop_distance)
         
 
 
