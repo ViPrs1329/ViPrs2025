@@ -1,4 +1,30 @@
 {
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo"
+    }
+  },
+  "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "Retained Values": {
+      "open": false
+    },
+    "retained": {
+      ".schema": {
+        "open": true
+      }
+    },
+    "transitory": {
+      "EndEffectorTest": {
+        "open": true
+      },
+      "Sim": {
+        "open": true
+      }
+    }
+  },
   "NetworkTables Info": {
     "visible": true
   }
