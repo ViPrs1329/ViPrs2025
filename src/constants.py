@@ -77,8 +77,35 @@ class endEffectorConsts:
     # Intake speeds
     CORAL_INTAKE_SPEED = 0.7
 
+# Add these to your constants.py file in the elevatorConsts class
+
 class elevatorConsts:
-    currentLimit = 10
+    # General elevator constants
+    currentLimit = 30  # Current limit in amps
+    
+    # PID Control Constants
+    kP = 0.1           # Proportional gain
+    kI = 0.0           # Integral gain 
+    kD = 0.005         # Derivative gain
+    kF = 0.0           # Feedforward gain
+    
+    # Position control constants
+    POSITION_TOLERANCE = 1.0  # Position tolerance in encoder counts
+    
+    # Soft limits for safety
+    MIN_HEIGHT = 0.0   # Minimum safe height
+    MAX_HEIGHT = 100.0  # Maximum safe height (adjust based on your mechanism)
+    
+    # Preset positions - adjust these based on your specific game requirements
+    # These are in encoder counts (or converted units)
+    HOME_POSITION = 0.0     # Fully retracted/stowed position
+    LOW_POSITION = 20.0     # Low scoring position
+    MEDIUM_POSITION = 50.0  # Medium scoring position
+    HIGH_POSITION = 95.0    # High scoring position
+    
+    # You might have other specific positions for your game
+    # PICKUP_POSITION = 15.0  # Position for picking up game pieces
+    # HANDOFF_POSITION = 30.0 # Position for handing off to another mechanism
 
 
 

@@ -11,7 +11,14 @@ from wpimath.geometry import Rotation2d
 
 from subsystems.SwerveDriveSubsystem import DriveTrain
 from subsystems.EndEffector import EndEffector
-from commands.IntakeCommands import IntakeCoralCommand
+from subsystems.ElevatorSubsystem import Elevator
+from commands.IntakeCommands import IntakeCoralCommand, EjectCoralCommand
+from commands.ElevatorCommands import (
+    ElevatorHomePositionCommand,
+    ElevatorLowPositionCommand,
+    ElevatorMediumPositionCommand,
+    ElevatorHighPositionCommand
+)
 import constants
 
 class RobotContainer:
@@ -28,12 +35,20 @@ class RobotContainer:
         # Initialize subsystems
         self.drivetrain = DriveTrain()
         self.endEffector = EndEffector()
+        self.elevator = Elevator()  # Initialize the elevator subsystem
         
         # Initialize network tables
         self.setup_network_tables()
         
-        # Create commands
+        # Create EndEffector commands
         self.intakeCoralCommand = IntakeCoralCommand(self.endEffector)
+        self.ejectCoralCommand = EjectCoralCommand(self.endEffector)
+        
+        # Create elevator commands
+        self.elevatorHomeCommand = ElevatorHomePositionCommand(self.elevator)
+        self.elevatorLowCommand = ElevatorLowPositionCommand(self.elevator)
+        self.elevatorMediumCommand = ElevatorMediumPositionCommand(self.elevator)
+        self.elevatorHighCommand = ElevatorHighPositionCommand(self.elevator)
         
         # Configure button bindings
         self.configureButtonBindings()
@@ -52,12 +67,35 @@ class RobotContainer:
     def configureButtonBindings(self):
         """Configure the button bindings for user input."""
         # Driver controls
-        # Example: self.drivingController.a().onTrue(commands2.InstantCommand(lambda: self.drivetrain.resetGyro()))
+        # Reset drivetrain gyro with press of Start button
+        self.drivingController.start().onTrue(
+            commands2.InstantCommand(lambda: self.drivetrain.resetHarder())
+        )
         
-        # Operator controls - Intake Coral with the X button
+        # Operator controls - EndEffector
+        # X button for intake coral
         self.operatorController.x().onTrue(self.intakeCoralCommand)
+        # B button for eject coral
+        self.operatorController.b().onTrue(self.ejectCoralCommand)
         
-        # Additional controls can be added here
+        # Operator controls - Elevator
+        # A button for home position
+        self.operatorController.a().onTrue(self.elevatorHomeCommand)
+        # Y button for low position
+        self.operatorController.y().onTrue(self.elevatorLowCommand)
+        # Left bumper for medium position
+        self.operatorController.leftBumper().onTrue(self.elevatorMediumCommand)
+        # Right bumper for high position
+        self.operatorController.rightBumper().onTrue(self.elevatorHighCommand)
+        
+        # Manual elevator control - Uses the right joystick Y-axis for manual elevator control when held
+        # This is triggered by holding the right trigger
+        self.operatorController.rightTrigger().whileTrue(
+            RunCommand(
+                lambda: self.manualElevatorControl(),
+                self.elevator
+            )
+        )
 
     def configureDefaultCommands(self):
         """Configure default commands for subsystems."""
@@ -66,6 +104,14 @@ class RobotContainer:
             RunCommand(
                 lambda: self.drive_with_controller(),
                 self.drivetrain  # Pass subsystem directly, not in a list
+            )
+        )
+        
+        # Default command for the elevator to hold position
+        self.elevator.setDefaultCommand(
+            RunCommand(
+                lambda: self.elevator.holdPosition(),
+                self.elevator
             )
         )
 
@@ -135,6 +181,22 @@ class RobotContainer:
         # Update robot position for telemetry
         self.robotPosition.set(self.drivetrain.combinedPosition)
 
+    def manualElevatorControl(self):
+        """Control the elevator manually with the operator controller."""
+        # Get the Y-axis of the right joystick (inverted so up is positive)
+        joystick_y = -self.operatorController.getRightY()
+        
+        # Apply deadband to prevent small unintended movements
+        if abs(joystick_y) < 0.1:
+            joystick_y = 0
+            
+        # Scale the joystick input to appropriate elevator speed
+        # You might want to adjust the scaling factor based on your elevator
+        elevator_speed = joystick_y * 0.5  # 50% of full speed for manual control
+        
+        # Set the elevator speed
+        self.elevator.setManualSpeed(elevator_speed)
+
     def getAutonomousCommand(self):
         """Return the command to run in autonomous mode."""
         # TODO: Implement autonomous command(s)
@@ -150,7 +212,10 @@ class RobotContainer:
             self.drivetrain.backLeftRotation,
             self.drivetrain.backRightRotation,
             self.drivetrain.frontLeftRotation,
-            self.drivetrain.frontRightRotation
+            self.drivetrain.frontRightRotation,
+            # Add elevator motors to temperature check
+            self.elevator.LEM,
+            self.elevator.REM
         ]
 
         burntFlag = False
