@@ -367,11 +367,15 @@ class RobotContainer:
         self.elevator.setManualSpeed(elevator_speed)
 
     def getAutonomousCommand(self):
-        """Return the command to run in autonomous mode."""
+        auto_command = LeaveStartingZoneAuto(self.drivetrain)
         
+        # Publish autonomous command details to NetworkTables for debugging
+        inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = inst.getTable("Autonomous")
+        command_name_pub = auto_table.getStringTopic("current_command").publish()
+        command_name_pub.set(auto_command.getName())
         
-        # Create and return the autonomous command
-        return LeaveStartingZoneAuto(self.drivetrain)
+        return auto_command
 
     def systemTempCheck(self):
         """Check temperature of motor controllers."""

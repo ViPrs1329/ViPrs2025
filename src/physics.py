@@ -132,3 +132,11 @@ class PhysicsEngine:
         except Exception as e:
             # Just print the exception and continue - don't want to crash simulation
             print(f"Physics simulation error: {e}")
+
+        # Publish robot pose to NetworkTables for dashboard
+        try:
+            field_table = ntcore.NetworkTableInstance.getDefault().getTable("field")
+            pose_pub = field_table.getStructTopic("robot_pose", wpimath.geometry.Pose2d).publish()
+            pose_pub.set(self.position)
+        except Exception as e:
+            print(f"Error publishing robot pose: {e}")

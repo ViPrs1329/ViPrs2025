@@ -45,20 +45,26 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.CommandScheduler.getInstance().run()
         
     def autonomousInit(self):
-        """This function is run once each time the robot enters autonomous mode."""
-        print("autonomousInit()")
+        print("Autonomous Starting")
+        self.autonomous_start_time = time.time()
         
-        # Get the selected autonomous command from the container
+        # Get the selected autonomous command
         self.autonomousCommand = self.container.getAutonomousCommand()
         
-        # Schedule the autonomous command if it exists
-        if self.autonomousCommand is not None:
-            self.autonomousCommand.schedule()
+        # Log autonomous details
+        print(f"Running Autonomous: {self.autonomousCommand.getName()}")
+        
+        # Optional: Send autonomous start event to NetworkTables
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = nt_inst.getTable("Autonomous")
+        auto_start_pub = auto_table.getStringTopic("status").publish()
+        auto_start_pub.set("Running")
 
     def autonomousPeriodic(self):
-        """This function is called periodically during autonomous."""
-        # No need to add code here - command scheduler is run in robotPeriodic
-        pass
+        # Optionally add progress tracking
+        if hasattr(self, 'autonomous_start_time'):
+            elapsed_time = time.time() - self.autonomous_start_time
+            print(f"Autonomous Progress: {elapsed_time:.2f} seconds elapsed")
 
     def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""
