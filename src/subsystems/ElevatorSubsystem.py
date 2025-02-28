@@ -61,23 +61,41 @@ class Elevator(commands2.Subsystem):
         self.leftEncoder = self.LEM.getEncoder()
         self.rightEncoder = self.REM.getEncoder()
 
-        # Get the absolute encoder attached to the left SparkFlex
-        self.leftAbsoluteEncoder = self.LEM.getAbsoluteEncoder(rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle)
+        # Try to get the absolute encoder attached to the left SparkFlex
+        try:
+            self.leftAbsoluteEncoder = self.LEM.getAbsoluteEncoder(rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle)
 
-        # Configure the absolute encoder
-        # Set the zero offset based on your mechanical setup
-        offset = elevatorConsts.ABSOLUTE_ENCODER_OFFSET if hasattr(elevatorConsts, 'ABSOLUTE_ENCODER_OFFSET') else 0.0
-        self.leftAbsoluteEncoder.setZeroOffset(offset)
+            # Configure the absolute encoder
+            # Set the zero offset based on your mechanical setup
+            offset = elevatorConsts.ABSOLUTE_ENCODER_OFFSET if hasattr(elevatorConsts, 'ABSOLUTE_ENCODER_OFFSET') else 0.0
+            self.leftAbsoluteEncoder.setZeroOffset(offset)
 
-        # Set whether the absolute encoder is inverted
-        inverted = elevatorConsts.ABSOLUTE_ENCODER_INVERTED if hasattr(elevatorConsts, 'ABSOLUTE_ENCODER_INVERTED') else False
-        self.leftAbsoluteEncoder.setInverted(inverted)
+            # Set whether the absolute encoder is inverted
+            inverted = elevatorConsts.ABSOLUTE_ENCODER_INVERTED if hasattr(elevatorConsts, 'ABSOLUTE_ENCODER_INVERTED') else False
+            self.leftAbsoluteEncoder.setInverted(inverted)
 
-        # Set position conversion factor (convert rotations to meaningful units)
-        conversion_factor = elevatorConsts.POSITION_CONVERSION_FACTOR if hasattr(elevatorConsts, 'POSITION_CONVERSION_FACTOR') else 0.1
-        self.leftAbsoluteEncoder.setPositionConversionFactor(conversion_factor)
-        self.leftEncoder.setPositionConversionFactor(conversion_factor)
-        self.rightEncoder.setPositionConversionFactor(conversion_factor)
+            # Set position conversion factor (convert rotations to meaningful units)
+            conversion_factor = elevatorConsts.POSITION_CONVERSION_FACTOR if hasattr(elevatorConsts, 'POSITION_CONVERSION_FACTOR') else 0.1
+            
+            try:
+                self.leftAbsoluteEncoder.setPositionConversionFactor(conversion_factor)
+                self.leftEncoder.setPositionConversionFactor(conversion_factor)
+                self.rightEncoder.setPositionConversionFactor(conversion_factor)
+            except Exception as e:
+                print(f"Warning: Could not set position conversion factor: {e}")
+            
+            # Use absolute encoder for position feedback
+            self.use_absolute = True
+        except Exception as e:
+            print(f"Warning: Could not initialize absolute encoder: {e}")
+            # Fall back to relative encoder
+            self.use_absolute = False
+            
+            # For simulation, provide a simulated absolute encoder that just returns the relative encoder value
+            if self.is_simulation:
+                print("Creating simulated absolute encoder")
+                from team254.LazySparkMax import SimSparkMaxAbsoluteEncoder
+                self.leftAbsoluteEncoder = SimSparkMaxAbsoluteEncoder(self.LEM)
         
         # Create PID controller for position control using WPILib PID
         self.kP = elevatorConsts.kP if hasattr(elevatorConsts, 'kP') else 0.1
@@ -87,9 +105,14 @@ class Elevator(commands2.Subsystem):
         
         self.pid_controller = controller.PIDController(self.kP, self.kI, self.kD)
         
-        # Configure built-in PID controller to use absolute encoder
-        self.leftPID = self.LEM.getPIDController()
-        self.leftPID.setFeedbackDevice(self.leftAbsoluteEncoder)
+        # Try to configure built-in PID controller to use absolute encoder
+        try:
+            self.leftPID = self.LEM.getPIDController()
+            
+            if self.use_absolute:
+                self.leftPID.setFeedbackDevice(self.leftAbsoluteEncoder)
+        except Exception as e:
+            print(f"Warning: Could not configure built-in PID controller: {e}")
         
         # Create soft limit variables with defaults
         self.min_height = elevatorConsts.MIN_HEIGHT if hasattr(elevatorConsts, 'MIN_HEIGHT') else 0.0
@@ -111,18 +134,27 @@ class Elevator(commands2.Subsystem):
 
     def cacheSensors(self):
         """Cache sensor values to reduce CAN bus traffic"""
-        # Always cache position and velocity values
-        self.cache.leftPosition = self.leftEncoder.getPosition()
-        self.cache.rightPosition = self.rightEncoder.getPosition()
-        self.cache.leftAbsolutePosition = self.leftAbsoluteEncoder.getPosition()
-        self.cache.leftVelocity = self.leftEncoder.getVelocity()
-        self.cache.rightVelocity = self.rightEncoder.getVelocity()
-        
-        # Cache current readings less frequently
-        if self.cache.call_counters["current"] == 0:
-            self.cache.leftCurrent = self.LEM.getOutputCurrent()
-            self.cache.rightCurrent = self.REM.getOutputCurrent()
-        self.cache.call_counters["current"] = (self.cache.call_counters["current"] + 1) % 10
+        try:
+            # Always cache position and velocity values
+            self.cache.leftPosition = self.leftEncoder.getPosition()
+            self.cache.rightPosition = self.rightEncoder.getPosition()
+            
+            if hasattr(self, 'leftAbsoluteEncoder'):
+                self.cache.leftAbsolutePosition = self.leftAbsoluteEncoder.getPosition()
+            else:
+                self.cache.leftAbsolutePosition = self.cache.leftPosition
+                
+            self.cache.leftVelocity = self.leftEncoder.getVelocity()
+            self.cache.rightVelocity = self.rightEncoder.getVelocity()
+            
+            # Cache current readings less frequently
+            if self.cache.call_counters["current"] == 0:
+                self.cache.leftCurrent = self.LEM.getOutputCurrent()
+                self.cache.rightCurrent = self.REM.getOutputCurrent()
+            self.cache.call_counters["current"] = (self.cache.call_counters["current"] + 1) % 10
+        except Exception as e:
+            if not self.is_simulation:
+                print(f"Error caching sensor values: {e}")
 
     def periodic(self):
         """Called periodically during all robot modes."""
@@ -140,7 +172,10 @@ class Elevator(commands2.Subsystem):
             float: Current position in meters based on absolute encoder.
         """
         # Use cached value instead of direct sensor read
-        return self.cache.leftAbsolutePosition
+        if self.use_absolute and hasattr(self, 'leftAbsoluteEncoder'):
+            return self.cache.leftAbsolutePosition
+        else:
+            return self.cache.leftPosition
 
     def moveToPosition(self, position):
         """Move the elevator to the specified position.
@@ -156,21 +191,31 @@ class Elevator(commands2.Subsystem):
         
         try:
             # Option 1: Use WPILib PID controller (software PID)
-            # current_position = self.getCurrentPosition()
-            # pid_output = self.pid_controller.calculate(current_position, position)
-            # 
-            # # Add feedforward if available
-            # if self.kF != 0:
-            #     pid_output += self.kF * math.copysign(1.0, position - current_position)
-            # 
-            # # Limit output to valid motor input range
-            # pid_output = min(max(pid_output, -1.0), 1.0)
-            # 
-            # # Set motor output
-            # self.LEM.set(pid_output)
+            current_position = self.getCurrentPosition()
+            pid_output = self.pid_controller.calculate(current_position, position)
+            
+            # Add feedforward if available
+            if self.kF != 0:
+                pid_output += self.kF * math.copysign(1.0, position - current_position)
+            
+            # Limit output to valid motor input range
+            pid_output = min(max(pid_output, -1.0), 1.0)
+            
+            # Set motor output
+            self.LEM.set(pid_output)
             
             # Option 2: Use built-in SparkMax PID controller (more efficient)
-            self.leftPID.setReference(position, rev.CANSparkMax.ControlType.kPosition)
+            # Only use if it's properly configured
+            """
+            if hasattr(self, 'leftPID') and self.use_absolute:
+                try:
+                    self.leftPID.setReference(position, rev.CANSparkMax.ControlType.kPosition)
+                except Exception as e:
+                    print(f"Warning: Could not use built-in PID, falling back to software PID: {e}")
+                    self.LEM.set(pid_output)
+            else:
+                self.LEM.set(pid_output)
+            """
             
         except Exception as e:
             print(f"Error moving elevator to position: {e}")

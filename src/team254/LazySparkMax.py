@@ -35,6 +35,48 @@ class LazySparkMax(rev.CANSparkMax, LazySparkBase):
         if setpoint != self.m_last_set:
             self.m_last_set = setpoint
             super().set(setpoint)
+            
+    def setIdleMode(self, mode):
+        """Set the idle mode of the motor controller"""
+        # In real hardware, this would call the parent method
+        # For simulation compatibility, ensure this method exists
+        if hasattr(super(), "setIdleMode"):
+            super().setIdleMode(mode)
+            
+    def setInverted(self, inverted):
+        """Set whether the motor is inverted"""
+        if hasattr(super(), "setInverted"):
+            super().setInverted(inverted)
+            
+    def enableVoltageCompensation(self, voltage):
+        """Enable voltage compensation"""
+        if hasattr(super(), "enableVoltageCompensation"):
+            super().enableVoltageCompensation(voltage)
+            
+    def disableVoltageCompensation(self):
+        """Disable voltage compensation"""
+        if hasattr(super(), "disableVoltageCompensation"):
+            super().disableVoltageCompensation()
+            
+    def setSmartCurrentLimit(self, limit):
+        """Set the current limit"""
+        if hasattr(super(), "setSmartCurrentLimit"):
+            super().setSmartCurrentLimit(limit)
+            
+    def burnFlash(self):
+        """Burn the configuration to flash memory"""
+        if hasattr(super(), "burnFlash"):
+            super().burnFlash()
+            
+    def getAbsoluteEncoder(self, encoder_type=None):
+        """
+        Get an absolute encoder object if supported, otherwise create a simulation version.
+        """
+        if hasattr(super(), "getAbsoluteEncoder"):
+            return super().getAbsoluteEncoder(encoder_type)
+        else:
+            # Create a simulated absolute encoder
+            return SimSparkMaxAbsoluteEncoder(self)
 
     def getPIDController(self):
         """
@@ -63,6 +105,46 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         if setpoint != self.m_last_set:
             self.m_last_set = setpoint
             super().set(setpoint)
+            
+    def setIdleMode(self, mode):
+        """Set the idle mode of the motor controller"""
+        if hasattr(super(), "setIdleMode"):
+            super().setIdleMode(mode)
+            
+    def setInverted(self, inverted):
+        """Set whether the motor is inverted"""
+        if hasattr(super(), "setInverted"):
+            super().setInverted(inverted)
+            
+    def enableVoltageCompensation(self, voltage):
+        """Enable voltage compensation"""
+        if hasattr(super(), "enableVoltageCompensation"):
+            super().enableVoltageCompensation(voltage)
+            
+    def disableVoltageCompensation(self):
+        """Disable voltage compensation"""
+        if hasattr(super(), "disableVoltageCompensation"):
+            super().disableVoltageCompensation()
+            
+    def setSmartCurrentLimit(self, limit):
+        """Set the current limit"""
+        if hasattr(super(), "setSmartCurrentLimit"):
+            super().setSmartCurrentLimit(limit)
+            
+    def burnFlash(self):
+        """Burn the configuration to flash memory"""
+        if hasattr(super(), "burnFlash"):
+            super().burnFlash()
+            
+    def getAbsoluteEncoder(self, encoder_type=None):
+        """
+        Get an absolute encoder object if supported, otherwise create a simulation version.
+        """
+        if hasattr(super(), "getAbsoluteEncoder"):
+            return super().getAbsoluteEncoder(encoder_type)
+        else:
+            # Create a simulated absolute encoder
+            return SimSparkMaxAbsoluteEncoder(self)
 
     def getPIDController(self):
         """
@@ -71,3 +153,50 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         if self._pid_controller is None:
             self._pid_controller = super().getPIDController()
         return self._pid_controller
+
+# Add a simulated absolute encoder for use in simulation
+class SimSparkMaxAbsoluteEncoder:
+    """Simulation of a SparkMax absolute encoder."""
+    
+    def __init__(self, spark_max):
+        self.spark_max = spark_max
+        self._position = 0.0
+        self._velocity = 0.0
+        self._position_conversion_factor = 1.0
+        self._velocity_conversion_factor = 1.0
+        self._zero_offset = 0.0
+        self._inverted = False
+        
+    def getPosition(self):
+        """Get the position of the encoder."""
+        # Apply conversion factor and zero offset in simulation
+        position = (self._position * self._position_conversion_factor)
+        if self._inverted:
+            position = -position
+        return position + self._zero_offset
+        
+    def getVelocity(self):
+        """Get the velocity of the encoder."""
+        velocity = (self._velocity * self._velocity_conversion_factor)
+        return -velocity if self._inverted else velocity
+        
+    def setPositionConversionFactor(self, factor):
+        """Set the position conversion factor."""
+        self._position_conversion_factor = factor
+        
+    def setVelocityConversionFactor(self, factor):
+        """Set the velocity conversion factor."""
+        self._velocity_conversion_factor = factor
+        
+    def setZeroOffset(self, offset):
+        """Set the zero offset of the encoder."""
+        self._zero_offset = offset
+        
+    def setInverted(self, inverted):
+        """Set whether the encoder is inverted."""
+        self._inverted = inverted
+        
+    # Simulate a changing position in simulation
+    def simulate_position(self, position):
+        """Set a simulated position for testing."""
+        self._position = position

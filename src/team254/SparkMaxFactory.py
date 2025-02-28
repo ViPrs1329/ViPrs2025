@@ -41,36 +41,48 @@ class SparkMaxFactory:
         spark = LazySparkMax(device_id)
         
         # Apply factory defaults
-        spark.restoreFactoryDefaults()
+        try:
+            spark.restoreFactoryDefaults()
+        except Exception as e:
+            print(f"Warning: Could not restore factory defaults: {e}")
         
         if config:
-            # Apply configuration
-            spark.setInverted(config.inverted)
-            spark.setIdleMode(config.idle_mode)
-            
-            if config.voltage_comp_enabled:
-                spark.enableVoltageCompensation(config.voltage_comp_saturation)
-            else:
-                spark.disableVoltageCompensation()
+            try:
+                # Apply configuration
+                spark.setInverted(config.inverted)
+                spark.setIdleMode(config.idle_mode)
                 
-            spark.setSmartCurrentLimit(config.current_limit)
-            
-            if config.follow_leader is not None:
-                spark.follow(config.follow_leader, config.follow_invert)
+                if config.voltage_comp_enabled:
+                    spark.enableVoltageCompensation(config.voltage_comp_saturation)
+                else:
+                    spark.disableVoltageCompensation()
+                    
+                spark.setSmartCurrentLimit(config.current_limit)
                 
-            # Configure PID if needed
-            encoder = spark.getEncoder()
-            encoder.setPositionConversionFactor(config.position_conversion_factor)
-            encoder.setVelocityConversionFactor(config.velocity_conversion_factor)
-            
-            pid_controller = spark.getPIDController()
-            pid_controller.setP(config.kP)
-            pid_controller.setI(config.kI)
-            pid_controller.setD(config.kD)
-            pid_controller.setFF(config.kF)
+                if config.follow_leader is not None:
+                    spark.follow(config.follow_leader, config.follow_invert)
+                    
+                # Configure PID if needed
+                try:
+                    encoder = spark.getEncoder()
+                    encoder.setPositionConversionFactor(config.position_conversion_factor)
+                    encoder.setVelocityConversionFactor(config.velocity_conversion_factor)
+                    
+                    pid_controller = spark.getPIDController()
+                    pid_controller.setP(config.kP)
+                    pid_controller.setI(config.kI)
+                    pid_controller.setD(config.kD)
+                    pid_controller.setFF(config.kF)
+                except Exception as e:
+                    print(f"Warning: Could not configure PID: {e}")
+            except Exception as e:
+                print(f"Warning: Error configuring SparkMax {device_id}: {e}")
         
         # Burn flash to ensure settings persist
-        spark.burnFlash()
+        try:
+            spark.burnFlash()
+        except Exception as e:
+            print(f"Warning: Could not burn flash: {e}")
         
         return spark
     
@@ -89,35 +101,47 @@ class SparkMaxFactory:
         spark = LazySparkFlex(device_id)
         
         # Apply factory defaults
-        spark.restoreFactoryDefaults()
+        try:
+            spark.restoreFactoryDefaults()
+        except Exception as e:
+            print(f"Warning: Could not restore factory defaults: {e}")
         
         if config:
-            # Apply configuration
-            spark.setInverted(config.inverted)
-            spark.setIdleMode(config.idle_mode)
-            
-            if config.voltage_comp_enabled:
-                spark.enableVoltageCompensation(config.voltage_comp_saturation)
-            else:
-                spark.disableVoltageCompensation()
+            try:
+                # Apply configuration
+                spark.setInverted(config.inverted)
+                spark.setIdleMode(config.idle_mode)
                 
-            spark.setSmartCurrentLimit(config.current_limit)
-            
-            if config.follow_leader is not None:
-                spark.follow(config.follow_leader, config.follow_invert)
+                if config.voltage_comp_enabled:
+                    spark.enableVoltageCompensation(config.voltage_comp_saturation)
+                else:
+                    spark.disableVoltageCompensation()
+                    
+                spark.setSmartCurrentLimit(config.current_limit)
                 
-            # Configure PID if needed
-            encoder = spark.getEncoder()
-            encoder.setPositionConversionFactor(config.position_conversion_factor)
-            encoder.setVelocityConversionFactor(config.velocity_conversion_factor)
-            
-            pid_controller = spark.getPIDController()
-            pid_controller.setP(config.kP)
-            pid_controller.setI(config.kI)
-            pid_controller.setD(config.kD)
-            pid_controller.setFF(config.kF)
+                if config.follow_leader is not None:
+                    spark.follow(config.follow_leader, config.follow_invert)
+                    
+                # Configure PID if needed
+                try:
+                    encoder = spark.getEncoder()
+                    encoder.setPositionConversionFactor(config.position_conversion_factor)
+                    encoder.setVelocityConversionFactor(config.velocity_conversion_factor)
+                    
+                    pid_controller = spark.getPIDController()
+                    pid_controller.setP(config.kP)
+                    pid_controller.setI(config.kI)
+                    pid_controller.setD(config.kD)
+                    pid_controller.setFF(config.kF)
+                except Exception as e:
+                    print(f"Warning: Could not configure PID: {e}")
+            except Exception as e:
+                print(f"Warning: Error configuring SparkFlex {device_id}: {e}")
         
         # Burn flash to ensure settings persist
-        spark.burnFlash()
+        try:
+            spark.burnFlash()
+        except Exception as e:
+            print(f"Warning: Could not burn flash: {e}")
         
         return spark
