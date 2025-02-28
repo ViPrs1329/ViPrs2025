@@ -16,6 +16,10 @@ class EndEffector(commands2.Subsystem):
             self.coral_stop_distance = 8000
             self.coral_stop_status = 0
             
+            # Algae mechanism
+            self.algae_rotation_position = 0.0
+            self.algae_rotation_velocity = 0.0
+            
             # Motor current values (read less frequently)
             self.algae_rotation_current = 0.0
             self.algae_intake_current = 0.0
@@ -42,6 +46,12 @@ class EndEffector(commands2.Subsystem):
             algae_rotation_config.current_limit = endEffectorConsts.algaeRotCurrentLimit
             algae_rotation_config.voltage_comp_enabled = True
             algae_rotation_config.inverted = False
+            
+            # PID values for algae rotation
+            algae_rotation_config.kP = 0.1  # Adjust based on your mechanism
+            algae_rotation_config.kI = 0.0
+            algae_rotation_config.kD = 0.005
+            algae_rotation_config.kF = 0.0
             
             # 2. Configure Algae Intake Motor
             algae_intake_config = SparkMaxFactory.Configuration()
@@ -80,6 +90,59 @@ class EndEffector(commands2.Subsystem):
             self.coral_intake_right_motor = SparkMaxFactory.createSparkMax(
                 CANIDs.EECoralRightID, coral_right_config
             )
+            
+            # Get encoders for the algae rotation motor
+            self.algae_rotation_encoder = self.algae_rotation_motor.getEncoder()
+            
+            # Get the absolute encoder for algae rotation (if available)
+            try:
+                self.algae_abs_encoder = self.algae_rotation_motor.getAbsoluteEncoder(
+                    rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle
+                )
+                
+                # Configure the absolute encoder
+                # Set position conversion factor (convert rotations to degrees)
+                self.algae_abs_encoder.setPositionConversionFactor(360.0)
+                
+                # Set zero offset based on mechanical setup
+                offset = endEffectorConsts.ALGAE_ENCODER_OFFSET if hasattr(endEffectorConsts, 'ALGAE_ENCODER_OFFSET') else 0.0
+                self.algae_abs_encoder.setZeroOffset(offset)
+                
+                # Use the absolute encoder for the PID controller
+                self.algae_pid_controller = self.algae_rotation_motor.getPIDController()
+                self.algae_pid_controller.setFeedbackDevice(self.algae_abs_encoder)
+                
+                # Set PID values
+                self.algae_pid_controller.setP(algae_rotation_config.kP)
+                self.algae_pid_controller.setI(algae_rotation_config.kI)
+                self.algae_pid_controller.setD(algae_rotation_config.kD)
+                self.algae_pid_controller.setFF(algae_rotation_config.kF)
+                
+                self.has_abs_encoder = True
+                print("Algae absolute encoder configured successfully")
+            except Exception as e:
+                print(f"Failed to initialize algae absolute encoder: {e}")
+                # Fall back to relative encoder
+                self.has_abs_encoder = False
+                
+                # Configure the relative encoder
+                self.algae_rotation_encoder.setPositionConversionFactor(360.0 / 49.0)  # Adjust for 49:1 gearbox
+                
+                # Create a WPILib PID controller as fallback
+                from wpimath.controller import PIDController
+                self.algae_pid_controller = PIDController(
+                    algae_rotation_config.kP,
+                    algae_rotation_config.kI,
+                    algae_rotation_config.kD
+                )
+            
+            # Define the algae positions (in degrees)
+            self.ALGAE_RETRACTED_POS = 0.0
+            self.ALGAE_TOP_PICKUP_POS = 90.0
+            self.ALGAE_BOTTOM_PICKUP_POS = -90.0
+            
+            # Position tolerance (in degrees)
+            self.ALGAE_POSITION_TOLERANCE = 5.0
                 
         except Exception as e:
             print(f"Error initializing REV motors: {e}")
@@ -113,6 +176,15 @@ class EndEffector(commands2.Subsystem):
             measurement = self.coral_stop_LC.get_measurement()
             if measurement:
                 self.cache.coral_stop_distance, self.cache.coral_stop_status = measurement
+            
+            # Cache algae position and velocity
+            if hasattr(self, 'algae_rotation_encoder'):
+                if self.has_abs_encoder:
+                    self.cache.algae_rotation_position = self.algae_abs_encoder.getPosition()
+                else:
+                    self.cache.algae_rotation_position = self.algae_rotation_encoder.getPosition()
+                
+                self.cache.algae_rotation_velocity = self.algae_rotation_encoder.getVelocity()
                 
             # Cache motor currents less frequently
             if self.cache.current_counter == 0:
@@ -132,8 +204,10 @@ class EndEffector(commands2.Subsystem):
         # Update sensor cache
         self.cacheSensors()
         
-        # Optional: Add dashboard telemetry here
-        # wpilib.SmartDashboard.putBoolean("Coral Detected", self.isCoralDetected())
+        # Update dashboard telemetry
+        wpilib.SmartDashboard.putBoolean("Coral Detected", self.isCoralDetected())
+        wpilib.SmartDashboard.putBoolean("Coral Positioned", self.isCoralPositioned())
+        wpilib.SmartDashboard.putNumber("Algae Position", self.getAlgaePosition())
     
     def _create_sim_laser(self):
         """Create a simulated LaserCAN with minimal interface for simulation."""
@@ -154,6 +228,7 @@ class EndEffector(commands2.Subsystem):
         
         return SimLaser()
 
+    # Algae rotation control
     def setAlgaeRotationSpeed(self, speed: float) -> None:
         """Sets the speed of the algae intake rotation motor.
 
@@ -165,6 +240,57 @@ class EndEffector(commands2.Subsystem):
         except Exception as e:
             if not self.is_simulation:
                 print(f"Error setting algae rotation speed: {e}")
+    
+    def getAlgaePosition(self) -> float:
+        """Get the current position of the algae mechanism.
+        
+        Returns:
+            float: Current position in degrees.
+        """
+        return self.cache.algae_rotation_position
+    
+    def moveAlgaeToPosition(self, position: float) -> None:
+        """Move the algae mechanism to a specific position.
+        
+        Args:
+            position (float): Target position in degrees.
+        """
+        try:
+            if self.has_abs_encoder:
+                # Use the built-in PID controller
+                self.algae_pid_controller.setReference(
+                    position, 
+                    rev.CANSparkMax.ControlType.kPosition
+                )
+            else:
+                # Use the WPILib PID controller
+                current_position = self.getAlgaePosition()
+                output = self.algae_pid_controller.calculate(current_position, position)
+                
+                # Limit the output
+                output = max(min(output, 0.5), -0.5)
+                
+                # Set the motor output
+                self.setAlgaeRotationSpeed(output)
+        except Exception as e:
+            if not self.is_simulation:
+                print(f"Error moving algae to position: {e}")
+    
+    def isAlgaeAtPosition(self, target_position: float, tolerance: float = None) -> bool:
+        """Check if the algae mechanism is at the target position.
+        
+        Args:
+            target_position (float): Target position in degrees.
+            tolerance (float, optional): Position tolerance. Defaults to ALGAE_POSITION_TOLERANCE.
+            
+        Returns:
+            bool: True if the mechanism is at the target position.
+        """
+        if tolerance is None:
+            tolerance = self.ALGAE_POSITION_TOLERANCE
+            
+        current_position = self.getAlgaePosition()
+        return abs(current_position - target_position) <= tolerance
 
     def setAlgaeIntakeSpeed(self, speed: float) -> None:
         """Sets the speed of the algae intake motor.

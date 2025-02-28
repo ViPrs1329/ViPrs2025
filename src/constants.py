@@ -77,6 +77,36 @@ class endEffectorConsts:
     # Intake speeds
     CORAL_INTAKE_SPEED = 0.7
 
+    # Existing constants for coral mechanism
+    coralCurrentLimit = 20
+    algaeRotCurrentLimit = 20
+    algaeIntakeCurrentLimit = 20
+    
+    # LaserCAN thresholds (in mm)
+    CORAL_DETECTION_THRESHOLD = 50  # Distance that indicates coral is present
+    CORAL_STOP_THRESHOLD = 30  # Distance that indicates coral is in position
+    
+    # Intake speeds
+    CORAL_INTAKE_SPEED = 0.7
+    ALGAE_INTAKE_SPEED = 0.7
+    
+    # Algae mechanism constants
+    ALGAE_ENCODER_OFFSET = 0.0  # Adjust based on your mechanism's zero position
+    
+    # Algae positions (in degrees)
+    ALGAE_RETRACTED_POS = 0.0
+    ALGAE_TOP_PICKUP_POS = 90.0
+    ALGAE_BOTTOM_PICKUP_POS = -90.0
+    
+    # Position tolerance (in degrees)
+    ALGAE_POSITION_TOLERANCE = 5.0
+    
+    # PID values for algae rotation
+    ALGAE_KP = 0.1
+    ALGAE_KI = 0.0
+    ALGAE_KD = 0.005
+    ALGAE_KF = 0.0
+
 # Add these to your constants.py file in the elevatorConsts class
 
 class elevatorConsts:
