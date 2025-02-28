@@ -16,10 +16,11 @@ class LazySparkBase:
     def leader(self):
         return self.m_leader
 
-class LazySparkMax(rev.CANSparkMax, LazySparkBase):
+class LazySparkMax(rev.SparkMax, LazySparkBase):
     """
     Lazy version of CANSparkMax that reduces CAN bus traffic by skipping duplicate set commands.
     """
+    # TODO: Check rev.CANSparkMax.MotorType.kBrushless, does it exist? https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
     def __init__(self, device_number: int, motor_type=rev.CANSparkMax.MotorType.kBrushless):
         rev.CANSparkMax.__init__(self, device_number, motor_type)
         LazySparkBase.__init__(self)
@@ -51,6 +52,7 @@ class LazySparkMax(rev.CANSparkMax, LazySparkBase):
     def enableVoltageCompensation(self, voltage):
         """Enable voltage compensation"""
         if hasattr(super(), "enableVoltageCompensation"):
+            # TODO: Check enableVoltageCompensation() does it exist?
             super().enableVoltageCompensation(voltage)
             
     def disableVoltageCompensation(self):

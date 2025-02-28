@@ -11,6 +11,7 @@ class SparkMaxFactory:
         """Configuration for SparkMax or SparkFlex controllers."""
         def __init__(self):
             self.inverted = False
+            # TODO: Check on rev.CANSparkMax.IdleMode.kCoast, does it exist? https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
             self.idle_mode = rev.CANSparkMax.IdleMode.kCoast
             self.voltage_comp_enabled = False
             self.voltage_comp_saturation = 12.0
@@ -102,6 +103,8 @@ class SparkMaxFactory:
         
         # Apply factory defaults
         try:
+            # TODO: restoreFactoryDefaults() doesn't exist in the new rev module
+            # Check here: https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
             spark.restoreFactoryDefaults()
         except Exception as e:
             print(f"Warning: Could not restore factory defaults: {e}")

@@ -50,6 +50,7 @@ class Elevator(commands2.Subsystem):
         
         # Create follower configuration
         follower_config = SparkMaxFactory.Configuration()
+        # TODO: CANSparkMax doesn't exist any more. Check here: https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
         follower_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
         follower_config.current_limit = elevatorConsts.currentLimit
         follower_config.follow_leader = self.LEM
@@ -58,11 +59,13 @@ class Elevator(commands2.Subsystem):
         self.REM = SparkMaxFactory.createSparkFlex(CANIDs.ElevatorRightID, follower_config)
         
         # Get encoder for position feedback
+        # TODO: getEncoder() isn't being recognized, most likely because of the LazySpark implementation. Check here https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
         self.leftEncoder = self.LEM.getEncoder()
         self.rightEncoder = self.REM.getEncoder()
 
         # Try to get the absolute encoder attached to the left SparkFlex
         try:
+            # TODO: Can't find rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle , check here https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
             self.leftAbsoluteEncoder = self.LEM.getAbsoluteEncoder(rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle)
 
             # Configure the absolute encoder
@@ -79,6 +82,7 @@ class Elevator(commands2.Subsystem):
             
             try:
                 self.leftAbsoluteEncoder.setPositionConversionFactor(conversion_factor)
+                # TODO: setPositionConversionFactor doesn't seem to exist. Check here https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
                 self.leftEncoder.setPositionConversionFactor(conversion_factor)
                 self.rightEncoder.setPositionConversionFactor(conversion_factor)
             except Exception as e:
@@ -110,6 +114,7 @@ class Elevator(commands2.Subsystem):
             self.leftPID = self.LEM.getPIDController()
             
             if self.use_absolute:
+                # TODO: setFeedbackDevice() doesn't seem to exist. Check here: https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
                 self.leftPID.setFeedbackDevice(self.leftAbsoluteEncoder)
         except Exception as e:
             print(f"Warning: Could not configure built-in PID controller: {e}")
@@ -277,6 +282,7 @@ class Elevator(commands2.Subsystem):
             position (float, optional): Position to reset to. Defaults to 0.0.
         """
         try:
+            # TODO: setPosition() doesn't seem to exist. Check here: https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
             self.leftEncoder.setPosition(position)
         except Exception as e:
             print(f"Error resetting elevator encoder: {e}")
