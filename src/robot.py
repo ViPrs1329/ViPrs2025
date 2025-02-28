@@ -51,16 +51,48 @@ class MyRobot(commands2.TimedCommandRobot):
         # Get the selected autonomous command
         self.autonomousCommand = self.container.getAutonomousCommand()
         
+        # Check for NetworkTables start command
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = nt_inst.getTable("Autonomous")
+        
+        # Reset field if requested
+        reset_field = auto_table.getStringTopic("reset_field").subscribe("").get()
+        if reset_field == "reset":
+            # Reset robot position in simulation
+            if self.isSimulation():
+                start_pose = wpimath.geometry.Pose2d(2, 2, 0)
+                self.container.drivetrain.resetHarder(start_pose)
+
         # Log autonomous details
         print(f"Running Autonomous: {self.autonomousCommand.getName()}")
         
-        # Optional: Send autonomous start event to NetworkTables
-        nt_inst = ntcore.NetworkTableInstance.getDefault()
-        auto_table = nt_inst.getTable("Autonomous")
-        auto_start_pub = auto_table.getStringTopic("status").publish()
-        auto_start_pub.set("Running")
+        # Send autonomous start event to NetworkTables
+        auto_status_pub = auto_table.getStringTopic("status").publish()
+        auto_status_pub.set("Running")
+        
+        # Schedule the command
+        self.autonomousCommand.schedule()
 
     def autonomousPeriodic(self):
+        # Check for stop command from dashboard
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = nt_inst.getTable("Autonomous")
+        stop_command = auto_table.getStringTopic("stop_command").subscribe("").get()
+        
+        if stop_command == "stop":
+            if self.autonomousCommand is not None:
+                print("Stopping autonomous command from dashboard")
+                self.autonomousCommand.cancel()
+                self.autonomousCommand = None
+                
+                # Clear the stop command to prevent continuous cancellation
+                stop_pub = auto_table.getStringTopic("stop_command").publish()
+                stop_pub.set("")
+                
+                # Update status
+                auto_status_pub = auto_table.getStringTopic("status").publish()
+                auto_status_pub.set("Stopped")
+        
         # Optional: Add progress tracking with a more controlled approach
         if hasattr(self, 'autonomous_start_time'):
             elapsed_time = time.time() - self.autonomous_start_time
@@ -68,13 +100,23 @@ class MyRobot(commands2.TimedCommandRobot):
             # Optionally stop autonomous if it runs too long
             if elapsed_time > 15.0:  # 15 seconds max
                 print("Autonomous period timed out")
-                self.autonomousCommand.cancel()
+                if self.autonomousCommand is not None:
+                    self.autonomousCommand.cancel()
+                    self.autonomousCommand = None
+                    
+                    # Update status
+                    auto_status_pub = auto_table.getStringTopic("status").publish()
+                    auto_status_pub.set("Timed Out")
 
         # Check if the autonomous command is finished
         if self.autonomousCommand is not None and self.autonomousCommand.isFinished():
             print("Autonomous command completed")
             self.autonomousCommand.end(False)
             self.autonomousCommand = None
+            
+            # Update status
+            auto_status_pub = auto_table.getStringTopic("status").publish()
+            auto_status_pub.set("Completed")
 
     def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""
@@ -137,19 +179,27 @@ class MyRobot(commands2.TimedCommandRobot):
             self.coral_entry_distance.set(1000)  # 1000mm (nothing detected)
             self.coral_stop_distance.set(1000)   # 1000mm (nothing detected)
 
+    # Updates for robot.py - add this to simulationPeriodic or create a new method
+
     def simulationPeriodic(self):
         """Periodic simulation code."""
-        # Update simulation values periodically
-        if hasattr(self.container, 'endEffector'):
-            # Get values from Network Tables that could be set by simulator GUI
-            entry_distance = self.simulation_table.getDoubleTopic("coral_entry_distance").subscribe(1000).get()
-            stop_distance = self.simulation_table.getDoubleTopic("coral_stop_distance").subscribe(1000).get()
-            
-            # Update the simulated sensors
-            if hasattr(self.container.endEffector.coral_intake_LC, 'sim_device'):
-                self.container.endEffector.coral_intake_LC.sim_device.set_simulated_distance(entry_distance)
-            if hasattr(self.container.endEffector.coral_stop_LC, 'sim_device'):
-                self.container.endEffector.coral_stop_LC.sim_device.set_simulated_distance(stop_distance)
+        # Existing code...
+        
+        # Handle reset field command
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = nt_inst.getTable("Autonomous")
+        reset_field = auto_table.getStringTopic("reset_field").subscribe("").get()
+        
+        if reset_field == "reset":
+            print("Resetting field position")
+            # Reset robot position in simulation
+            if hasattr(self, 'container') and hasattr(self.container, 'drivetrain'):
+                start_pose = wpimath.geometry.Pose2d(2, 2, wpimath.geometry.Rotation2d(0))
+                self.container.drivetrain.resetHarder(start_pose)
+                
+                # Clear the reset command
+                reset_pub = auto_table.getStringTopic("reset_field").publish()
+                reset_pub.set("")
     
     def startRumble(self):
         """Start controller rumble."""

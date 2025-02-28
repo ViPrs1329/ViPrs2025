@@ -281,6 +281,10 @@ class DriveTrain(commands2.Subsystem):
         try:
             # Store the last commanded speed
             self.lastChassisSpeed = speeds
+
+            # Debug print to verify speeds
+            print(f"Setting chassis speeds - vx: {speeds.vx:.2f}, vy: {speeds.vy:.2f}, omega: {speeds.omega:.2f}")
+    
             
             # Convert to module states
             speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)

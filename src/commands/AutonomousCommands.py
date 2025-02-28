@@ -2,6 +2,7 @@
 import commands2
 import math
 import wpilib
+import ntcore
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.controller import PIDController, ProfiledPIDController
@@ -68,10 +69,17 @@ class DriveForwardCommand(commands2.CommandBase):
         self.target_distance = self.distance_meters
         self.distance_traveled = 0.0
         
+
+    # Updates for the DriveForwardCommand.execute() method in AutonomousCommands.py
+
     def execute(self):
         """Called repeatedly during command execution."""
         # Get current pose
         current_pose = self.drivetrain.getPose()
+
+        # Debug the current pose
+        print(f"Current Pose - x: {current_pose.x:.2f}, y: {current_pose.y:.2f}, " + 
+            f"rotation: {current_pose.rotation().degrees():.2f}°")
         
         # Calculate distance traveled
         dx = current_pose.x - self.initial_pose.x
@@ -98,12 +106,34 @@ class DriveForwardCommand(commands2.CommandBase):
         # X is forward, Y is left-right, omega is rotation
         speeds = ChassisSpeeds(forward_speed, 0.0, rotation_speed)
         
+        # Print speeds for debugging
+        print(f"Command speeds - vx: {forward_speed:.2f}, vy: 0.00, omega: {rotation_speed:.2f}")
+        
         # Drive the robot using the calculated speeds
         self.drivetrain.manualDriveFromChassisSpeeds(speeds)
         
+        # Update progress in NetworkTables for dashboard
+        try:
+            progress = (self.distance_traveled / self.target_distance) * 100
+            progress = min(progress, 100.0)  # Cap at 100%
+            
+            nt_inst = ntcore.NetworkTableInstance.getDefault()
+            auto_table = nt_inst.getTable("Autonomous")
+            progress_pub = auto_table.getDoubleTopic("progress").publish()
+            progress_pub.set(progress)
+            
+            # Also publish position for redundancy
+            x_pub = auto_table.getDoubleTopic("robot_x").publish()
+            y_pub = auto_table.getDoubleTopic("robot_y").publish()
+            x_pub.set(current_pose.x)
+            y_pub.set(current_pose.y)
+        except Exception as e:
+            # Log but don't crash if there's a NetworkTables error
+            print(f"Warning: Failed to update progress: {e}")
+        
         # Debug output
         print(f"Distance: {self.distance_traveled:.2f}/{self.target_distance:.2f} m, " +
-              f"Speed: {forward_speed:.2f}, Heading Correction: {rotation_speed:.2f}")
+            f"Speed: {forward_speed:.2f}, Heading Correction: {rotation_speed:.2f}")
         
     def isFinished(self):
         """Return whether the command has finished.
@@ -640,6 +670,8 @@ class FollowTrajectoryCommand(commands2.CommandBase):
             print("Trajectory following completed")
 
 
+
+
 class LeaveStartingZoneAuto(commands2.SequentialCommandGroup):
     """Simple autonomous routine to leave the starting zone."""
     
@@ -651,6 +683,9 @@ class LeaveStartingZoneAuto(commands2.SequentialCommandGroup):
         """
         super().__init__()
         self.setName("LeaveStartingZoneAuto")
+        
+        # Print for debugging
+        print("Creating LeaveStartingZoneAuto with DriveForwardCommand")
         
         # Simply drive forward 5 feet to leave the starting zone
         self.addCommands(

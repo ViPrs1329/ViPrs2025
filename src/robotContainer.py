@@ -366,14 +366,31 @@ class RobotContainer:
         # Set the elevator speed
         self.elevator.setManualSpeed(elevator_speed)
 
+
+    # Add this to your getAutonomousCommand method
+
     def getAutonomousCommand(self):
-        auto_command = LeaveStartingZoneAuto(self.drivetrain)
+        # Get autonomous selection from NetworkTables if available
+        nt_inst = ntcore.NetworkTableInstance.getDefault()
+        auto_table = nt_inst.getTable("Autonomous")
+        selected_routine = auto_table.getStringTopic("selected_routine").subscribe("LeaveStartingZoneAuto").get()
         
-        # Publish autonomous command details to NetworkTables for debugging
-        inst = ntcore.NetworkTableInstance.getDefault()
-        auto_table = inst.getTable("Autonomous")
+        # Create the appropriate command based on selection
+        if selected_routine == "ScorePreloadedCoralAutonomous":
+            auto_command = ScorePreloadedCoralAutonomous(self.drivetrain, self.elevator, self.endEffector, "medium")
+        elif selected_routine == "ComplexAutonomousRoutine":
+            auto_command = ComplexAutonomousRoutine(self.drivetrain, self.elevator, self.endEffector)
+        else:  # Default to LeaveStartingZoneAuto
+            auto_command = LeaveStartingZoneAuto(self.drivetrain)
+        
+        print(f"Created autonomous command: {auto_command.getName()}")
+        
+        # Publish autonomous command details to NetworkTables for dashboard
         command_name_pub = auto_table.getStringTopic("current_command").publish()
         command_name_pub.set(auto_command.getName())
+        
+        # Make sure the drivetrain is ready
+        print(f"Drivetrain initial pose: {self.drivetrain.getPose()}")
         
         return auto_command
 

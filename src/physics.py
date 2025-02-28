@@ -7,7 +7,7 @@
 # The idea here is you provide a simulation object that overrides specific
 # motors and sensors, and then you run your robot code as normal. This file is
 # intended to be modified by you to accurately simulate your robot.
-
+import math
 import hal.simulation
 import wpilib.simulation
 import wpimath.geometry
@@ -82,10 +82,6 @@ class PhysicsEngine:
         """
         Called when the simulation parameters for the program need to be
         updated.
-
-        :param now: The current time as a float
-        :param tm_diff: The amount of time that has passed since the last
-                        time that this function was called
         """
         # Simulate the drivetrain
         try:
@@ -96,39 +92,39 @@ class PhysicsEngine:
                 # Get the chassis speeds from the drivetrain
                 speeds = dt.getChassisSpeed()
                 
-                # Very simple simulation model
-                # In a real simulation, you'd use proper kinematics and dynamics
-                vx = speeds.vx
-                vy = speeds.vy
-                omega = speeds.omega
+                # Print current speeds for debugging
+                print(f"Sim speeds - vx: {speeds.vx:.2f}, vy: {speeds.vy:.2f}, omega: {speeds.omega:.2f}")
                 
-                # Update the robot's position and orientation
-                # This is a simplified model - a real swerve model would be more complex
-                dx = vx * tm_diff
-                dy = vy * tm_diff
-                dtheta = omega * tm_diff
+                # Convert from robot-oriented to field-oriented speeds
+                # This is a critical step for swerve simulation
+                current_angle = self.position.rotation().radians()
+                cos_angle = math.cos(current_angle)
+                sin_angle = math.sin(current_angle)
                 
-                # Update robot position
-                cos_angle = self.position.rotation().cos()
-                sin_angle = self.position.rotation().sin()
+                # Calculate field-oriented velocity
+                vx_field = speeds.vx * cos_angle - speeds.vy * sin_angle
+                vy_field = speeds.vx * sin_angle + speeds.vy * cos_angle
                 
-                # Apply field-oriented transformation
-                x = self.position.x + (dx * cos_angle - dy * sin_angle)
-                y = self.position.y + (dx * sin_angle + dy * cos_angle)
-                theta = self.position.rotation().radians() + dtheta
+                # Update robot position based on velocities
+                new_x = self.position.x + vx_field * tm_diff
+                new_y = self.position.y + vy_field * tm_diff
+                new_angle = self.position.rotation().radians() + speeds.omega * tm_diff
                 
                 # Create new pose
                 self.position = wpimath.geometry.Pose2d(
-                    x, y, wpimath.geometry.Rotation2d(theta)
+                    new_x, new_y, wpimath.geometry.Rotation2d(new_angle)
                 )
                 
                 # Update gyro
-                self.gyro_angle += dtheta * 180 / 3.14159
+                self.gyro_angle = math.degrees(new_angle)
                 if self.pigeon:
                     self.pigeon.set(self.gyro_angle)
                 
                 # Update the robot's position on the field
                 self.physics_controller.field.setRobotPose(self.position)
+                
+                # Print current position for debugging
+                print(f"Sim position - x: {new_x:.2f}, y: {new_y:.2f}, angle: {math.degrees(new_angle):.2f}")
                 
         except Exception as e:
             # Just print the exception and continue - don't want to crash simulation
@@ -137,7 +133,18 @@ class PhysicsEngine:
         # Publish robot pose to NetworkTables for dashboard
         try:
             field_table = ntcore.NetworkTableInstance.getDefault().getTable("field")
-            pose_pub = field_table.getStructTopic("robot_pose", wpimath.geometry.Pose2d).publish()
-            pose_pub.set(self.position)
+            
+            # Publish individual components
+            x_pub = field_table.getDoubleTopic("robot_x").publish()
+            y_pub = field_table.getDoubleTopic("robot_y").publish()
+            rot_pub = field_table.getDoubleTopic("robot_rotation").publish()
+            
+            x_pub.set(self.position.x)
+            y_pub.set(self.position.y)
+            rot_pub.set(math.degrees(self.position.rotation().radians()))
+            
+            # Add verbose logging for debugging
+            print(f"Published to NT - x: {self.position.x:.2f}, y: {self.position.y:.2f}, rot: {math.degrees(self.position.rotation().radians()):.2f}")
+            
         except Exception as e:
             print(f"Error publishing robot pose: {e}")
