@@ -106,8 +106,13 @@ class PhysicsEngine:
                 vy_field = speeds.vx * sin_angle + speeds.vy * cos_angle
                 
                 # Update robot position based on velocities
-                new_x = self.position.x + vx_field * tm_diff
-                new_y = self.position.y + vy_field * tm_diff
+                # new_x = self.position.x + vx_field * tm_diff
+                # new_y = self.position.y + vy_field * tm_diff
+                # new_angle = self.position.rotation().radians() + speeds.omega * tm_diff
+
+                # Direct integration - don't worry about field vs robot orientation for now
+                new_x = self.position.x + speeds.vx * tm_diff
+                new_y = self.position.y + speeds.vy * tm_diff
                 new_angle = self.position.rotation().radians() + speeds.omega * tm_diff
                 
                 # Create new pose
@@ -125,6 +130,10 @@ class PhysicsEngine:
                 
                 # Print current position for debugging
                 print(f"Sim position - x: {new_x:.2f}, y: {new_y:.2f}, angle: {math.degrees(new_angle):.2f}")
+                
+                # Print detailed debug info
+                print(f"PHYSICS: speeds={speeds.vx:.2f},{speeds.vy:.2f},{speeds.omega:.2f} → " +
+                    f"pos=({new_x:.2f},{new_y:.2f},{math.degrees(new_angle):.1f}°)")
                 
         except Exception as e:
             # Just print the exception and continue - don't want to crash simulation

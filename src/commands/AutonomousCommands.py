@@ -104,7 +104,9 @@ class DriveForwardCommand(commands2.CommandBase):
         
         # Create chassis speeds (robot-oriented)
         # X is forward, Y is left-right, omega is rotation
-        speeds = ChassisSpeeds(forward_speed, 0.0, rotation_speed)
+        # speeds = ChassisSpeeds(forward_speed, 0.0, rotation_speed)
+        speeds = ChassisSpeeds(self.speed, 0.0, 0.0)  # Force constant forward speed
+        print(f"Setting chassis speeds - vx: {self.speed:.2f}, vy: 0.00, omega: 0.00")
         
         # Print speeds for debugging
         print(f"Command speeds - vx: {forward_speed:.2f}, vy: 0.00, omega: {rotation_speed:.2f}")

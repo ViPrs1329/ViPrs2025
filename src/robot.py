@@ -183,7 +183,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def simulationPeriodic(self):
         """Periodic simulation code."""
-        # Existing code...
+        print("SimulationPeriodic called")
         
         # Handle reset field command
         nt_inst = ntcore.NetworkTableInstance.getDefault()
