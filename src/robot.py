@@ -61,10 +61,20 @@ class MyRobot(commands2.TimedCommandRobot):
         auto_start_pub.set("Running")
 
     def autonomousPeriodic(self):
-        # Optionally add progress tracking
+        # Optional: Add progress tracking with a more controlled approach
         if hasattr(self, 'autonomous_start_time'):
             elapsed_time = time.time() - self.autonomous_start_time
-            print(f"Autonomous Progress: {elapsed_time:.2f} seconds elapsed")
+            
+            # Optionally stop autonomous if it runs too long
+            if elapsed_time > 15.0:  # 15 seconds max
+                print("Autonomous period timed out")
+                self.autonomousCommand.cancel()
+
+        # Check if the autonomous command is finished
+        if self.autonomousCommand is not None and self.autonomousCommand.isFinished():
+            print("Autonomous command completed")
+            self.autonomousCommand.end(False)
+            self.autonomousCommand = None
 
     def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""

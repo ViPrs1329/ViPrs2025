@@ -15,6 +15,7 @@ from wpimath.system.plant import DCMotor
 import wpimath.units as units
 from pyfrc.physics.core import PhysicsInterface
 import typing
+import ntcore
 
 if typing.TYPE_CHECKING:
     from robot import MyRobot

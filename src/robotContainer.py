@@ -297,11 +297,11 @@ class RobotContainer:
         )
         
         # Apply boost or precision mode if configured
-        if self.drivingController.getRightBumper():
+        if self.drivingController.rightBumper().getAsBoolean():
             # Boost mode - increase speed
             xSpeed *= 1.5
             ySpeed *= 1.5
-        elif self.drivingController.getLeftBumper():
+        elif self.drivingController.leftBumper().getAsBoolean():
             # Precision mode - reduce speed
             xSpeed *= 0.5
             ySpeed *= 0.5

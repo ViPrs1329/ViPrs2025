@@ -6,22 +6,25 @@
     }
   },
   "NetworkTables": {
-    "Persistent Values": {
-      "open": false
-    },
-    "Retained Values": {
-      "open": false
-    },
     "retained": {
       ".schema": {
         "open": true
       }
     },
     "transitory": {
+      "Autonomous": {
+        "open": true
+      },
       "EndEffectorTest": {
         "open": true
       },
       "Sim": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "open": true
+      },
+      "field": {
         "open": true
       }
     }

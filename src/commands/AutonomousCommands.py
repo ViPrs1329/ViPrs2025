@@ -1,6 +1,7 @@
 # commands/AutonomousCommands.py
 import commands2
 import math
+import wpilib
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Pose2d, Rotation2d
 from wpimath.controller import PIDController, ProfiledPIDController
@@ -40,6 +41,12 @@ class DriveForwardCommand(commands2.CommandBase):
         self.initial_pose = None
         self.initial_heading = None
         
+        # Add a timer to prevent infinite driving
+        self.timer = wpilib.Timer()
+        
+        # Maximum allowed time to complete the drive
+        self.max_drive_time = 5.0  # 5 seconds
+        
     def initialize(self):
         """Called when the command is initially scheduled."""
         print(f"Starting to drive forward {self.distance_meters:.2f} meters")
@@ -47,6 +54,10 @@ class DriveForwardCommand(commands2.CommandBase):
         # Reset PID controllers
         self.distance_pid.reset()
         self.rotation_pid.reset()
+        
+        # Reset and start timer
+        self.timer.reset()
+        self.timer.start()
         
         # Record initial position and heading
         self.initial_pose = self.drivetrain.getPose()
@@ -98,10 +109,13 @@ class DriveForwardCommand(commands2.CommandBase):
         """Return whether the command has finished.
         
         Returns:
-            bool: True if the robot has traveled the desired distance.
+            bool: True if the robot has traveled the desired distance or timed out.
         """
-        # Command is finished when we've traveled the requested distance
-        return self.distance_traveled >= self.target_distance
+        # Command is finished when:
+        # 1. We've traveled the requested distance
+        # 2. We've exceeded the maximum allowed time
+        return (self.distance_traveled >= self.target_distance) or \
+               (self.timer.get() >= self.max_drive_time)
         
     def end(self, interrupted):
         """Called when the command ends.
@@ -111,6 +125,8 @@ class DriveForwardCommand(commands2.CommandBase):
         """
         # Stop the drivetrain
         self.drivetrain.stopMotors()
+        self.timer.stop()
+        
         if interrupted:
             print(f"Drive forward interrupted at {self.distance_traveled:.2f}/{self.target_distance:.2f} meters")
         else:
