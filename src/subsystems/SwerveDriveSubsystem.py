@@ -269,44 +269,79 @@ class DriveTrain(commands2.Subsystem):
         # Update odometry
         self.updateOdometry()
         
-        # Debug telemetry can be added here if needed
-        # wpilib.SmartDashboard.putNumber("Swerve/GyroYaw", self.cache.yaw)
+        # Check motor temperatures and stop if overheating
+        if self.checkMotorTemperatures():
+            self.stopMotors()
+            wpilib.DriverStation.reportError("EMERGENCY STOP: Motor overheating detected!", False)
+        
+        # Debug telemetry
+        wpilib.SmartDashboard.putNumber("Swerve/GyroYaw", self.cache.yaw)
 
     def resetMotors(self) -> None:
         """Reset motors if needed."""
         pass  # Placeholder for future implementation
 
+    
     def manualDriveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
         """Drive the robot using manual chassis speeds."""
         try:
+            if not self.checkSensors():
+                print("WARNING: Sensor issues detected, limiting drive capabilities")
+                # For safety, you could reduce max speeds here or disable rotation
+                # For example:
+                speeds = ChassisSpeeds(speeds.vx * 0.5, speeds.vy * 0.5, 0.0)  # Half speed, no rotation
+            
+            # Get the last commanded speeds
+            last_speeds = self.lastChassisSpeed
+
+            # Apply acceleration limiting
+            speeds = self.limitAcceleration(last_speeds, speeds)
+
             # Store the last commanded speed
             self.lastChassisSpeed = speeds
 
             # Debug print to verify speeds
             print(f"Setting chassis speeds - vx: {speeds.vx:.2f}, vy: {speeds.vy:.2f}, omega: {speeds.omega:.2f}")
-    
             
             # Convert to module states
             speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
-            frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
+            moduleStates = self.kinematics.toSwerveModuleStates(speeds)
+            
+            # Desaturate wheel speeds (limit to max speed)
+            maxModSpeed = 4.1
+            frontLeft, frontRight, backLeft, backRight = SwerveDrive4Kinematics.desaturateWheelSpeeds(
+                moduleStates, 
+                maxModSpeed
+            )
+
+            # Optimize module states
+            frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
+            Rotation2d(ticks2rad(self.cache.frontLeftAbsPos)))
+            frontRightOptimized = SwerveModuleState.optimize(frontRight,
+            Rotation2d(ticks2rad(self.cache.frontRightAbsPos)))
+            backLeftOptimized = SwerveModuleState.optimize(backLeft,
+            Rotation2d(ticks2rad(self.cache.backLeftAbsPos)))
+            backRightOptimized = SwerveModuleState.optimize(backRight,
+            Rotation2d(ticks2rad(self.cache.backRightAbsPos)))
 
             # Calculate PID outputs using cached absolute positions
-            blPidOutput = -self.BleftPID.calculate(self.cache.backLeftAbsPos, lratio(backLeft.angle.radians()))
-            flPidOutput = -self.FleftPID.calculate(self.cache.frontLeftAbsPos, lratio(frontLeft.angle.radians()))
-            brPidOutput = -self.BrightPID.calculate(self.cache.backRightAbsPos, lratio(backRight.angle.radians()))
-            frPidOutput = -self.FrightPID.calculate(self.cache.frontRightAbsPos, lratio(frontRight.angle.radians()))
+            blPidOutput = -self.BleftPID.calculate(self.cache.backLeftAbsPos, lratio(backLeftOptimized.angle.radians()))
+            flPidOutput = -self.FleftPID.calculate(self.cache.frontLeftAbsPos, lratio(frontLeftOptimized.angle.radians()))
+            brPidOutput = -self.BrightPID.calculate(self.cache.backRightAbsPos, lratio(backRightOptimized.angle.radians()))
+            frPidOutput = -self.FrightPID.calculate(self.cache.frontRightAbsPos, lratio(frontRightOptimized.angle.radians()))
 
-            # Set rotation motors
-            self.backLeftRotation.set(blPidOutput)
-            self.frontLeftRotation.set(flPidOutput)
-            self.backRightRotation.set(brPidOutput)
-            self.frontRightRotation.set(frPidOutput)
+            # Set rotation motors with limited outputs
+            self.backLeftRotation.set(max(min(blPidOutput, 1.0), -1.0))
+            self.frontLeftRotation.set(max(min(flPidOutput, 1.0), -1.0))
+            self.backRightRotation.set(max(min(brPidOutput, 1.0), -1.0))
+            self.frontRightRotation.set(max(min(frPidOutput, 1.0), -1.0))
 
-            # Set drive motors
-            self.backLeftDrive.set(-backLeft.speed)
-            self.backRightDrive.set(backRight.speed)
-            self.frontLeftDrive.set(frontLeft.speed)
-            self.frontRightDrive.set(frontRight.speed)
+            # Apply voltage to drive motors proportional to desired speed
+            maxVoltage = 13
+            self.backLeftDrive.setVoltage(-(backLeftOptimized.speed/maxModSpeed)*maxVoltage)
+            self.backRightDrive.setVoltage((backRightOptimized.speed/maxModSpeed)*maxVoltage)
+            self.frontLeftDrive.setVoltage((frontLeftOptimized.speed/maxModSpeed)*maxVoltage)
+            self.frontRightDrive.setVoltage((frontRightOptimized.speed/maxModSpeed)*maxVoltage)
         except Exception as e:
             print(f"Error in manualDriveFromChassisSpeeds: {e}")
             self.stopMotors()
@@ -314,7 +349,19 @@ class DriveTrain(commands2.Subsystem):
     def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
         """Drive the robot with field-relative chassis speeds."""
         try:
-            # Store the last commanded speed
+            if not self.checkSensors():
+                print("WARNING: Sensor issues detected, limiting drive capabilities")
+                # For safety, you could reduce max speeds here or disable rotation
+                # For example:
+                speeds = ChassisSpeeds(speeds.vx * 0.5, speeds.vy * 0.5, 0.0)  # Half speed, no rotation
+
+            # Get the last commanded speeds
+            last_speeds = self.lastChassisSpeed
+            
+            # Apply acceleration limiting
+            speeds = self.limitAcceleration(last_speeds, speeds)
+            
+            # Store the new commanded speed
             self.lastChassisSpeed = speeds
 
             # Counter-intuitive conversion (but don't change)
@@ -344,11 +391,11 @@ class DriveTrain(commands2.Subsystem):
             brPidOutput = -self.BrightPID.calculate(self.cache.backRightAbsPos, lratio(backRight.angle.radians()))
             frPidOutput = -self.FrightPID.calculate(self.cache.frontRightAbsPos, lratio(frontRight.angle.radians()))
 
-            # Set rotation motors
-            self.backLeftRotation.set(blPidOutput)
-            self.frontLeftRotation.set(flPidOutput)
-            self.backRightRotation.set(brPidOutput)
-            self.frontRightRotation.set(frPidOutput)
+            # Set rotation motors with limited outputs
+            self.backLeftRotation.set(max(min(blPidOutput, 1.0), -1.0))
+            self.frontLeftRotation.set(max(min(flPidOutput, 1.0), -1.0))
+            self.backRightRotation.set(max(min(brPidOutput, 1.0), -1.0))
+            self.frontRightRotation.set(max(min(frPidOutput, 1.0), -1.0))
 
             # Apply voltage to drive motors proportional to desired speed
             maxVoltage = 13
@@ -359,6 +406,125 @@ class DriveTrain(commands2.Subsystem):
         except Exception as e:
             print(f"Error in driveFromChassisSpeeds: {e}")
             self.stopMotors()
+
+    
+    def limitAcceleration(self, current_speeds: ChassisSpeeds, target_speeds: ChassisSpeeds, dt: float = 0.02) -> ChassisSpeeds:
+        """Limit acceleration rates to prevent jerky movements.
+        
+        Args:
+            current_speeds: Current chassis speeds
+            target_speeds: Target chassis speeds
+            dt: Time difference since last update (default: 20ms)
+            
+        Returns:
+            ChassisSpeeds with limited acceleration
+        """
+        # Maximum acceleration rates (adjust these values based on your robot's characteristics)
+        max_linear_accel = 4.0  # m/s²
+        max_angular_accel = 8.0  # rad/s²
+        
+        # Calculate maximum speed changes for this time step
+        max_vx_change = max_linear_accel * dt
+        max_vy_change = max_linear_accel * dt
+        max_omega_change = max_angular_accel * dt
+        
+        # Limit vx acceleration
+        vx_error = target_speeds.vx - current_speeds.vx
+        vx_change = max(-max_vx_change, min(vx_error, max_vx_change))
+        
+        # Limit vy acceleration
+        vy_error = target_speeds.vy - current_speeds.vy
+        vy_change = max(-max_vy_change, min(vy_error, max_vy_change))
+        
+        # Limit omega acceleration
+        omega_error = target_speeds.omega - current_speeds.omega
+        omega_change = max(-max_omega_change, min(omega_error, max_omega_change))
+    
+        # Create new chassis speeds with limited acceleration
+        return ChassisSpeeds(
+            current_speeds.vx + vx_change,
+            current_speeds.vy + vy_change,
+            current_speeds.omega + omega_change
+        )
+
+    def checkSensors(self) -> bool:
+        """Check sensors for valid readings.
+        
+        Returns:
+            bool: True if sensors are OK, False if there are issues
+        """
+        try:
+            # Check for invalid encoder readings
+            encoder_issues = False
+            
+            # Check CANcoders for reasonable values (should be between 0-1 for absolute position)
+            if not (0 <= self.cache.frontLeftAbsPos <= 1) and not (-1 <= self.cache.frontLeftAbsPos <= 0):
+                print(f"WARNING: Front left encoder reading out of range: {self.cache.frontLeftAbsPos}")
+                encoder_issues = True
+                
+            if not (0 <= self.cache.frontRightAbsPos <= 1) and not (-1 <= self.cache.frontRightAbsPos <= 0):
+                print(f"WARNING: Front right encoder reading out of range: {self.cache.frontRightAbsPos}")
+                encoder_issues = True
+                
+            if not (0 <= self.cache.backLeftAbsPos <= 1) and not (-1 <= self.cache.backLeftAbsPos <= 0):
+                print(f"WARNING: Back left encoder reading out of range: {self.cache.backLeftAbsPos}")
+                encoder_issues = True
+                
+            if not (0 <= self.cache.backRightAbsPos <= 1) and not (-1 <= self.cache.backRightAbsPos <= 0):
+                print(f"WARNING: Back right encoder reading out of range: {self.cache.backRightAbsPos}")
+                encoder_issues = True
+            
+            # Check for gyro issues - lookout for NaN or extremely large values
+            if math.isnan(self.cache.yaw) or abs(self.cache.yaw) > 1000:
+                print(f"WARNING: Gyro reading invalid: {self.cache.yaw}")
+                return False
+                
+            return not encoder_issues
+        except Exception as e:
+            print(f"Error checking sensors: {e}")
+            return False
+
+    def checkMotorTemperatures(self) -> bool:
+        """Check motor temperatures and return True if any are too hot.
+        
+        Returns:
+            bool: True if any motor is overheating
+        """
+        try:
+            temp_threshold = 80.0  # Celsius - adjust based on NEO specifications
+            high_temp_threshold = 90.0  # Critical temperature
+            
+            # Get temperatures (use cached values for better performance)
+            temps = []
+            if hasattr(self.frontLeftDrive, 'getMotorTemperature'):
+                temps.append(self.frontLeftDrive.getMotorTemperature())
+            if hasattr(self.frontRightDrive, 'getMotorTemperature'):
+                temps.append(self.frontRightDrive.getMotorTemperature())
+            if hasattr(self.backLeftDrive, 'getMotorTemperature'):
+                temps.append(self.backLeftDrive.getMotorTemperature())
+            if hasattr(self.backRightDrive, 'getMotorTemperature'):
+                temps.append(self.backRightDrive.getMotorTemperature())
+            if hasattr(self.frontLeftRotation, 'getMotorTemperature'):
+                temps.append(self.frontLeftRotation.getMotorTemperature())
+            if hasattr(self.frontRightRotation, 'getMotorTemperature'):
+                temps.append(self.frontRightRotation.getMotorTemperature())
+            if hasattr(self.backLeftRotation, 'getMotorTemperature'):
+                temps.append(self.backLeftRotation.getMotorTemperature())
+            if hasattr(self.backRightRotation, 'getMotorTemperature'):
+                temps.append(self.backRightRotation.getMotorTemperature())
+            
+            # Check for hot motors
+            for temp in temps:
+                if temp > high_temp_threshold:
+                    print(f"CRITICAL: Motor temperature {temp}°C exceeds {high_temp_threshold}°C!")
+                    return True
+                elif temp > temp_threshold:
+                    print(f"WARNING: Motor temperature {temp}°C exceeds {temp_threshold}°C!")
+            
+            return False
+        except Exception as e:
+            print(f"Error checking motor temperatures: {e}")
+            return False  # Default to not reporting overheating on error
 
     def stopMotors(self):
         """Stop all motors."""
