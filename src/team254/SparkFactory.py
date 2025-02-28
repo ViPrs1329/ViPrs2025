@@ -1,4 +1,4 @@
-# src/team254/LazySparkMax.py
+# src/team254/SparkFactory.py
 import rev
 
 class LazySparkBase:
@@ -36,6 +36,21 @@ class LazySparkMax(rev.CANSparkMax, LazySparkBase):
             self.m_last_set = setpoint
             super().set(setpoint)
 
+    def setReference(self, value: float, ctrl_type=rev.CANSparkMax.ControlType.kDutyCycle, 
+                     pidSlot=0, arbFeedforward=0.0):
+        """
+        Sets the reference point for PID control only if the value or control type has changed.
+        """
+        if value != self.m_last_set or ctrl_type != self.m_last_control_type:
+            self.m_last_set = value
+            self.m_last_control_type = ctrl_type
+            
+            # Use the cached PID controller instance
+            if self._pid_controller is None:
+                self._pid_controller = super().getPIDController()
+                
+            self._pid_controller.setReference(value, ctrl_type, pidSlot, arbFeedforward)
+
     def getPIDController(self):
         """
         Get the PID controller, using a cached instance if available.
@@ -52,7 +67,7 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         rev.SparkFlex.__init__(self, device_number, motor_type)
         LazySparkBase.__init__(self)
 
-    def follow(self, leader, invert=False):
+    def follow(self, leader: rev.SparkFlex, invert=False):
         self.m_leader = leader
         return super().follow(leader, invert)
 
@@ -63,6 +78,21 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         if setpoint != self.m_last_set:
             self.m_last_set = setpoint
             super().set(setpoint)
+
+    def setReference(self, value: float, ctrl_type=rev.SparkFlex.ControlType.kDutyCycle, 
+                     pidSlot=0, arbFeedforward=0.0):
+        """
+        Sets the reference point for PID control only if the value or control type has changed.
+        """
+        if value != self.m_last_set or ctrl_type != self.m_last_control_type:
+            self.m_last_set = value
+            self.m_last_control_type = ctrl_type
+            
+            # Use the cached PID controller instance
+            if self._pid_controller is None:
+                self._pid_controller = super().getPIDController()
+                
+            self._pid_controller.setReference(value, ctrl_type, pidSlot, arbFeedforward)
 
     def getPIDController(self):
         """

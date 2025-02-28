@@ -1,85 +1,85 @@
+# EndEffector.py
 import rev
 import commands2
 import wpilib
 from constants import CANIDs, endEffectorConsts
 import grapple.LaserCAN as LC
+from team254.LazySparkMax import LazySparkMax
+from team254.SparkMaxFactory import SparkMaxFactory
 
 class EndEffector(commands2.Subsystem):
+    class Cache:
+        def __init__(self):
+            # Cached sensor values
+            self.coral_entry_distance = 8000
+            self.coral_entry_status = 0
+            self.coral_stop_distance = 8000
+            self.coral_stop_status = 0
+            
+            # Motor current values (read less frequently)
+            self.algae_rotation_current = 0.0
+            self.algae_intake_current = 0.0
+            self.coral_left_current = 0.0
+            self.coral_right_current = 0.0
+            
+            # Counter for less frequent reads
+            self.current_counter = 0
+    
     def __init__(self) -> None:
         super().__init__()
+
+        # Initialize cache
+        self.cache = self.Cache()
 
         # Check if we're in simulation mode
         self.is_simulation = wpilib.RobotBase.isSimulation()
         
-        # 1. Initialize motors with appropriate error handling
+        # Create configurations for motors
         try:
-            # Algae Intake Rotation Motor
-            self.algae_rotation_motor = rev.SparkMax(
-                CANIDs.EEAlgaeArmRotationID, rev.SparkMax.MotorType.kBrushless
+            # 1. Configure Algae Rotation Motor
+            algae_rotation_config = SparkMaxFactory.Configuration()
+            algae_rotation_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
+            algae_rotation_config.current_limit = endEffectorConsts.algaeRotCurrentLimit
+            algae_rotation_config.voltage_comp_enabled = True
+            algae_rotation_config.inverted = False
+            
+            # 2. Configure Algae Intake Motor
+            algae_intake_config = SparkMaxFactory.Configuration()
+            algae_intake_config.idle_mode = rev.CANSparkMax.IdleMode.kCoast
+            algae_intake_config.current_limit = endEffectorConsts.algaeIntakeCurrentLimit
+            algae_intake_config.voltage_comp_enabled = True
+            algae_intake_config.inverted = False
+            
+            # 3. Configure Coral Left Motor
+            coral_left_config = SparkMaxFactory.Configuration()
+            coral_left_config.idle_mode = rev.CANSparkMax.IdleMode.kCoast
+            coral_left_config.current_limit = endEffectorConsts.coralCurrentLimit
+            coral_left_config.voltage_comp_enabled = True
+            coral_left_config.inverted = False
+            
+            # 4. Configure Coral Right Motor
+            coral_right_config = SparkMaxFactory.Configuration()
+            coral_right_config.idle_mode = rev.CANSparkMax.IdleMode.kCoast
+            coral_right_config.current_limit = endEffectorConsts.coralCurrentLimit
+            coral_right_config.voltage_comp_enabled = True
+            coral_right_config.inverted = True  # Note: Inverted
+            
+            # Create motors using factory
+            self.algae_rotation_motor = SparkMaxFactory.createSparkMax(
+                CANIDs.EEAlgaeArmRotationID, algae_rotation_config
             )
-            self.algae_rotation_motor.setInverted(False)
             
-            if hasattr(rev, 'SparkBaseConfig'):  # Check for new API
-                self.algae_rotation_motor_config = rev.SparkBaseConfig()
-                self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-                self.algae_rotation_motor_config.smartCurrentLimit(endEffectorConsts.algaeRotCurrentLimit)
-                self.algae_rotation_motor.configure(self.algae_rotation_motor_config, 
-                                                   rev.SparkBase.ResetMode.kResetSafeParameters, 
-                                                   rev.SparkBase.PersistMode.kPersistParameters)
-            else:  # Fallback for simulation or older API
-                self.algae_rotation_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
-                self.algae_rotation_motor.setSmartCurrentLimit(endEffectorConsts.algaeRotCurrentLimit)
-            
-            # 2. Algae Intake Motor
-            self.algae_intake_motor = rev.SparkMax(
-                CANIDs.EEAlgaeIntakeID, rev.SparkMax.MotorType.kBrushless
+            self.algae_intake_motor = SparkMaxFactory.createSparkMax(
+                CANIDs.EEAlgaeIntakeID, algae_intake_config
             )
-            self.algae_intake_motor.setInverted(False)
             
-            if hasattr(rev, 'SparkBaseConfig'):
-                self.algae_intake_motor_config = rev.SparkBaseConfig()
-                self.algae_intake_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
-                self.algae_intake_motor_config.smartCurrentLimit(endEffectorConsts.algaeIntakeCurrentLimit)
-                self.algae_intake_motor.configure(self.algae_intake_motor_config,
-                                                 rev.SparkBase.ResetMode.kResetSafeParameters,
-                                                 rev.SparkBase.PersistMode.kPersistParameters)
-            else:
-                self.algae_intake_motor.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-                self.algae_intake_motor.setSmartCurrentLimit(endEffectorConsts.algaeIntakeCurrentLimit)
-            
-            # 3. Coral Intake Left Motor
-            self.coral_intake_left_motor = rev.SparkMax(
-                CANIDs.EECoralLeftID, rev.SparkMax.MotorType.kBrushless
+            self.coral_intake_left_motor = SparkMaxFactory.createSparkMax(
+                CANIDs.EECoralLeftID, coral_left_config
             )
-            self.coral_intake_left_motor.setInverted(False)
             
-            if hasattr(rev, 'SparkBaseConfig'):
-                self.coral_intake_left_motor_config = rev.SparkBaseConfig()
-                self.coral_intake_left_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
-                self.coral_intake_left_motor_config.smartCurrentLimit(endEffectorConsts.coralCurrentLimit)
-                self.coral_intake_left_motor.configure(self.coral_intake_left_motor_config,
-                                                     rev.SparkBase.ResetMode.kResetSafeParameters,
-                                                     rev.SparkBase.PersistMode.kPersistParameters)
-            else:
-                self.coral_intake_left_motor.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-                self.coral_intake_left_motor.setSmartCurrentLimit(endEffectorConsts.coralCurrentLimit)
-            
-            # 4. Coral Intake Right Motor
-            self.coral_intake_right_motor = rev.SparkMax(
-                CANIDs.EECoralRightID, rev.SparkMax.MotorType.kBrushless
+            self.coral_intake_right_motor = SparkMaxFactory.createSparkMax(
+                CANIDs.EECoralRightID, coral_right_config
             )
-            self.coral_intake_right_motor.setInverted(True)  # Inverted
-            
-            if hasattr(rev, 'SparkBaseConfig'):
-                self.coral_intake_right_motor_config = rev.SparkBaseConfig()
-                self.coral_intake_right_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
-                self.coral_intake_right_motor_config.smartCurrentLimit(endEffectorConsts.coralCurrentLimit)
-                self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config,
-                                                     rev.SparkBase.ResetMode.kResetSafeParameters,
-                                                     rev.SparkBase.PersistMode.kPersistParameters)
-            else:
-                self.coral_intake_right_motor.setIdleMode(rev.SparkMax.IdleMode.kCoast)
-                self.coral_intake_right_motor.setSmartCurrentLimit(endEffectorConsts.coralCurrentLimit)
                 
         except Exception as e:
             print(f"Error initializing REV motors: {e}")
@@ -88,7 +88,7 @@ class EndEffector(commands2.Subsystem):
             else:
                 raise  # Re-raise if not in simulation
 
-        # 5. Initialize LaserCAN sensors
+        # Initialize LaserCAN sensors
         try:
             self.coral_intake_LC = LC.LaserCAN(CANIDs.EECoralInSensorID)
             self.coral_stop_LC = LC.LaserCAN(CANIDs.EECoralStopSensorID)
@@ -101,6 +101,39 @@ class EndEffector(commands2.Subsystem):
                 self.coral_stop_LC = self._create_sim_laser()
             else:
                 raise  # Re-raise if not in simulation
+    
+    def cacheSensors(self):
+        """Cache sensor values to reduce bus traffic."""
+        try:
+            # Always cache LaserCAN readings
+            measurement = self.coral_intake_LC.get_measurement()
+            if measurement:
+                self.cache.coral_entry_distance, self.cache.coral_entry_status = measurement
+                
+            measurement = self.coral_stop_LC.get_measurement()
+            if measurement:
+                self.cache.coral_stop_distance, self.cache.coral_stop_status = measurement
+                
+            # Cache motor currents less frequently
+            if self.cache.current_counter == 0:
+                self.cache.algae_rotation_current = self.algae_rotation_motor.getOutputCurrent()
+                self.cache.algae_intake_current = self.algae_intake_motor.getOutputCurrent()
+                self.cache.coral_left_current = self.coral_intake_left_motor.getOutputCurrent()
+                self.cache.coral_right_current = self.coral_intake_right_motor.getOutputCurrent()
+                
+            self.cache.current_counter = (self.cache.current_counter + 1) % 10
+                
+        except Exception as e:
+            if not self.is_simulation:
+                print(f"Error caching sensor values: {e}")
+    
+    def periodic(self):
+        """Called periodically during all robot modes."""
+        # Update sensor cache
+        self.cacheSensors()
+        
+        # Optional: Add dashboard telemetry here
+        # wpilib.SmartDashboard.putBoolean("Coral Detected", self.isCoralDetected())
     
     def _create_sim_laser(self):
         """Create a simulated LaserCAN with minimal interface for simulation."""
@@ -182,28 +215,15 @@ class EndEffector(commands2.Subsystem):
 
     def isCoralDetected(self) -> bool:
         """Check if coral is detected at entrance of intake."""
-        try:
-            measurement = self.coral_intake_LC.get_measurement()
-            if measurement:
-                distance, status = measurement
-                # Use a threshold distance defined in constants.py
-                return status == 0 and distance < endEffectorConsts.CORAL_DETECTION_THRESHOLD
-        except Exception as e:
-            if not self.is_simulation:
-                print(f"Error checking coral detection: {e}")
-        return False
+        # Use cached values instead of direct sensor reads
+        return (self.cache.coral_entry_status == 0 and 
+                self.cache.coral_entry_distance < endEffectorConsts.CORAL_DETECTION_THRESHOLD)
     
     def isCoralPositioned(self) -> bool:
         """Check if coral has reached correct position inside intake."""
-        try:
-            measurement = self.coral_stop_LC.get_measurement()
-            if measurement:
-                distance, status = measurement
-                return status == 0 and distance < endEffectorConsts.CORAL_STOP_THRESHOLD
-        except Exception as e:
-            if not self.is_simulation:
-                print(f"Error checking coral position: {e}")
-        return False
+        # Use cached values instead of direct sensor reads
+        return (self.cache.coral_stop_status == 0 and 
+                self.cache.coral_stop_distance < endEffectorConsts.CORAL_STOP_THRESHOLD)
 
     def intakeCoral(self, speed=None):
         """Intake coral at given speed until properly positioned.
@@ -229,3 +249,11 @@ class EndEffector(commands2.Subsystem):
         """Stop the coral intake motors."""
         self.setCoralIntakeLeftSpeed(0)
         self.setCoralIntakeRightSpeed(0)
+        
+    def getCoralEntryDistance(self):
+        """Get the current distance reading from the coral entry sensor."""
+        return self.cache.coral_entry_distance
+    
+    def getCoralStopDistance(self):
+        """Get the current distance reading from the coral stop sensor."""
+        return self.cache.coral_stop_distance
