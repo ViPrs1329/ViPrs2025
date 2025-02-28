@@ -12,6 +12,7 @@ from wpimath.geometry import Rotation2d
 from subsystems.SwerveDriveSubsystem import DriveTrain
 from subsystems.EndEffector import EndEffector
 from subsystems.ElevatorSubsystem import Elevator
+from commands.AutonomousCommands import LeaveStartingZoneAuto
 from commands.IntakeCommands import IntakeCoralCommand, EjectCoralCommand
 from commands.ElevatorCommands import (
     ElevatorHomePositionCommand,
@@ -367,8 +368,10 @@ class RobotContainer:
 
     def getAutonomousCommand(self):
         """Return the command to run in autonomous mode."""
-        # TODO: Implement autonomous command(s)
-        return commands2.InstantCommand()  # Placeholder
+        
+        
+        # Create and return the autonomous command
+        return LeaveStartingZoneAuto(self.drivetrain)
 
     def systemTempCheck(self):
         """Check temperature of motor controllers."""
