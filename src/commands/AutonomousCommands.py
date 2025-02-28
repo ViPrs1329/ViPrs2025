@@ -640,6 +640,3 @@ class LeaveStartingZoneAuto(commands2.SequentialCommandGroup):
         self.addCommands(
             DriveForwardCommand(drivetrain, distance_feet=5.0, speed=0.5)
         )
-
-
-        #### NOTE: INCOMPLETE CODE!! NEED HELP FINISHING!!
