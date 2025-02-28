@@ -49,6 +49,8 @@ Our 2025 robot features a swerve drive base with an elevator and specialized end
   - Coral Mode: Coral intake/scoring
   - Algae Mode: Algae collection positions
 
+See the detailed [Control Scheme Documentation](Controls.md) for a complete mapping of all controls.
+
 ## Build & Deploy
 ```bash
 python -m robotpy deploy --skip-tests
