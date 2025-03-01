@@ -17,6 +17,13 @@ import constants
 import numpy as np
 import ntcore
 
+from commands.slow import Slow
+
+from commands.lb import LB
+from commands.lt import LT
+from commands.rb import RB
+from commands.rt import RT
+
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
     motorControllers = [
@@ -54,6 +61,16 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kRightRumble,0)
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kLeftRumble,0)
 
+  def configureButtonBindings(self):
+    # slow down the robot when right trigger is pressed
+    self.drivingCommandXboxController.rightTrigger().whileTrue(Slow(self.slowScaler))
+
+    # elevator positions
+    self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
+    self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
+    self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
+    self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
+    self.EEECommandXboxController.b().onTrue()
   autonomousCommand = None
   def robotInit(self):
     """
@@ -61,6 +78,10 @@ class MyRobot(commands2.TimedCommandRobot):
     should be used for any initialization code.
     """
     self.drivingXboxController = wpilib.XboxController(0)
+    self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
+    self.EEEXboxController = wpilib.XboxController(1)
+    self.EEECommandXboxController = commands2.button.CommandXboxController(1)
+    
     self.drivetrain = DriveTrain()
     #self.elevator = Elevator()
 
@@ -70,6 +91,11 @@ class MyRobot(commands2.TimedCommandRobot):
     self.controllerXPub = table.getDoubleTopic("controller x").publish()
     self.controllerYPub = table.getDoubleTopic("controller y").publish()
     self.robotPosition = table.getStructTopic("robot pose", Pose2d).publish()
+    
+    self.slowScaler = 1
+
+    self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
+
     print("robotInit()")
 
   def robotPeriodic(self):
@@ -98,6 +124,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.stopRumble()
     self.drivetrain.resetHarder()
     self.systemTempCheck()
+    self.configureButtonBindings()
 
   def inputCurve(input: float):
     return (input ** 3)
@@ -118,15 +145,15 @@ class MyRobot(commands2.TimedCommandRobot):
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
-    self.drivetrain.stopMotors()
+    # self.drivetrain.stopMotors()
     # print("teleopPeriodic()")
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
     print('X Speed - ' + str(xSpeed))
     print('Y Speed - ' + str(ySpeed))
-    self.controllerXPub.set(xSpeed)
-    self.controllerYPub.set(ySpeed)
+    self.controllerXPub.set(xSpeed * self.slowScaler)
+    self.controllerYPub.set(ySpeed * self.slowScaler)
 
     tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
@@ -149,7 +176,6 @@ class MyRobot(commands2.TimedCommandRobot):
     #print(xSpeed, ySpeed, tSpeed)
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
-        
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
   def testInit(self): 

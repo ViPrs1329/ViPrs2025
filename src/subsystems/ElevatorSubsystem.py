@@ -6,7 +6,7 @@ import commands2
 
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
-from wpilib import DriverStation
+from wpilib import DriverStation, MotorControllerGroup
 from wpimath import controller
 
 from constants import CANIDs
@@ -21,6 +21,12 @@ class Elevator(commands2.Subsystem):
 
     self.LEM = rev.SparkFlex(CANIDs.ElevatorLeft, rev.SparkFlex.MotorType.kBrushless)
     self.REM = rev.SparkFlex(CANIDs.ElevatorRight, rev.SparkFlex.MotorType.kBrushless)
+    self.LEM.setInverted(False)
+    self.REM.setInverted(True)
+    self.motorGroup = MotorControllerGroup(self.LEM, self.REM)
+
+    self.LEE = self.LEM.getEncoder()
+    self.REE = self.REM.getEncoder()
 
     # Set configs
 
@@ -36,10 +42,23 @@ class Elevator(commands2.Subsystem):
     self.LEM.configure(self.LEMConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
     self.REM.configure(self.REMConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
-  def drive(self, v):
-    self.LEM.set(v)
-    self.LEM.set(-v)
+    # set up the pid controllers
+    Kp = 4
+    Ki = 0
+    Kd = 0
+    self.elevatorPID = controller.PIDController(Kp, Ki, Kd)
+    self.elevatorPID.enableContinuousInput(-.5,.5)
+    self.elevatorPID.setSetpoint(0.0)
+
+  def getElevatorPosition(self):
+    return self.REE.getPosition()
+  
+  def periodic(self):
+    elevatorVelocity = self.elevatorPID.calculate(self.getElevatorPosition())
+    self.motorGroup.set(elevatorVelocity)
+
+  def gotoPosition(self, position):
+    self.elevatorPID.setSetpoint(position)
 
   def stopMotors(self):
-    self.LEM.set(0)
-    self.REM.set(0)
+    self.motorGroup.set(0)

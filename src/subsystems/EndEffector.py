@@ -29,7 +29,7 @@ class EndEffector(commands2.Subsystem):
         )
         self.algae_intake_motor.setInverted(False)  # Adjust if needed
         self.algae_intake_motor_config = rev.SparkMaxConfig()
-        self.algae_intake_motor_config.idle_mode = rev.CANSparkMax.IdleMode.kCoast #can change to brake if needed
+        self.algae_intake_motor_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake #can change to brake if needed
         self.algae_intake_motor_config.smart_current_limit_amps = 20 #limit current
         self.algae_intake_motor.apply(self.algae_intake_motor_config)
 

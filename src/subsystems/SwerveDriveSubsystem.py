@@ -110,16 +110,18 @@ class DriveTrain(commands2.Subsystem):
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
     Kp = 4
-    self.BleftPID = controller.PIDController(Kp,0,0)
+    Ki = 0
+    Kd = 0
+    self.BleftPID = controller.PIDController(Kp,Ki,Kd)
     self.BleftPID.enableContinuousInput(-.5,.5)
     self.BleftPID.setSetpoint(0.0)
-    self.BrightPID = controller.PIDController(Kp,0,0)
+    self.BrightPID = controller.PIDController(Kp,Ki,Kd)
     self.BrightPID.enableContinuousInput(-.5,.5)
     self.BrightPID.setSetpoint(0.0)
-    self.FleftPID = controller.PIDController(Kp,0,0)
+    self.FleftPID = controller.PIDController(Kp,Ki,Kd)
     self.FleftPID.enableContinuousInput(-.5,.5)
     self.FleftPID.setSetpoint(0.0)
-    self.FrightPID = controller.PIDController(Kp,0,0)
+    self.FrightPID = controller.PIDController(Kp,Ki,Kd)
     self.FrightPID.enableContinuousInput(-.5,.5)
     self.FrightPID.setSetpoint(0.0)
 
@@ -223,7 +225,7 @@ class DriveTrain(commands2.Subsystem):
   def resetMotors(self) -> None:
     pass # if we need it
 
-  def manualDriveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
+  def manualDriveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #used in current implementation of robot.py as of 2/28
     self.lastChassisSpeed = speeds
     
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
@@ -266,7 +268,7 @@ class DriveTrain(commands2.Subsystem):
     print('\n')
 
 
-  def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None:
+  def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds
 
     # counter intuitive (should be this way plz don't change)
