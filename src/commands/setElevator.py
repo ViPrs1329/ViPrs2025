@@ -36,7 +36,6 @@ def getElevatorLevel(pressedButtons):
       pass # L3
     case [True, True, True, True]:
       pass # L4
-    # TODO finish the match cases
 
 class SetElevator(commands2.Command):
   def __init__(self, pressed):
