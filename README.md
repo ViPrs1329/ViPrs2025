@@ -58,4 +58,6 @@ python -m robotpy sync
 ```
 
 ## Testing
+```bash
 python -m robotpy sim
+```

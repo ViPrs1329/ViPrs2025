@@ -75,7 +75,7 @@ class RobotContainer:
 
     def configureButtonBindings(self):
         """Configure the button bindings for user input."""
-        # Driver controls
+        # Driver controls - These remain largely unchanged
         # Reset drivetrain gyro with press of Start button
         self.drivingController.start().onTrue(
             commands2.InstantCommand(lambda: self.drivetrain.resetHarder())
@@ -110,71 +110,108 @@ class RobotContainer:
             commands2.InstantCommand(lambda: self.setAlgaeMode())
         )
         
+        # B Button: Score/Eject (context-dependent on current mode)
         # Create conditional triggers based on mode
-        # Coral Mode Controls
         coralModeActive = Trigger(lambda: self.isCoralMode)
+        algaeModeActive = Trigger(lambda: self.isAlgaeMode)
         
-        # Coral intake/expel in Coral Mode
+        # In Coral Mode, B button ejects coral
+        coralModeActive.and_(self.operatorController.b()).onTrue(self.ejectCoralCommand)
+        
+        # In Algae Mode, B button ejects algae
+        from commands.AlgaeCommands import AlgaeEjectCommand
+        algaeModeActive.and_(self.operatorController.b()).whileTrue(
+            AlgaeEjectCommand(self.endEffector)
+        )
+        
+        # ========================
+        # Coral Mode Controls
+        # ========================
+        # Coral intake/expel in Coral Mode using bumpers
         coralModeActive.and_(self.operatorController.leftBumper()).onTrue(self.intakeCoralCommand)
         coralModeActive.and_(self.operatorController.rightBumper()).onTrue(self.ejectCoralCommand)
         
-        # Elevator positions in Coral Mode using D-Pad
-        coralModeActive.and_(self.operatorController.povUp()).onTrue(self.elevatorHighCommand)
-        coralModeActive.and_(self.operatorController.povLeft()).onTrue(self.elevatorMediumCommand)
-        coralModeActive.and_(self.operatorController.povRight()).onTrue(self.elevatorLowCommand)
-        coralModeActive.and_(self.operatorController.povDown()).onTrue(self.elevatorHomeCommand)
-        
-        # Algae Mode Controls
-        algaeModeActive = Trigger(lambda: self.isAlgaeMode)
-        
-        # Import algae commands
-        from commands.AlgaeCommands import AlgaeTopPickupCommand, AlgaeBottomPickupCommand, AlgaeRetractedCommand
-        
-        # Algae intake positions in Algae Mode using D-Pad
-        algaeModeActive.and_(self.operatorController.povUp()).onTrue(
-            AlgaeTopPickupCommand(self.endEffector)
-        )
-        algaeModeActive.and_(self.operatorController.povDown()).onTrue(
-            AlgaeBottomPickupCommand(self.endEffector)
-        )
-        algaeModeActive.and_(self.operatorController.povLeft()).onTrue(
-            AlgaeRetractedCommand(self.endEffector)
-        )
-        
-        # Import algae intake/eject commands
-        from commands.AlgaeCommands import AlgaeIntakeCommand, AlgaeEjectCommand
         # Import scoring commands
         from commands.ScoringCommands import ScoreLowCommand, ScoreMediumCommand, ScoreHighCommand
+        
+        # Elevator positions in Coral Mode using X + button combinations
+        # Using X as the modifier since we're already in X (Coral) mode
+        x_button_held = self.operatorController.x()
+        
+        # X+A: Elevator to low position
+        coralModeActive.and_(x_button_held).and_(self.operatorController.a()).onTrue(
+            self.elevatorLowCommand
+        )
+        
+        # X+X: Elevator to medium position
+        coralModeActive.and_(x_button_held).and_(self.operatorController.x()).onTrue(
+            self.elevatorMediumCommand
+        )
+        
+        # X+Y: Elevator to high position
+        coralModeActive.and_(x_button_held).and_(self.operatorController.y()).onTrue(
+            self.elevatorHighCommand
+        )
+        
+        # X+B: Quick score (current position)
+        coralModeActive.and_(x_button_held).and_(self.operatorController.b()).onTrue(
+            commands2.SequentialCommandGroup(
+                self.ejectCoralCommand,
+                commands2.WaitCommand(1.0),  # Wait for ejection to complete
+                self.elevatorHomeCommand
+            )
+        )
+        
+        # ========================
+        # Algae Mode Controls
+        # ========================
+        # Import algae commands
+        from commands.AlgaeCommands import (
+            AlgaeTopPickupCommand, 
+            AlgaeBottomPickupCommand, 
+            AlgaeRetractedCommand,
+            AlgaeIntakeCommand
+        )
         
         # Algae intake/expel in Algae Mode
         algaeModeActive.and_(self.operatorController.leftBumper()).whileTrue(
             AlgaeIntakeCommand(self.endEffector)
         )
         
-        algaeModeActive.and_(self.operatorController.rightBumper()).whileTrue(
-            AlgaeEjectCommand(self.endEffector)
+        # Using Y as the modifier since we're already in Y (Algae) mode
+        y_button_held = self.operatorController.y()
+        
+        # Y+A: Algae mechanism to retracted position
+        algaeModeActive.and_(y_button_held).and_(self.operatorController.a()).onTrue(
+            AlgaeRetractedCommand(self.endEffector)
         )
         
-        # Quick-score commands with B button + D-pad in Coral Mode
-        b_button_held = self.operatorController.b()
-        coralModeActive.and_(b_button_held).and_(self.operatorController.povUp()).onTrue(
-            ScoreHighCommand(self.elevator, self.endEffector)
+        # Y+X: Algae mechanism to bottom pickup position
+        algaeModeActive.and_(y_button_held).and_(self.operatorController.x()).onTrue(
+            AlgaeBottomPickupCommand(self.endEffector)
         )
         
-        coralModeActive.and_(b_button_held).and_(self.operatorController.povLeft()).onTrue(
-            ScoreMediumCommand(self.elevator, self.endEffector)
+        # Y+Y: Algae mechanism to top pickup position
+        algaeModeActive.and_(y_button_held).and_(self.operatorController.y()).onTrue(
+            AlgaeTopPickupCommand(self.endEffector)
         )
         
-        coralModeActive.and_(b_button_held).and_(self.operatorController.povRight()).onTrue(
-            ScoreLowCommand(self.elevator, self.endEffector)
-        )
-        
-        # Manual elevator control - Uses the right joystick Y-axis for manual elevator control when held
-        # This is triggered by holding the right trigger
+        # ========================
+        # Universal Controls
+        # ========================
+        # Manual elevator control - Uses the right joystick Y-axis + right trigger
         self.operatorController.rightTrigger().whileTrue(
             RunCommand(
                 lambda: self.manualElevatorControl(),
                 self.elevator
+            )
+        )
+        
+        # Manual algae rotation control - Uses the right joystick Y-axis + left trigger
+        self.operatorController.leftTrigger().whileTrue(
+            RunCommand(
+                lambda: self.manualAlgaeRotationControl(),
+                self.endEffector
             )
         )
 
@@ -219,6 +256,22 @@ class RobotContainer:
         self.modePub.set("Algae")
         print("Operator Mode: Algae")
     
+    def manualAlgaeRotationControl(self):
+        """Control the algae rotation mechanism manually with the operator controller."""
+        # Get the Y-axis of the right joystick (inverted so up is positive)
+        joystick_y = -self.operatorController.getRightY()
+        
+        # Apply deadband to prevent small unintended movements
+        if abs(joystick_y) < 0.1:
+            joystick_y = 0
+            
+        # Scale the joystick input to appropriate rotation speed
+        # Using a lower scaling factor for more precise control
+        rotation_speed = joystick_y * 0.3  # 30% of full speed for manual control
+        
+        # Set the algae rotation speed
+        self.endEffector.setAlgaeRotationSpeed(rotation_speed)
+
     # Algae control methods
     def setAlgaePosition(self, position):
         """Set the algae intake to a specific position.
