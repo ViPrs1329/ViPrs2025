@@ -106,4 +106,4 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
         self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)
     def setAlgaeArmAngle(self, angle):
-        self.
+        self.algaePID.setSetpoint(angle)
