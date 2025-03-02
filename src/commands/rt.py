@@ -4,7 +4,7 @@ import wpilib
 
 import constants
 
-class Slow(commands2.Command):
+class RT(commands2.Command):
     def __init__(self, pressed):
         super().__init__()
         self.buttons = pressed
