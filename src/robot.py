@@ -51,7 +51,6 @@ class MyRobot(commands2.TimedCommandRobot):
         print(f"[-] Motor {motorController.getDeviceId()}, {temp}C")
     
     if burntFlag:
-      self.startRumble()
       for i in range(100):
         print("!!! ---------------- MOTORS TOO HOT ------------------- !!!")
         
