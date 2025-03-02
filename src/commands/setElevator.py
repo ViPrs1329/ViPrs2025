@@ -1,6 +1,7 @@
 import commands2
 import wpilib
 from subsystems.ElevatorSubsystem import Elevator
+from subsystems.EndEffector import EndEffector
 # Can't import RobotContainer
 
 import constants
@@ -40,15 +41,17 @@ def getElevatorLevel(pressedButtons: list[bool]):
       return 4 # L4
 
 class SetElevator(commands2.Command):
-  def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator):
+  def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator, endEffectorSubsystem: EndEffector):
     super().__init__()
     self.buttons = pressed
     self.elevator = elevatorSubsystem
+    self.EE = endEffectorSubsystem
 
   def initialize(self):
     elevatorLevel : int = getElevatorLevel(self.buttons)
     self.elevator.elevatorPID.setSetpoint(constants.elevatorConsts.elevatorHeights[elevatorLevel])
-    
+    self.EE.setAlgaeArmAngle(constants.intakeConsts.algaeArmAngles[elevatorLevel])
+  
   def execute(self):
     pass
         
