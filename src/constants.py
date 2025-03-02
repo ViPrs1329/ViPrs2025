@@ -59,6 +59,8 @@ class driveConsts:
 
 class intakeConsts:
     intakeSpeed = 0.5
+    algaeIntakeSpeed = 0.5
+    algaeArmAngles = [0, 0, 0, 0, 0]
 
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4

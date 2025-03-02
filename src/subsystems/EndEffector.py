@@ -8,7 +8,7 @@
 import rev
 import commands2
 from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
-
+from wpimath.controller import PIDController
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
@@ -53,6 +53,12 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_right_motor_config.smart_current_limit_amps = 20 #limit current
         self.coral_intake_right_motor.apply(self.coral_intake_right_motor_config)
 
+        Kp = 1
+        Ki = 0
+        Kd = 0
+        self.algaePID = PIDController(Kp, Ki, Kd)
+        self.algaePID.enableContinuousInput(-0.5, 0.5)
+        self.algaePID.setSetpoint(0)
     def setAlgaeRotationSpeed(self, speed: float) -> None:
         """Sets the speed of the algae intake rotation motor.
 
@@ -99,3 +105,5 @@ class EndEffector(commands2.Subsystem):
     def startCoralMotors(self):
         self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
         self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)
+    def setAlgaeArmAngle(self, angle):
+        self.
