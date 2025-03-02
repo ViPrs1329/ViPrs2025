@@ -20,8 +20,8 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
     """
     Lazy version of CANSparkMax that reduces CAN bus traffic by skipping duplicate set commands.
     """
-    # TODO: Check rev.CANSparkMax.MotorType.kBrushless, does it exist? https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
-    def __init__(self, device_number: int, motor_type=rev.CANSparkMax.MotorType.kBrushless):
+    
+    def __init__(self, device_number: int, motor_type=rev.SparkMax.MotorType.kBrushless):
         rev.CANSparkMax.__init__(self, device_number, motor_type)
         LazySparkBase.__init__(self)
 
@@ -42,6 +42,7 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
         # In real hardware, this would call the parent method
         # For simulation compatibility, ensure this method exists
         if hasattr(super(), "setIdleMode"):
+            # TODO: setIdleMode() isn't a part of the parent class. 
             super().setIdleMode(mode)
             
     def setInverted(self, inverted):
@@ -58,16 +59,19 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
     def disableVoltageCompensation(self):
         """Disable voltage compensation"""
         if hasattr(super(), "disableVoltageCompensation"):
+            # TODO: It seems that disableVoltageCompensation() isn't part of the parent class
             super().disableVoltageCompensation()
             
     def setSmartCurrentLimit(self, limit):
         """Set the current limit"""
         if hasattr(super(), "setSmartCurrentLimit"):
+            # TODO: setSmartCurrentLimit() isn't part of the parent class
             super().setSmartCurrentLimit(limit)
             
     def burnFlash(self):
         """Burn the configuration to flash memory"""
         if hasattr(super(), "burnFlash"):
+            # TODO: burnFlash() isn't part of the parent class
             super().burnFlash()
             
     def getAbsoluteEncoder(self, encoder_type=None):
@@ -75,6 +79,7 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
         Get an absolute encoder object if supported, otherwise create a simulation version.
         """
         if hasattr(super(), "getAbsoluteEncoder"):
+            # TODO: getAbsoluteEncoder() isn't part of the parent class
             return super().getAbsoluteEncoder(encoder_type)
         else:
             # Create a simulated absolute encoder
@@ -85,6 +90,7 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
         Get the PID controller, using a cached instance if available.
         """
         if self._pid_controller is None:
+            # TODO: getPIDController() isn't part of the parent class
             self._pid_controller = super().getPIDController()
         return self._pid_controller
 
@@ -98,6 +104,7 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
 
     def follow(self, leader, invert=False):
         self.m_leader = leader
+        # TODO: follow() doesn't appear to be a part of the parent class
         return super().follow(leader, invert)
 
     def set(self, setpoint: float):
@@ -106,36 +113,43 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         """
         if setpoint != self.m_last_set:
             self.m_last_set = setpoint
+            # TODO: set() doesn't appear to be a part of the 
             super().set(setpoint)
             
     def setIdleMode(self, mode):
         """Set the idle mode of the motor controller"""
         if hasattr(super(), "setIdleMode"):
+            # TODO: setIdleMode() doesn't appear to be a part of the parent class
             super().setIdleMode(mode)
             
     def setInverted(self, inverted):
         """Set whether the motor is inverted"""
         if hasattr(super(), "setInverted"):
+            # TODO: setInverted() doesn't appear to be a part of the parent class
             super().setInverted(inverted)
             
     def enableVoltageCompensation(self, voltage):
         """Enable voltage compensation"""
         if hasattr(super(), "enableVoltageCompensation"):
+            # TODO: enableVoltageCompensation() doesn't appear to be a part of the parent class. 
             super().enableVoltageCompensation(voltage)
             
     def disableVoltageCompensation(self):
         """Disable voltage compensation"""
         if hasattr(super(), "disableVoltageCompensation"):
+            # TODO: disableVoltageCompensation() ditto
             super().disableVoltageCompensation()
             
     def setSmartCurrentLimit(self, limit):
         """Set the current limit"""
         if hasattr(super(), "setSmartCurrentLimit"):
+            # TODO: setSmartCurrentLimit() ditto
             super().setSmartCurrentLimit(limit)
             
     def burnFlash(self):
         """Burn the configuration to flash memory"""
         if hasattr(super(), "burnFlash"):
+            # TODO: burnFlass() ditto
             super().burnFlash()
             
     def getAbsoluteEncoder(self, encoder_type=None):
@@ -143,6 +157,8 @@ class LazySparkFlex(rev.SparkFlex, LazySparkBase):
         Get an absolute encoder object if supported, otherwise create a simulation version.
         """
         if hasattr(super(), "getAbsoluteEncoder"):
+            # TOEDO: getAbsoluteEncoder() ditto
+            
             return super().getAbsoluteEncoder(encoder_type)
         else:
             # Create a simulated absolute encoder

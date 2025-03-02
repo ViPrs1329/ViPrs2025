@@ -3,13 +3,18 @@
 
 import wpilib
 import commands2
-from subsystems.SwerveDriveSubsystem import DriveTrain
-from subsystems.EndEffector import EndEffector
-from commands.IntakeCommands import IntakeCoralCommand
+import rev
+from rev import SparkLowLevel
+
 
 def main():
-    print("Import test successful!")
-    print("All required modules imported correctly.")
+    help(rev.SparkLowLevel.MotorType)
+    print(dir(rev))
+    print(dir(rev.SparkLowLevel))
+    motor = rev.SparkLowLevel(1, rev.SparkLowLevel.MotorType.kBrushless)
+    print(dir(motor))
+
+
 
 if __name__ == "__main__":
     main()
