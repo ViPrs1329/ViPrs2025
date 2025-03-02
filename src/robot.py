@@ -74,7 +74,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
-  
+    # TODO add a line here that calls a command when a coral is detected
   autonomousCommand = None
 
   def robotInit(self):
@@ -134,7 +134,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain.resetHarder()
     self.systemTempCheck()
     self.configureButtonBindings()
-    self.scheduler.schedule(Intake(self.endEffector))
+    self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):
     return (input ** 3)
