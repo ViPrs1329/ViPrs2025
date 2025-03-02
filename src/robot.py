@@ -14,6 +14,7 @@ import math
 import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
 from subsystems.ElevatorSubsystem import Elevator
+from subsystems.EndEffector import EndEffector
 import constants
 import numpy as np
 import ntcore
@@ -25,6 +26,7 @@ from commands.lt import LT
 from commands.rb import RB
 from commands.rt import RT
 from commands.setElevator import SetElevator
+from commands.intake import Intake
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -72,7 +74,9 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
+  
   autonomousCommand = None
+
   def robotInit(self):
     """
     This function is called upon program startup and
@@ -85,6 +89,7 @@ class MyRobot(commands2.TimedCommandRobot):
     
     self.drivetrain = DriveTrain()
     self.elevatorController = Elevator()
+    self.endEffector = EndEffector()
     #self.elevator = Elevator()
 
     # initialize network tables
@@ -97,6 +102,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.slowScaler = 1
 
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
+
+    self.scheduler = commands2.CommandScheduler.getInstance()
 
     print("robotInit()")
 
@@ -127,6 +134,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain.resetHarder()
     self.systemTempCheck()
     self.configureButtonBindings()
+    self.scheduler.schedule(Intake(self.endEffector))
 
   def inputCurve(input: float):
     return (input ** 3)

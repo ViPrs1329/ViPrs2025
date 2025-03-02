@@ -7,7 +7,7 @@
 
 import rev
 import commands2
-from constants import CANIDs  # Assuming CANIDs are defined in constants.py
+from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
 
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
@@ -92,3 +92,10 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor.set(0)
         self.coral_intake_right_motor.set(0)
 
+    def stopCoralMotors(self):
+        self.coral_intake_left_motor.set(0)
+        self.coral_intake_right_motor.set(0)
+
+    def startCoralMotors(self):
+        self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
+        self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)

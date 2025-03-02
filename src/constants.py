@@ -58,7 +58,7 @@ class driveConsts:
 
 
 class intakeConsts:
-    pass
+    intakeSpeed = 0.5
 
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
