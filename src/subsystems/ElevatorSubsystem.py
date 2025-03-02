@@ -17,6 +17,8 @@ class Elevator(commands2.Subsystem):
   def __init__(self) -> None:
     super().__init__()
 
+    self.currentLevel = 0
+
     # Motor initiation
 
     self.LEM = rev.SparkFlex(CANIDs.ElevatorLeft, rev.SparkFlex.MotorType.kBrushless)

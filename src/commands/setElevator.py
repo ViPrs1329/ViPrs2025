@@ -5,39 +5,26 @@ from subsystems.ElevatorSubsystem import Elevator
 
 import constants
 
+def decreaseLevel():
+  if Elevator.currentLevel == 0:
+    pass
+  else:
+    Elevator.currentLevel -= 1
+  return Elevator.currentLevel
+
+def increaseLevel():
+  if Elevator.currentLevel == 4:
+    pass
+  else:
+    Elevator.currentLevel += 1
+  return Elevator.currentLevel
+
 def getElevatorLevel(pressedButtons: list[bool]):
   "return values are: {ground: 0, L1: 1, L2: 2, L3: 3, L4: 4}"
-  match pressedButtons:
-    case [False, False, False, True]:
-      return 1 # L1
-    case [False, False, True, False]:
-      return 1 # L1
-    case [False, True, False, False]:
-      return 1 # L1
-    case [True, False, False, False]:
-      return 1 # L1
-    case [True, True, False, False]:
-      return 2 # L2
-    case [True, False, True, False]:
-      return 0 # base
-    case [True, False, False, True]:
-      return 2 # L2
-    case [False, True, True, False]:
-      return 0 # base
-    case [False, True, False, True]:
-      return 2 # L2
-    case [False, False, True, True]:
-      return 2 # L2
-    case [True, True, True, False]:
-      return 3 # L3
-    case [True, True, False, True]:
-      return 3 # L3
-    case [True, False, True, True]:
-      return 3 # L3
-    case [False, True, True, True]:
-      return 3 # L3
-    case [True, True, True, True]:
-      return 4 # L4
+  if pressedButtons[2] == True and pressedButtons[3] == False:
+    return decreaseLevel()
+  elif pressedButtons[2] == False and pressedButtons[4] == True:
+    return increaseLevel()
 
 class SetElevator(commands2.Command):
   def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator):
@@ -51,6 +38,6 @@ class SetElevator(commands2.Command):
     
   def execute(self):
     pass
-        
+  
   def isFinished(self) -> bool:
     return True
