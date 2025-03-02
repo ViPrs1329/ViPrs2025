@@ -306,7 +306,7 @@ class DriveTrain(commands2.Subsystem):
     speedsList = [blSpeed, brSpeed, flSpeed, frSpeed]
 
     for i in speedsList:
-       if i<1: #voltage deadzone
+       if i<0.3: #voltage deadzone
           i=0
 
     self.backLeftDrive.setVoltage(blSpeed)
