@@ -13,6 +13,7 @@ import rev
 import math
 import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
+from subsystems.ElevatorSubsystem import Elevator
 import constants
 import numpy as np
 import ntcore
@@ -23,6 +24,7 @@ from commands.lb import LB
 from commands.lt import LT
 from commands.rb import RB
 from commands.rt import RT
+from commands.setElevator import SetElevator
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -70,7 +72,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
     self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
-    self.EEECommandXboxController.b().onTrue()
+    self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
   autonomousCommand = None
   def robotInit(self):
     """
@@ -83,6 +85,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController = commands2.button.CommandXboxController(1)
     
     self.drivetrain = DriveTrain()
+    self.elevatorController = Elevator()
     #self.elevator = Elevator()
 
     # initialize network tables

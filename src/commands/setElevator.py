@@ -1,55 +1,56 @@
 import commands2
 import wpilib
+from subsystems.ElevatorSubsystem import Elevator
 # Can't import RobotContainer
 
 import constants
 
-def getElevatorLevel(pressedButtons):
+def getElevatorLevel(pressedButtons: list[bool]):
+  "return values are: {ground: 0, L1: 1, L2: 2, L3: 3, L4: 4}"
   match pressedButtons:
     case [False, False, False, True]:
-      pass # L1
+      return 1 # L1
     case [False, False, True, False]:
-      pass # L1
+      return 1 # L1
     case [False, True, False, False]:
-      pass # L1
+      return 1 # L1
     case [True, False, False, False]:
-      pass # L1
+      return 1 # L1
     case [True, True, False, False]:
-      pass # L2
+      return 2 # L2
     case [True, False, True, False]:
-      pass # base
+      return 0 # base
     case [True, False, False, True]:
-      pass # L2
+      return 2 # L2
     case [False, True, True, False]:
-      pass # base
+      return 0 # base
     case [False, True, False, True]:
-      pass # L2
+      return 2 # L2
     case [False, False, True, True]:
-      pass # L2
+      return 2 # L2
     case [True, True, True, False]:
-      pass # L3
+      return 3 # L3
     case [True, True, False, True]:
-      pass # L3
+      return 3 # L3
     case [True, False, True, True]:
-      pass # L3
+      return 3 # L3
     case [False, True, True, True]:
-      pass # L3
+      return 3 # L3
     case [True, True, True, True]:
-      pass # L4
+      return 4 # L4
 
 class SetElevator(commands2.Command):
-  def __init__(self, pressed):
+  def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator):
     super().__init__()
     self.buttons = pressed
+    self.elevator = elevatorSubsystem
 
   def initialize(self):
-    self.buttons[2] = True
-
+    elevatorLevel : int = getElevatorLevel(self.buttons)
+    self.elevator.elevatorPID.setSetpoint(constants.elevatorConsts.elevatorHeights[elevatorLevel])
+    
   def execute(self):
     pass
-
-  def end(self, interrupted: bool):
-    self.buttons[2] = False
         
   def isFinished(self) -> bool:
     return True
