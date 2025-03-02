@@ -24,7 +24,7 @@ def getElevatorLevel(pressedButtons: list[bool]):
   "return values are: {ground: 0, L1: 1, L2: 2, L3: 3, L4: 4}"
   if pressedButtons[2] == True and pressedButtons[3] == False:
     return decreaseLevel()
-  elif pressedButtons[2] == False and pressedButtons[4] == True:
+  elif pressedButtons[2] == False and pressedButtons[3] == True:
     return increaseLevel()
 
 class SetElevator(commands2.Command):
