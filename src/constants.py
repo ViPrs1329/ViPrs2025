@@ -61,7 +61,7 @@ class intakeConsts:
     intakeSpeed = 0.5
     algaeIntakeSpeed = 0.5
     algaeArmAngles = [0, 0, 0, 0, 0]
-
+    algaeThresholdCurrent = 1
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [0, 1, 2, 3, 4]

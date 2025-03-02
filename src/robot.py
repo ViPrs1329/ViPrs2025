@@ -28,6 +28,7 @@ from commands.rt import RT
 from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.driveForward import driveForward
+from commands.algaeIntake import AlgaeIntake
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -75,6 +76,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
+    self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
     # TODO add a line here that calls a command when a coral is detected
   autonomousCommand = driveForward
 
