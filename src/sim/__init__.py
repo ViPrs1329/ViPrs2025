@@ -1,67 +1,130 @@
+# sim/__init__.py
+"""
+Simulation support module for the robot.
+
+This module provides simulation replacements for hardware components 
+and other simulation utilities.
+"""
+
 import wpilib
-import sys
 import builtins
 import importlib.util
+import sys
+import ntcore
 
-# Store the original import
-original_import = builtins.__import__
-
-def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
-    """Import hook to override hardware modules with simulation versions."""
+# Only execute simulation setup in simulation mode
+if wpilib.RobotBase.isSimulation():
+    print("==== Initializing Simulation Mode ====")
     
-    # Check if we're running in simulation mode
-    if wpilib.RobotBase.isSimulation():
-        # Override hardware libraries with simulation versions
+    # Store the original import function
+    original_import = builtins.__import__
+    
+    def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
+        """
+        Import hook that replaces hardware modules with simulation versions.
+        
+        This allows the robot code to use the same imports in both real and simulation mode.
+        """
+        
+        # Handle specific hardware libraries
         if name == 'rev':
-            # First, try to import our simulation version
             try:
-                # Import the specific simulation module directly
-                from sim.revlib.sim_sparkmax import SimSparkMax, SimSparkFlex, SparkBaseConfig
+                # Try to import our simulation version
+                from sim.rev import (
+                    SparkMax, SparkFlex, CANSparkMax, SparkMaxAbsoluteEncoder,
+                    SparkRelativeEncoder, SparkPIDController
+                )
                 
                 # Create a fake module to return
                 rev_module = type('rev', (), {})()
                 
-                # Add our simulation classes
-                # Add SparkRelativeEncoder to the rev_module
-                rev_module.SparkRelativeEncoder = type('SparkRelativeEncoder', (), {
-                    'Type': type('Type', (), {
-                        'kHallSensor': 0,
-                        'kQuadrature': 1
-                    })
+                # Add simulation classes to the module
+                rev_module.SparkMax = SparkMax
+                rev_module.SparkFlex = SparkFlex
+                rev_module.CANSparkMax = CANSparkMax
+                rev_module.SparkMaxAbsoluteEncoder = SparkMaxAbsoluteEncoder
+                rev_module.SparkRelativeEncoder = SparkRelativeEncoder
+                rev_module.SparkPIDController = SparkPIDController
+                
+                # Add enum types and other necessary components
+                rev_module.IdleMode = type('IdleMode', (), {
+                    'kCoast': 0,
+                    'kBrake': 1
                 })
-                rev_module.SparkMax = SimSparkMax
-                rev_module.SparkFlex = SimSparkFlex
-                rev_module.SparkBaseConfig = SparkBaseConfig
-                rev_module.SparkBase = type('SparkBase', (), {
-                    'ResetMode': type('ResetMode', (), {
-                        'kResetSafeParameters': 0
-                    }),
-                    'PersistMode': type('PersistMode', (), {
-                        'kPersistParameters': 0
-                    })
-                })()
                 
-                # Add the motor types and other necessary attributes
-                rev_module.CANSparkMax = SimSparkMax
+                rev_module.MotorType = type('MotorType', (), {
+                    'kBrushless': 0,
+                    'kBrushed': 1
+                })
                 
+                rev_module.ControlType = type('ControlType', (), {
+                    'kDutyCycle': 0,
+                    'kVelocity': 1,
+                    'kPosition': 2,
+                    'kVoltage': 3,
+                    'kCurrent': 4,
+                    'kSmartMotion': 5,
+                    'kSmartVelocity': 6,
+                    'kSmartVoltage': 7
+                })
+                
+                print("Using simulated REV library")
                 return rev_module
+                
             except ImportError as e:
-                print(f"Error importing simulation modules: {e}")
-                # If our simulation version fails, try to import from rev.py
+                print(f"Error importing simulation REV library: {e}")
+                # If our simulation version fails, try to import the real library
                 try:
                     import rev
                     return rev
                 except ImportError:
-                    # If that also fails, try the original
+                    # If that also fails, use original import
                     pass
         
-        # ... rest of the existing import hook code for phoenix6, etc.
+        elif name == 'phoenix6' or name.startswith('phoenix6.'):
+            # Handle Phoenix 6 imports
+            if name == 'phoenix6':
+                # Import the main phoenix6 module
+                try:
+                    from sim.phoenix6 import hardware
+                    
+                    # Create phoenix6 module with hardware submodule
+                    phoenix6_module = type('phoenix6', (), {})()
+                    phoenix6_module.hardware = hardware
+                    
+                    print("Using simulated Phoenix 6 library")
+                    return phoenix6_module
+                    
+                except ImportError as e:
+                    print(f"Error importing simulation Phoenix 6 library: {e}")
+                    # Fall back to original import
+                    pass
+                    
+            elif name == 'phoenix6.hardware':
+                # Import specific hardware submodule
+                try:
+                    from sim.phoenix6 import hardware
+                    print("Using simulated Phoenix 6 hardware library")
+                    return hardware
+                    
+                except ImportError as e:
+                    print(f"Error importing simulation Phoenix 6 hardware library: {e}")
+                    # Fall back to original import
+                    pass
+        
+        # For any other imports, use the original import function
+        return original_import(name, globals, locals, fromlist, level)
     
-    # For any other imports, use the original import function
-    return original_import(name, globals, locals, fromlist, level)
-
-# Replace the built-in import with our custom import hook
-builtins.__import__ = simulation_import_hook
-
-# Make sure this module is loaded early
-print("Simulation import hooks installed")
+    # Replace the built-in import with our custom import hook
+    builtins.__import__ = simulation_import_hook
+    
+    # Initialize NetworkTables for simulation
+    print("Initializing NetworkTables for simulation")
+    instance = ntcore.NetworkTableInstance.getDefault()
+    instance.startServer()
+    
+    # Create a simulation dashboard table
+    sim_table = instance.getTable("Simulation")
+    sim_table.getStringTopic("status").publish().set("Running")
+    
+    print("==== Simulation Initialized ====")

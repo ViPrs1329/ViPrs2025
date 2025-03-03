@@ -1,475 +1,419 @@
-# robotContainer.py
+# src/robotContainer.py
 import commands2
-from commands2.button import CommandXboxController, Trigger
-from commands2 import RunCommand, button, Command
-
+from commands2.button import CommandXboxController
+import wpilib
 import math
 import ntcore
-import wpimath
+
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Rotation2d
 
-from subsystems.SwerveDriveSubsystem import DriveTrain
-from subsystems.EndEffector import EndEffector
+from subsystems.SwerveDriveSubsystem import SwerveDrive
 from subsystems.ElevatorSubsystem import Elevator
-from commands.AutonomousCommands import LeaveStartingZoneAuto
-from commands.IntakeCommands import IntakeCoralCommand, EjectCoralCommand
-from commands.ElevatorCommands import (
-    ElevatorHomePositionCommand,
-    ElevatorLowPositionCommand,
-    ElevatorMediumPositionCommand,
-    ElevatorHighPositionCommand
-)
-import constants
+from subsystems.EndEffectorSubsystem import EndEffector
+
+from constants import controllerConsts, driveConsts, elevatorConsts, endEffectorConsts
 
 class RobotContainer:
     """
-    This class is where the bulk of the robot's resources are declared.
-    The RobotContainer handles wiring together all subsystems, controllers, 
-    and commands to create the full robot functionality.
+    Container for all robot components and subsystems.
+    
+    This class wires together controllers, subsystems, and commands.
+    It also configures button bindings and default commands.
     """
-    def __init__(self) -> None:
+    
+    def __init__(self):
+        """Initialize the RobotContainer."""
         # Create controllers
-        self.drivingController = CommandXboxController(0)
-        self.operatorController = CommandXboxController(1) 
+        self.driver_controller = CommandXboxController(controllerConsts.DRIVER_CONTROLLER_PORT)
+        self.operator_controller = CommandXboxController(controllerConsts.OPERATOR_CONTROLLER_PORT)
         
-        # Initialize subsystems
-        self.drivetrain = DriveTrain()
-        self.endEffector = EndEffector()
+        # Create subsystems
+        self.drivetrain = SwerveDrive()
         self.elevator = Elevator()
+        self.end_effector = EndEffector()
         
-        # Create mode state tracking
-        self.isAlgaeMode = False
-        self.isCoralMode = False
+        # Initialize mode flags
+        self.is_algae_mode = False
+        self.is_coral_mode = False
         
-        # Initialize network tables
+        # Initialize NetworkTables
         self.setup_network_tables()
         
-        # Create EndEffector commands
-        self.intakeCoralCommand = IntakeCoralCommand(self.endEffector)
-        self.ejectCoralCommand = EjectCoralCommand(self.endEffector)
-        
-        # Create elevator commands
-        self.elevatorHomeCommand = ElevatorHomePositionCommand(self.elevator)
-        self.elevatorLowCommand = ElevatorLowPositionCommand(self.elevator)
-        self.elevatorMediumCommand = ElevatorMediumPositionCommand(self.elevator)
-        self.elevatorHighCommand = ElevatorHighPositionCommand(self.elevator)
-        
         # Configure button bindings
-        self.configureButtonBindings()
+        self.configure_button_bindings()
         
         # Configure default commands
-        self.configureDefaultCommands()
-
+        self.configure_default_commands()
+        
+        print("RobotContainer initialized")
+    
     def setup_network_tables(self):
         """Initialize network tables for telemetry."""
-        inst = ntcore.NetworkTableInstance.getDefault()
-        self.table = inst.getTable("datatable")
-        self.controllerXPub = self.table.getDoubleTopic("controller x").publish()
-        self.controllerYPub = self.table.getDoubleTopic("controller y").publish()
-        self.robotPosition = self.table.getStructTopic("robot pose", wpimath.geometry.Pose2d).publish()
+        instance = ntcore.NetworkTableInstance.getDefault()
+        self.table = instance.getTable("RobotData")
         
-        # Add mode indicator to dashboard
-        self.modePub = self.table.getStringTopic("operator mode").publish()
-        self.modePub.set("Base")
-
-    def configureButtonBindings(self):
-        """Configure the button bindings for user input."""
-        # Driver controls - These remain largely unchanged
-        # Reset drivetrain gyro with press of Start button
-        self.drivingController.start().onTrue(
-            commands2.InstantCommand(lambda: self.drivetrain.resetHarder())
+        # Create publisher for operator mode
+        self.mode_pub = self.table.getStringTopic("operator_mode").publish()
+        self.mode_pub.set("Base")
+    
+    def configure_button_bindings(self):
+        """Configure button bindings for user input."""
+        # ============ Driver Controls ============
+        # Reset gyro with Start button
+        self.driver_controller.start().onTrue(
+            commands2.RunCommand(
+                lambda: self.drivetrain.resetGyro(),
+                self.drivetrain
+            )
         )
         
-        # Toggle field-oriented control with Back/Select button
-        self.drivingController.back().onTrue(
-            commands2.InstantCommand(lambda: self.toggleFieldOriented())
+        # Toggle field-oriented driving with Back button
+        self.driver_controller.back().onTrue(
+            commands2.RunCommand(
+                lambda: self.drivetrain.toggleFieldOriented(),
+                self.drivetrain
+            )
         )
         
         # Emergency stop with Y button
-        self.drivingController.y().onTrue(
-            commands2.InstantCommand(lambda: self.emergencyStop())
+        self.driver_controller.y().onTrue(
+            commands2.RunCommand(
+                lambda: self.emergency_stop(),
+                [self.drivetrain, self.elevator, self.end_effector]
+            )
         )
         
-        # Operator controls - Mode Selection
-        # A Button: Base Mode (Elevator to home position)
-        self.operatorController.a().onTrue(
+        # ============ Operator Controls ============
+        # Mode selection
+        # A Button: Base Mode (Home position)
+        self.operator_controller.a().onTrue(
             commands2.SequentialCommandGroup(
-                commands2.InstantCommand(lambda: self.setBaseMode()),
-                self.elevatorHomeCommand
+                commands2.InstantCommand(lambda: self.set_base_mode()),
+                commands2.RunCommand(
+                    lambda: self.elevator.moveToPosition(elevatorConsts.HOME_POSITION),
+                    self.elevator
+                )
             )
         )
         
         # X Button: Coral Mode
-        self.operatorController.x().onTrue(
-            commands2.InstantCommand(lambda: self.setCoralMode())
+        self.operator_controller.x().onTrue(
+            commands2.InstantCommand(lambda: self.set_coral_mode())
         )
         
         # Y Button: Algae Mode
-        self.operatorController.y().onTrue(
-            commands2.InstantCommand(lambda: self.setAlgaeMode())
+        self.operator_controller.y().onTrue(
+            commands2.InstantCommand(lambda: self.set_algae_mode())
         )
         
-        # B Button: Score/Eject (context-dependent on current mode)
-        # Create conditional triggers based on mode
-        coralModeActive = Trigger(lambda: self.isCoralMode)
-        algaeModeActive = Trigger(lambda: self.isAlgaeMode)
+        # ---- Coral Mode Controls ----
+        # Only active when in Coral mode
+        coral_mode_active = commands2.button.Trigger(lambda: self.is_coral_mode)
         
-        # In Coral Mode, B button ejects coral
-        coralModeActive.and_(self.operatorController.b()).onTrue(self.ejectCoralCommand)
-        
-        # In Algae Mode, B button ejects algae
-        from commands.AlgaeCommands import AlgaeEjectCommand
-        algaeModeActive.and_(self.operatorController.b()).whileTrue(
-            AlgaeEjectCommand(self.endEffector)
-        )
-        
-        # ========================
-        # Coral Mode Controls
-        # ========================
-        # Coral intake/expel in Coral Mode using bumpers
-        coralModeActive.and_(self.operatorController.leftBumper()).onTrue(self.intakeCoralCommand)
-        coralModeActive.and_(self.operatorController.rightBumper()).onTrue(self.ejectCoralCommand)
-        
-        # Import scoring commands
-        from commands.ScoringCommands import ScoreLowCommand, ScoreMediumCommand, ScoreHighCommand
-        
-        # Elevator positions in Coral Mode using X + button combinations
-        # Using X as the modifier since we're already in X (Coral) mode
-        x_button_held = self.operatorController.x()
-        
-        # X+A: Elevator to low position
-        coralModeActive.and_(x_button_held).and_(self.operatorController.a()).onTrue(
-            self.elevatorLowCommand
-        )
-        
-        # X+X: Elevator to medium position
-        coralModeActive.and_(x_button_held).and_(self.operatorController.x()).onTrue(
-            self.elevatorMediumCommand
-        )
-        
-        # X+Y: Elevator to high position
-        coralModeActive.and_(x_button_held).and_(self.operatorController.y()).onTrue(
-            self.elevatorHighCommand
-        )
-        
-        # X+B: Quick score (current position)
-        coralModeActive.and_(x_button_held).and_(self.operatorController.b()).onTrue(
-            commands2.SequentialCommandGroup(
-                self.ejectCoralCommand,
-                commands2.WaitCommand(1.0),  # Wait for ejection to complete
-                self.elevatorHomeCommand
+        # Intake coral with left bumper
+        coral_mode_active.and_(self.operator_controller.leftBumper()).whileTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.intakeCoral(),
+                self.end_effector
             )
         )
         
-        # ========================
-        # Algae Mode Controls
-        # ========================
-        # Import algae commands
-        from commands.AlgaeCommands import (
-            AlgaeTopPickupCommand, 
-            AlgaeBottomPickupCommand, 
-            AlgaeRetractedCommand,
-            AlgaeIntakeCommand
+        # Eject coral with right bumper
+        coral_mode_active.and_(self.operator_controller.rightBumper()).whileTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.ejectCoral(),
+                self.end_effector
+            )
         )
         
-        # Algae intake/expel in Algae Mode
-        algaeModeActive.and_(self.operatorController.leftBumper()).whileTrue(
-            AlgaeIntakeCommand(self.endEffector)
-        )
-        
-        # Using Y as the modifier since we're already in Y (Algae) mode
-        y_button_held = self.operatorController.y()
-        
-        # Y+A: Algae mechanism to retracted position
-        algaeModeActive.and_(y_button_held).and_(self.operatorController.a()).onTrue(
-            AlgaeRetractedCommand(self.endEffector)
-        )
-        
-        # Y+X: Algae mechanism to bottom pickup position
-        algaeModeActive.and_(y_button_held).and_(self.operatorController.x()).onTrue(
-            AlgaeBottomPickupCommand(self.endEffector)
-        )
-        
-        # Y+Y: Algae mechanism to top pickup position
-        algaeModeActive.and_(y_button_held).and_(self.operatorController.y()).onTrue(
-            AlgaeTopPickupCommand(self.endEffector)
-        )
-        
-        # ========================
-        # Universal Controls
-        # ========================
-        # Manual elevator control - Uses the right joystick Y-axis + right trigger
-        self.operatorController.rightTrigger().whileTrue(
-            RunCommand(
-                lambda: self.manualElevatorControl(),
+        # X + A: Elevator to low position
+        coral_mode_active.and_(self.operator_controller.x()).and_(self.operator_controller.a()).onTrue(
+            commands2.RunCommand(
+                lambda: self.elevator.moveToPosition(elevatorConsts.LOW_POSITION),
                 self.elevator
             )
         )
         
-        # Manual algae rotation control - Uses the right joystick Y-axis + left trigger
-        self.operatorController.leftTrigger().whileTrue(
-            RunCommand(
-                lambda: self.manualAlgaeRotationControl(),
-                self.endEffector
+        # X + X: Elevator to medium position
+        coral_mode_active.and_(self.operator_controller.x()).and_(self.operator_controller.x()).onTrue(
+            commands2.RunCommand(
+                lambda: self.elevator.moveToPosition(elevatorConsts.MEDIUM_POSITION),
+                self.elevator
             )
         )
-
-
-    def configureDefaultCommands(self):
+        
+        # X + Y: Elevator to high position
+        coral_mode_active.and_(self.operator_controller.x()).and_(self.operator_controller.y()).onTrue(
+            commands2.RunCommand(
+                lambda: self.elevator.moveToPosition(elevatorConsts.HIGH_POSITION),
+                self.elevator
+            )
+        )
+        
+        # ---- Algae Mode Controls ----
+        # Only active when in Algae mode
+        algae_mode_active = commands2.button.Trigger(lambda: self.is_algae_mode)
+        
+        # Intake algae with left bumper
+        algae_mode_active.and_(self.operator_controller.leftBumper()).whileTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.setAlgaeIntakeSpeed(endEffectorConsts.ALGAE_INTAKE_SPEED),
+                self.end_effector
+            )
+        )
+        
+        # Eject algae with right bumper
+        algae_mode_active.and_(self.operator_controller.rightBumper()).whileTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.setAlgaeIntakeSpeed(-endEffectorConsts.ALGAE_INTAKE_SPEED),
+                self.end_effector
+            )
+        )
+        
+        # Y + A: Algae to retracted position
+        algae_mode_active.and_(self.operator_controller.y()).and_(self.operator_controller.a()).onTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.moveAlgaeToRetracted(),
+                self.end_effector
+            )
+        )
+        
+        # Y + X: Algae to bottom pickup position
+        algae_mode_active.and_(self.operator_controller.y()).and_(self.operator_controller.x()).onTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.moveAlgaeToBottomPickup(),
+                self.end_effector
+            )
+        )
+        
+        # Y + Y: Algae to top pickup position
+        algae_mode_active.and_(self.operator_controller.y()).and_(self.operator_controller.y()).onTrue(
+            commands2.RunCommand(
+                lambda: self.end_effector.moveAlgaeToTopPickup(),
+                self.end_effector
+            )
+        )
+        
+        # ---- Manual Controls ----
+        # Manual elevator control with right trigger + right joystick Y
+        self.operator_controller.rightTrigger().whileTrue(
+            commands2.RunCommand(
+                lambda: self.manual_elevator_control(),
+                self.elevator
+            )
+        )
+        
+        # Manual algae rotation with left trigger + right joystick Y
+        self.operator_controller.leftTrigger().whileTrue(
+            commands2.RunCommand(
+                lambda: self.manual_algae_control(),
+                self.end_effector
+            )
+        )
+    
+    def configure_default_commands(self):
         """Configure default commands for subsystems."""
-        # Create a default command for driving
+        # Set default command for drivetrain - drive with controller
         self.drivetrain.setDefaultCommand(
-            RunCommand(
+            commands2.RunCommand(
                 lambda: self.drive_with_controller(),
                 self.drivetrain
             )
         )
         
-        # Default command for the elevator to hold position
+        # Set default command for elevator - hold position
         self.elevator.setDefaultCommand(
-            RunCommand(
+            commands2.RunCommand(
                 lambda: self.elevator.holdPosition(),
                 self.elevator
             )
         )
-
-    # Mode management methods
-    def setBaseMode(self):
-        """Set the operator controller to Base mode."""
-        self.isCoralMode = False
-        self.isAlgaeMode = False
-        self.modePub.set("Base")
+    
+    # ============ Mode Management ============
+    
+    def set_base_mode(self):
+        """Set to Base mode."""
+        self.is_coral_mode = False
+        self.is_algae_mode = False
+        self.mode_pub.set("Base")
         print("Operator Mode: Base")
-        
-    def setCoralMode(self):
-        """Set the operator controller to Coral mode."""
-        self.isCoralMode = True
-        self.isAlgaeMode = False
-        self.modePub.set("Coral")
+    
+    def set_coral_mode(self):
+        """Set to Coral mode."""
+        self.is_coral_mode = True
+        self.is_algae_mode = False
+        self.mode_pub.set("Coral")
         print("Operator Mode: Coral")
-        
-    def setAlgaeMode(self):
-        """Set the operator controller to Algae mode."""
-        self.isCoralMode = False
-        self.isAlgaeMode = True
-        self.modePub.set("Algae")
+    
+    def set_algae_mode(self):
+        """Set to Algae mode."""
+        self.is_coral_mode = False
+        self.is_algae_mode = True
+        self.mode_pub.set("Algae")
         print("Operator Mode: Algae")
     
-    def manualAlgaeRotationControl(self):
-        """Control the algae rotation mechanism manually with the operator controller."""
-        # Get the Y-axis of the right joystick (inverted so up is positive)
-        joystick_y = -self.operatorController.getRightY()
+    # ============ Manual Control Helpers ============
+    
+    def manual_elevator_control(self):
+        """Handle manual elevator control."""
+        # Get joystick Y (inverted so up is positive)
+        joystick_y = -self.operator_controller.getRightY()
         
-        # Apply deadband to prevent small unintended movements
-        if abs(joystick_y) < 0.1:
+        # Apply deadband
+        if abs(joystick_y) < controllerConsts.JOYSTICK_DEADBAND:
             joystick_y = 0
-            
-        # Scale the joystick input to appropriate rotation speed
-        # Using a lower scaling factor for more precise control
-        rotation_speed = joystick_y * 0.3  # 30% of full speed for manual control
         
-        # Set the algae rotation speed
-        self.endEffector.setAlgaeRotationSpeed(rotation_speed)
-
-    # Algae control methods
-    def setAlgaePosition(self, position):
-        """Set the algae intake to a specific position.
+        # Scale for manual control
+        speed = joystick_y * 0.4  # 40% speed for safety
         
-        Args:
-            position (str): Position name ("top", "bottom", "retracted")
-        """
-        print(f"Setting algae position to: {position}")
+        # Set manual speed
+        self.elevator.setManualSpeed(speed)
+    
+    def manual_algae_control(self):
+        """Handle manual algae rotation control."""
+        # Get joystick Y (inverted so up is positive)
+        joystick_y = -self.operator_controller.getRightY()
         
-        # Implementation will depend on your algae mechanism
-        # This is a placeholder - replace with actual implementation
-        if position == "top":
-            # Command to move algae to top position
-            # For example, rotate to 90 degrees
-            self.endEffector.setAlgaeRotationSpeed(0.5)  # Example only
-            # In real implementation, you would use a position-based command
-        elif position == "bottom":
-            # Command to move algae to bottom position
-            # For example, rotate to -90 degrees
-            self.endEffector.setAlgaeRotationSpeed(-0.5)  # Example only
-        elif position == "retracted":
-            # Command to move algae to retracted position
-            # For example, rotate to 0 degrees
-            self.endEffector.setAlgaeRotationSpeed(0)  # Example only
-    
-    def setAlgaeIntakeSpeed(self, speed):
-        """Set the algae intake speed.
+        # Apply deadband
+        if abs(joystick_y) < controllerConsts.JOYSTICK_DEADBAND:
+            joystick_y = 0
         
-        Args:
-            speed (float): Speed value (-1.0 to 1.0)
-        """
-        print(f"Setting algae intake speed to: {speed}")
-        self.endEffector.setAlgaeIntakeSpeed(speed)
+        # Scale for manual control
+        speed = joystick_y * 0.3  # 30% speed for safety
+        
+        # Set manual speed
+        self.end_effector.setAlgaeRotationSpeed(speed)
     
-    # Drive control methods
-    field_oriented = True
+    def drive_with_controller(self):
+        """Handle driving based on controller input."""
+        # Get joystick values
+        x_speed = -self.driver_controller.getLeftY()  # Forward/backward
+        y_speed = -self.driver_controller.getLeftX()  # Left/right
+        rot_speed = -self.driver_controller.getRightX()  # Rotation
+        
+        # Apply deadbands
+        x_speed = self.apply_deadband(x_speed, controllerConsts.JOYSTICK_DEADBAND)
+        y_speed = self.apply_deadband(y_speed, controllerConsts.JOYSTICK_DEADBAND)
+        rot_speed = self.apply_deadband(rot_speed, controllerConsts.ROTATION_DEADBAND)
+        
+        # Apply speed scaling
+        x_speed *= controllerConsts.DRIVE_SPEED_SCALE
+        y_speed *= controllerConsts.DRIVE_SPEED_SCALE
+        rot_speed *= controllerConsts.ROTATION_SPEED_SCALE
+        
+        # Apply cube-function for smoother control
+        x_speed = math.copysign(x_speed * x_speed * x_speed, x_speed)
+        y_speed = math.copysign(y_speed * y_speed * y_speed, y_speed)
+        rot_speed = math.copysign(rot_speed * rot_speed * rot_speed, rot_speed)
+        
+        # Check for boost/slow mode
+        if self.driver_controller.rightBumper().getAsBoolean():
+            # Boost mode
+            x_speed *= controllerConsts.BOOST_MULTIPLIER
+            y_speed *= controllerConsts.BOOST_MULTIPLIER
+            rot_speed *= controllerConsts.BOOST_MULTIPLIER
+        elif self.driver_controller.leftBumper().getAsBoolean():
+            # Slow mode
+            x_speed *= controllerConsts.SLOW_MULTIPLIER
+            y_speed *= controllerConsts.SLOW_MULTIPLIER
+            rot_speed *= controllerConsts.SLOW_MULTIPLIER
+        
+        # Convert to meters per second
+        x_speed *= driveConsts.MAX_SPEED
+        y_speed *= driveConsts.MAX_SPEED
+        rot_speed *= 2 * math.pi  # Convert to radians per second
+        
+        # Drive the robot
+        self.drivetrain.drive(x_speed, y_speed, rot_speed)
     
-    def toggleFieldOriented(self):
-        """Toggle between field-oriented and robot-oriented driving."""
-        self.field_oriented = not self.field_oriented
-        print(f"Field-oriented driving: {self.field_oriented}")
+    def apply_deadband(self, value, deadband):
+        """Apply deadband to a value."""
+        if abs(value) < deadband:
+            return 0
+        
+        # Scale the remaining values to cover the full range
+        return (value - math.copysign(deadband, value)) / (1.0 - deadband)
     
-    def emergencyStop(self):
-        """Emergency stop all robot subsystems."""
-        print("EMERGENCY STOP")
+    def emergency_stop(self):
+        """Stop all subsystems in case of emergency."""
         self.drivetrain.stopMotors()
         self.elevator.stopMotors()
-        self.endEffector.stopAllMotors()
-
-    def inputCurve(self, input: float):
-        """Apply a cubic curve to input for smoother control."""
-        return (input ** 3)
-
-    def tinputCurve(self, input: float):
-        """Apply a cubic curve to rotational input."""
-        return (input ** 3) * constants.controller.tscale
-
-    def distanceCorrectedInputCurve(self, x: float, y: float):
-        """Apply distance-corrected input curve for smoother control."""
-        d = math.sqrt(x * x + y * y)
-        s = self.inputCurve(d)
-        sx = x * s
-        sy = y * s
-        if sx * sx + sy * sy > 1:
-            scale = 1 / math.sqrt(sx * sx + sy * sy)
-            sx *= scale
-            sy *= scale
-        return sx * constants.controller.scale, sy * constants.controller.scale
-
-    def drive_with_controller(self):
-        """Drive the robot based on controller input."""
-        # Get joystick inputs and apply curves for smoother control
-        xSpeed, ySpeed = self.distanceCorrectedInputCurve(
-            self.drivingController.getLeftY(), 
-            self.drivingController.getLeftX()
-        )
-        
-        # Apply boost or precision mode if configured
-        if self.drivingController.rightBumper().getAsBoolean():
-            # Boost mode - increase speed
-            xSpeed *= 1.5
-            ySpeed *= 1.5
-        elif self.drivingController.leftBumper().getAsBoolean():
-            # Precision mode - reduce speed
-            xSpeed *= 0.5
-            ySpeed *= 0.5
-        
-        # Publish to network tables for telemetry
-        self.controllerXPub.set(xSpeed)
-        self.controllerYPub.set(ySpeed)
-
-        # Get rotation input with curve applied
-        tSpeed = self.tinputCurve(-self.drivingController.getRightX())
-
-        # Apply deadzone to eliminate small unwanted inputs
-        if abs(xSpeed) < constants.controller.XYdeadzone:
-            xSpeed = 0
-        if abs(ySpeed) < constants.controller.XYdeadzone:
-            ySpeed = 0
-        if abs(tSpeed) < constants.controller.Tdeadzone:
-            tSpeed = 0
-
-        # Get current yaw from gyro
-        yaw = self.drivetrain.gyro.get_yaw().value_as_double
-
-        # Normalize heading to 0-360 degrees
-        h = yaw % 360
-        if h < 0:
-            h += 360
-
-        # Convert to radians for field-relative driving
-        h2 = h / 360
-        heading = h2 * (math.pi * 2)
-
-        # Create chassis speeds (field-relative or robot-relative)
-        if self.field_oriented:
-            speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                xSpeed, ySpeed, -tSpeed, Rotation2d(heading)
-            )
-        else:
-            speeds = ChassisSpeeds(xSpeed, ySpeed, -tSpeed)
-        
-        # Drive the swerve drivetrain with calculated speeds
-        self.drivetrain.manualDriveFromChassisSpeeds(speeds)
-        
-        # Update robot position for telemetry
-        try:
-            self.robotPosition.set(self.drivetrain.getPose())
-        except:
-            pass  # In case getPose() is not properly implemented
-
-    def manualElevatorControl(self):
-        """Control the elevator manually with the operator controller."""
-        # Get the Y-axis of the right joystick (inverted so up is positive)
-        joystick_y = -self.operatorController.getRightY()
-        
-        # Apply deadband to prevent small unintended movements
-        if abs(joystick_y) < 0.1:
-            joystick_y = 0
-            
-        # Scale the joystick input to appropriate elevator speed
-        # You might want to adjust the scaling factor based on your elevator
-        elevator_speed = joystick_y * 0.5  # 50% of full speed for manual control
-        
-        # Set the elevator speed
-        self.elevator.setManualSpeed(elevator_speed)
-
-
-    # Add this to your getAutonomousCommand method
-
+        self.end_effector.stopMotors()
+        wpilib.SmartDashboard.putString("Robot/Status", "EMERGENCY STOP")
+        print("*** EMERGENCY STOP ACTIVATED ***")
+    
+    # ============ Autonomous ============
+    
     def getAutonomousCommand(self):
+        """
+        Get the autonomous command to run.
+        
+        Returns:
+            Command: The command to run during autonomous
+        """
+        # Import here to avoid circular imports
+        from commands.AutonomousCommands import LeaveStartingZoneAuto
+        
         # Get autonomous selection from NetworkTables if available
         nt_inst = ntcore.NetworkTableInstance.getDefault()
         auto_table = nt_inst.getTable("Autonomous")
-        selected_routine = auto_table.getStringTopic("selected_routine").subscribe("LeaveStartingZoneAuto").get()
+        selected_routine = auto_table.getStringTopic("selected_routine").subscribe("DefaultAuto").get()
         
-        # Create the appropriate command based on selection
-        if selected_routine == "ScorePreloadedCoralAutonomous":
-            auto_command = ScorePreloadedCoralAutonomous(self.drivetrain, self.elevator, self.endEffector, "medium")
-        elif selected_routine == "ComplexAutonomousRoutine":
-            auto_command = ComplexAutonomousRoutine(self.drivetrain, self.elevator, self.endEffector)
-        else:  # Default to LeaveStartingZoneAuto
-            auto_command = LeaveStartingZoneAuto(self.drivetrain)
+        # Choose the appropriate command based on selection
+        if selected_routine == "LeaveStartingZone":
+            return LeaveStartingZoneAuto(self.drivetrain)
+        # Add other auto routines as needed
         
-        print(f"Created autonomous command: {auto_command.getName()}")
-        
-        # Publish autonomous command details to NetworkTables for dashboard
-        command_name_pub = auto_table.getStringTopic("current_command").publish()
-        command_name_pub.set(auto_command.getName())
-        
-        # Make sure the drivetrain is ready
-        print(f"Drivetrain initial pose: {self.drivetrain.getPose()}")
-        
-        return auto_command
-
+        # Default to a simple routine if no valid selection
+        return LeaveStartingZoneAuto(self.drivetrain)
+    
     def systemTempCheck(self):
-        """Check temperature of motor controllers."""
-        motorControllers = [
-            self.drivetrain.frontLeftDrive,
-            self.drivetrain.frontRightDrive,
-            self.drivetrain.backLeftDrive,
-            self.drivetrain.backRightDrive,
-            self.drivetrain.backLeftRotation,
-            self.drivetrain.backRightRotation,
-            self.drivetrain.frontLeftRotation,
-            self.drivetrain.frontRightRotation,
-            # Add elevator motors to temperature check
-            self.elevator.LEM,
-            self.elevator.REM
-        ]
-
-        burntFlag = False
-        for motorController in motorControllers:
-            temp = motorController.getMotorTemperature()
-            if temp > 90:
-                print(f"[x] Motor {motorController.getDeviceId()}, {temp}C")
-                burntFlag = True
-            else:
-                print(f"[-] Motor {motorController.getDeviceId()}, {temp}C")
+        """
+        Check system temperatures.
         
-        return burntFlag
+        Returns:
+            bool: True if any component exceeds temperature limits
+        """
+        warning_temps = []
+        
+        # Check elevator motors
+        left_temp = self.elevator.cache.left_temp
+        right_temp = self.elevator.cache.right_temp
+        
+        # Check end effector motors
+        coral_left_temp = self.end_effector.cache.motor_temps["CoralLeft"]
+        coral_right_temp = self.end_effector.cache.motor_temps["CoralRight"]
+        algae_rot_temp = self.end_effector.cache.motor_temps["AlgaeRotation"]
+        algae_intake_temp = self.end_effector.cache.motor_temps["AlgaeIntake"]
+        
+        # Add any hot components to the warning list
+        temp_threshold = 80  # Degrees Celsius
+        
+        if left_temp > temp_threshold:
+            warning_temps.append(f"Elevator Left: {left_temp:.1f}°C")
+            
+        if right_temp > temp_threshold:
+            warning_temps.append(f"Elevator Right: {right_temp:.1f}°C")
+            
+        if coral_left_temp > temp_threshold:
+            warning_temps.append(f"Coral Left: {coral_left_temp:.1f}°C")
+            
+        if coral_right_temp > temp_threshold:
+            warning_temps.append(f"Coral Right: {coral_right_temp:.1f}°C")
+            
+        if algae_rot_temp > temp_threshold:
+            warning_temps.append(f"Algae Rotation: {algae_rot_temp:.1f}°C")
+            
+        if algae_intake_temp > temp_threshold:
+            warning_temps.append(f"Algae Intake: {algae_intake_temp:.1f}°C")
+        
+        # Report warnings to dashboard
+        if warning_temps:
+            warning_str = ", ".join(warning_temps)
+            wpilib.SmartDashboard.putString("Robot/TempWarnings", warning_str)
+            print(f"WARNING: Temperature limits exceeded - {warning_str}")
+            return True
+        
+        wpilib.SmartDashboard.putString("Robot/TempWarnings", "None")
+        return False
