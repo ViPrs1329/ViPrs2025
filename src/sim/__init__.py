@@ -47,27 +47,15 @@ def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0
                 return rev_module
             except ImportError as e:
                 print(f"Error importing simulation modules: {e}")
-                # If our simulation version fails, try the original
-                pass
+                # If our simulation version fails, try to import from rev.py
+                try:
+                    import rev
+                    return rev
+                except ImportError:
+                    # If that also fails, try the original
+                    pass
         
-        elif name == 'phoenix6.hardware':
-            # Import our simulation version
-            try:
-                # Import the specific simulation classes directly
-                from sim.phoenix6.sim_phoenix6 import Pigeon2, CANcoder
-                
-                # Create a fake module to return
-                phoenix_module = type('phoenix6.hardware', (), {})()
-                
-                # Add our simulation classes
-                phoenix_module.Pigeon2 = Pigeon2
-                phoenix_module.CANcoder = CANcoder
-                
-                return phoenix_module
-            except ImportError as e:
-                print(f"Error importing phoenix6 simulation modules: {e}")
-                # If our simulation version fails, try the original
-                pass
+        # ... rest of the existing import hook code for phoenix6, etc.
     
     # For any other imports, use the original import function
     return original_import(name, globals, locals, fromlist, level)

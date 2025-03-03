@@ -3,7 +3,8 @@ import rev
 import commands2
 import wpilib
 from constants import CANIDs, endEffectorConsts
-import grapple.LaserCAN as LC
+# import grapple.LaserCAN as LC
+import phoenix6.hardware  # Import CTRE Phoenix6 hardware module
 from team254.LazySparkMax import LazySparkMax
 from team254.SparkMaxFactory import SparkMaxFactory
 
@@ -153,15 +154,17 @@ class EndEffector(commands2.Subsystem):
 
         # Initialize LaserCAN sensors
         try:
-            self.coral_intake_LC = LC.LaserCAN(CANIDs.EECoralInSensorID)
-            self.coral_stop_LC = LC.LaserCAN(CANIDs.EECoralStopSensorID)
+            # self.coral_intake_LC = LC.LaserCAN(CANIDs.EECoralInSensorID)
+            # self.coral_stop_LC = LC.LaserCAN(CANIDs.EECoralStopSensorID)
+            self.coral_intake_range = phoenix6.hardware.CANrange(CANIDs.EECoralInSensorID)
+            self.coral_stop_range = phoenix6.hardware.CANrange(CANIDs.EECoralStopSensorID)
         except Exception as e:
             print(f"Error initializing LaserCAN sensors: {e}")
             if self.is_simulation:
                 print("Running in simulation mode - initializing simulated LaserCAN sensors")
                 # Create simulated LaserCAN sensors
-                self.coral_intake_LC = self._create_sim_laser()
-                self.coral_stop_LC = self._create_sim_laser()
+                self.coral_intake_range = self._create_sim_laser()
+                self.coral_stop_range = self._create_sim_laser()
             else:
                 raise  # Re-raise if not in simulation
     
@@ -169,11 +172,11 @@ class EndEffector(commands2.Subsystem):
         """Cache sensor values to reduce bus traffic."""
         try:
             # Always cache LaserCAN readings
-            measurement = self.coral_intake_LC.get_measurement()
+            measurement = self.coral_intake_range.get_measurement()
             if measurement:
                 self.cache.coral_entry_distance, self.cache.coral_entry_status = measurement
                 
-            measurement = self.coral_stop_LC.get_measurement()
+            measurement = self.coral_stop_range.get_measurement()
             if measurement:
                 self.cache.coral_stop_distance, self.cache.coral_stop_status = measurement
             
@@ -209,24 +212,27 @@ class EndEffector(commands2.Subsystem):
         wpilib.SmartDashboard.putBoolean("Coral Positioned", self.isCoralPositioned())
         wpilib.SmartDashboard.putNumber("Algae Position", self.getAlgaePosition())
     
-    def _create_sim_laser(self):
-        """Create a simulated LaserCAN with minimal interface for simulation."""
-        class SimLaser:
+    def _create_sim_range(self):
+        """Create a simulated CANrange with minimal interface for simulation."""
+        class SimCANrange:
             def __init__(self):
-                self.distance = 8000
-                self.status = 0
+                self.distance = 8.0  # Default to 8.0 meters (8000mm)
+                self.status = True   # Default to good status
                 
-            def get_measurement(self):
-                return (self.distance, self.status)
+            def get_distance(self):
+                return phoenix6.hardware.SimStatusSignal(self.distance)
                 
-            def set_simulated_distance(self, distance, status=0):
-                self.distance = distance
+            def is_good(self):
+                return phoenix6.hardware.SimStatusSignal(self.status)
+                    
+            def set_simulated_distance(self, distance_mm, status=True):
+                self.distance = distance_mm / 1000.0  # Convert from mm to meters
                 self.status = status
                 
             def is_object_detected(self, threshold_mm=100):
-                return self.distance < threshold_mm
+                return (self.distance * 1000) < threshold_mm  # Convert to mm for comparison
         
-        return SimLaser()
+        return SimCANrange()
 
     # Algae rotation control
     def setAlgaeRotationSpeed(self, speed: float) -> None:
