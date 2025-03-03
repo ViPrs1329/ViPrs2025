@@ -15,16 +15,15 @@ class SwerveModuleSim:
     This simulates both the drive and rotation motors.
     """
     
-    def __init__(self, name: str, location: wpimath.geometry.Translation2d):
+    def __init__(self, module):
         """
         Initialize the swerve module simulation.
         
         Args:
-            name: Name of the module (e.g. "Front Left")
-            location: Position of module relative to robot center
+            module: The actual swerve module to simulate
         """
-        self.name = name
-        self.location = location
+        self.module = module
+        self.name = module.name
         
         # Initialize state variables
         self.drive_position = 0.0  # meters
@@ -42,14 +41,29 @@ class SwerveModuleSim:
         
         # Last update time
         self.last_time = wpilib.Timer.getFPGATimestamp()
-    
-    def update(self):
-        """Update the simulation state."""
-        # Calculate time difference
-        current_time = wpilib.Timer.getFPGATimestamp()
-        dt = current_time - self.last_time
-        self.last_time = current_time
         
+        # Initialize the actual module's encoders
+        if hasattr(self.module, 'drive_encoder') and self.module.drive_encoder is not None:
+            self.module.drive_encoder.setPosition(self.drive_position)
+            self.module.drive_encoder.setVelocity(self.drive_velocity)
+            
+        if hasattr(self.module, 'rotation_encoder') and self.module.rotation_encoder is not None:
+            self.module.rotation_encoder.setPosition(self.rotation_position)
+            self.module.rotation_encoder.setVelocity(self.rotation_velocity)
+        
+        # Initialize the actual module's state
+        initial_state = wpimath.kinematics.SwerveModuleState(
+            self.drive_velocity,
+            wpimath.geometry.Rotation2d(self.rotation_position)
+        )
+        if hasattr(self.module, 'setDesiredState') and self.module is not None:
+            try:
+                self.module.setDesiredState(initial_state)
+            except Exception as e:
+                print(f"Warning: Could not set initial state for {self.name}: {e}")
+    
+    def update(self, dt):
+        """Update the simulation state."""
         # Simulate drive motor
         drive_acceleration = self._simulate_drive_motor(
             self.drive_voltage,
@@ -79,6 +93,68 @@ class SwerveModuleSim:
         # Calculate motor currents (simplified model)
         self.drive_current = abs(self.drive_voltage / 12.0) * 40.0  # Approximate current draw
         self.rotation_current = abs(self.rotation_voltage / 12.0) * 40.0
+        
+        # Update the actual module's state
+        if hasattr(self.module, 'drive_encoder') and self.module.drive_encoder is not None:
+            self.module.drive_encoder.setPosition(self.drive_position)
+            self.module.drive_encoder.setVelocity(self.drive_velocity)
+        if hasattr(self.module, 'rotation_encoder') and self.module.rotation_encoder is not None:
+            self.module.rotation_encoder.setPosition(self.rotation_position)
+            self.module.rotation_encoder.setVelocity(self.rotation_velocity)
+    
+    def set_state(self, state: wpimath.kinematics.SwerveModuleState):
+        """Set the desired state of the module."""
+        if state is None:
+            print(f"Warning: Received None state for {self.name}, using default state")
+            # Create a default state with zero speed and current angle
+            state = wpimath.kinematics.SwerveModuleState(
+                0.0,
+                wpimath.geometry.Rotation2d(self.rotation_position)
+            )
+            
+        # Check if state attributes are None
+        if state.speed is None:
+            print(f"Warning: Received None speed for {self.name}, using zero speed")
+            state = wpimath.kinematics.SwerveModuleState(
+                0.0,
+                state.angle
+            )
+            
+        if state.angle is None:
+            print(f"Warning: Received None angle for {self.name}, using current angle")
+            state = wpimath.kinematics.SwerveModuleState(
+                state.speed,
+                wpimath.geometry.Rotation2d(self.rotation_position)
+            )
+            
+        # Get current rotation
+        current_rotation = wpimath.geometry.Rotation2d(self.rotation_position)
+        
+        # Optimize the state to minimize rotation
+        optimized_state = wpimath.kinematics.SwerveModuleState.optimize(state, current_rotation)
+        
+        # Calculate drive voltage
+        drive_voltage = optimized_state.speed / driveConsts.MAX_SPEED * DRIVE_MAX_VOLTAGE
+        
+        # Calculate rotation voltage
+        current_angle = self.rotation_position
+        target_angle = optimized_state.angle.radians()
+        angle_error = math.atan2(
+            math.sin(target_angle - current_angle),
+            math.cos(target_angle - current_angle)
+        )
+        rotation_voltage = angle_error * 5.0  # Simple P controller
+        
+        # Set voltages
+        self.set_drive_voltage(drive_voltage)
+        self.set_rotation_voltage(rotation_voltage)
+        
+        # Update the actual module's state
+        if hasattr(self.module, 'setDesiredState'):
+            try:
+                self.module.setDesiredState(optimized_state)
+            except Exception as e:
+                print(f"Warning: Could not set desired state for {self.name}: {e}")
     
     def _simulate_drive_motor(self, voltage: float, velocity: float) -> float:
         """
@@ -135,10 +211,12 @@ class SwerveModuleSim:
     def set_drive_voltage(self, voltage: float):
         """Set the drive motor voltage."""
         self.drive_voltage = voltage
+        self.module.drive_motor.setVoltage(voltage)
     
     def set_rotation_voltage(self, voltage: float):
         """Set the rotation motor voltage."""
         self.rotation_voltage = voltage
+        self.module.rotation_motor.setVoltage(voltage)
     
     def get_state(self) -> wpimath.kinematics.SwerveModuleState:
         """Get the current state of the module."""
@@ -158,6 +236,10 @@ class SwerveModuleSim:
         """Reset the encoder positions to zero."""
         self.drive_position = 0.0
         self.rotation_position = 0.0
+        if hasattr(self.module, 'drive_encoder') and self.module.drive_encoder is not None:
+            self.module.drive_encoder.setPosition(0)
+        if hasattr(self.module, 'rotation_encoder') and self.module.rotation_encoder is not None:
+            self.module.rotation_encoder.setPosition(0)
     
     def get_drive_current(self) -> float:
         """Get the drive motor current draw."""

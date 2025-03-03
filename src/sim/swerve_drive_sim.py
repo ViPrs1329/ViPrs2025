@@ -15,189 +15,147 @@ class SwerveDriveSim:
     Manages four swerve modules and simulates the robot's motion.
     """
     
-    def __init__(self):
+    def __init__(self, swerve_drive):
         """Initialize the swerve drive simulation."""
-        # Calculate module positions
-        half_width = ROBOT_WIDTH / 2.0
-        half_length = ROBOT_LENGTH / 2.0
+        self.swerve_drive = swerve_drive
+        self.swerve_modules = []
+        self.kinematics = None
+        self.odometry = None
+        self.gyro = None
+        self.field = None
+        self.robot_pose = wpimath.geometry.Pose2d()
+        self.last_chassis_speed = wpimath.kinematics.ChassisSpeeds()
         
-        # Create swerve modules
-        self.front_left = SwerveModuleSim(
-            "Front Left",
-            wpimath.geometry.Translation2d(half_length, half_width)
-        )
+        # Initialize simulation components
+        self._init_simulation()
         
-        self.front_right = SwerveModuleSim(
-            "Front Right",
-            wpimath.geometry.Translation2d(half_length, -half_width)
-        )
+    def _init_simulation(self):
+        """Initialize simulation components"""
+        # Create simulated swerve modules
+        for module in self.swerve_drive.modules:
+            sim_module = SwerveModuleSim(module)
+            self.swerve_modules.append(sim_module)
+            
+        # Create kinematics using simulated module positions
+        module_positions = [module.get_position() for module in self.swerve_modules]
+        self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(*module_positions)
         
-        self.back_left = SwerveModuleSim(
-            "Back Left",
-            wpimath.geometry.Translation2d(-half_length, half_width)
-        )
-        
-        self.back_right = SwerveModuleSim(
-            "Back Right",
-            wpimath.geometry.Translation2d(-half_length, -half_width)
-        )
-        
-        # Store modules in a list for easy iteration
-        self.modules = [
-            self.front_left,
-            self.front_right,
-            self.back_left,
-            self.back_right
-        ]
-        
-        # Create kinematics object
-        self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
-            self.front_left.location,
-            self.front_right.location,
-            self.back_left.location,
-            self.back_right.location
-        )
-        
-        # Robot pose tracking
-        self.pose = wpimath.geometry.Pose2d()
-        self.gyro_angle = 0.0
-        
-        # Create odometry
+        # Create odometry using simulated module positions
         self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
             self.kinematics,
             wpimath.geometry.Rotation2d(0),
             (
-                self.front_left.get_position(),
-                self.front_right.get_position(),
-                self.back_left.get_position(),
-                self.back_right.get_position()
+                module_positions[0].x,
+                module_positions[1].x,
+                module_positions[2].x,
+                module_positions[3].x
             ),
-            wpimath.geometry.Pose2d()
+            self.robot_pose
         )
         
-        # Last update time
-        self.last_time = wpilib.Timer.getFPGATimestamp()
-    
-    def update(self):
-        """Update the simulation state."""
-        # Update each module
-        for module in self.modules:
-            module.update()
+        # Create simulated gyro
+        self.gyro = wpilib.ADXRS450_Gyro()
         
-        # Calculate time difference
-        current_time = wpilib.Timer.getFPGATimestamp()
-        dt = current_time - self.last_time
-        self.last_time = current_time
+        # Create field
+        self.field = wpilib.Field2d()
         
-        # Get current chassis speeds from module states
-        chassis_speeds = self.kinematics.toChassisSpeeds((
-            self.front_left.get_state(),
-            self.front_right.get_state(),
-            self.back_left.get_state(),
-            self.back_right.get_state()
-        ))
+    def update(self, dt):
+        """Update simulation state"""
+        # Update module states
+        for module in self.swerve_modules:
+            module.update(dt)
+            
+        # Update odometry
+        self.odometry.update(
+            self.swerve_drive.getGyroYaw(),
+            *[module.get_state() for module in self.swerve_modules]
+        )
         
         # Update robot pose
-        self.gyro_angle += chassis_speeds.omega * dt
+        self.robot_pose = self.odometry.getPose()
         
-        # Normalize gyro angle to [-pi, pi]
-        self.gyro_angle = math.atan2(
-            math.sin(self.gyro_angle),
-            math.cos(self.gyro_angle)
-        )
+        # Update field
+        self.field.setRobotPose(self.robot_pose)
         
-        # Update odometry
-        self.pose = self.odometry.update(
-            wpimath.geometry.Rotation2d(self.gyro_angle),
-            (
-                self.front_left.get_position(),
-                self.front_right.get_position(),
-                self.back_left.get_position(),
-                self.back_right.get_position()
-            )
-        )
-    
-    def set_module_states(self, states: list[wpimath.kinematics.SwerveModuleState]):
-        """
-        Set the desired states for all modules.
-        
-        Args:
-            states: List of desired states for [FL, FR, BL, BR] modules
-        """
-        if len(states) != 4:
-            raise ValueError("Must provide exactly 4 module states")
-        
-        # Optimize states to minimize rotation
-        optimized_states = []
-        for module, state in zip(self.modules, states):
-            current_rotation = wpimath.geometry.Rotation2d(module.rotation_position)
-            optimized_state = wpimath.kinematics.SwerveModuleState.optimize(state, current_rotation)
-            optimized_states.append(optimized_state)
-        
-        # Calculate and set voltages for each module
-        for module, state in zip(self.modules, optimized_states):
-            # Calculate drive voltage
-            drive_voltage = state.speed / driveConsts.MAX_SPEED * DRIVE_MAX_VOLTAGE
+    def setModuleStates(self, states):
+        """Set states for all swerve modules"""
+        if states is None:
+            print("Warning: Received None states in setModuleStates, using default states")
+            # Create default states for all modules
+            states = []
+            for module in self.swerve_modules:
+                current_state = module.get_state()
+                if current_state is not None:
+                    states.append(wpimath.kinematics.SwerveModuleState(0, current_state.angle))
+                else:
+                    states.append(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d()))
             
-            # Calculate rotation voltage
-            current_angle = module.rotation_position
-            target_angle = state.angle.radians()
-            angle_error = math.atan2(
-                math.sin(target_angle - current_angle),
-                math.cos(target_angle - current_angle)
-            )
-            rotation_voltage = angle_error * 5.0  # Simple P controller
+        # Ensure we have enough states for all modules
+        if len(states) < len(self.swerve_modules):
+            print(f"Warning: Received {len(states)} states for {len(self.swerve_modules)} modules, using default states")
+            # Pad with default states
+            while len(states) < len(self.swerve_modules):
+                states.append(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d()))
             
-            # Set module voltages
-            module.set_drive_voltage(drive_voltage)
-            module.set_rotation_voltage(rotation_voltage)
-    
-    def get_pose(self) -> wpimath.geometry.Pose2d:
-        """Get the current robot pose."""
-        return self.pose
-    
-    def get_gyro_angle(self) -> float:
-        """Get the current gyro angle in radians."""
-        return self.gyro_angle
-    
-    def reset_pose(self, pose: wpimath.geometry.Pose2d):
-        """Reset the robot's pose."""
-        self.pose = pose
-        self.gyro_angle = pose.rotation().radians()
+        for module, state in zip(self.swerve_modules, states):
+            try:
+                if state is None:
+                    print(f"Warning: Received None state for module {module.name}, using default state")
+                    # Use a default state with zero speed and current angle
+                    current_state = module.get_state()
+                    if current_state is not None:
+                        module.set_state(wpimath.kinematics.SwerveModuleState(0, current_state.angle))
+                    else:
+                        module.set_state(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d()))
+                else:
+                    # Check if state attributes are None
+                    if state.speed is None:
+                        print(f"Warning: Received None speed for module {module.name}, using zero speed")
+                        state = wpimath.kinematics.SwerveModuleState(0, state.angle)
+                    if state.angle is None:
+                        print(f"Warning: Received None angle for module {module.name}, using current angle")
+                        current_state = module.get_state()
+                        if current_state is not None:
+                            state = wpimath.kinematics.SwerveModuleState(state.speed, current_state.angle)
+                        else:
+                            state = wpimath.kinematics.SwerveModuleState(state.speed, wpimath.geometry.Rotation2d())
+                    module.set_state(state)
+            except Exception as e:
+                print(f"Error setting state for module {module.name}: {e}")
+                # Try to set a safe default state
+                try:
+                    module.set_state(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d()))
+                except Exception as e2:
+                    print(f"Error setting default state for module {module.name}: {e2}")
+                
+    def getPose(self):
+        """Get current robot pose"""
+        return self.robot_pose
         
-        # Reset odometry
-        self.odometry.resetPosition(
-            pose.rotation(),
-            (
-                self.front_left.get_position(),
-                self.front_right.get_position(),
-                self.back_left.get_position(),
-                self.back_right.get_position()
-            ),
-            pose
-        )
-    
-    def reset_encoders(self):
-        """Reset all module encoders."""
-        for module in self.modules:
-            module.reset_encoders()
-            
-    def get_module_states(self) -> list[wpimath.kinematics.SwerveModuleState]:
-        """Get the current states of all modules."""
-        return [module.get_state() for module in self.modules]
-    
-    def get_module_positions(self) -> list[wpimath.kinematics.SwerveModulePosition]:
-        """Get the current positions of all modules."""
-        return [module.get_position() for module in self.modules]
+    def getGyroAngle(self):
+        """Get current gyro angle"""
+        return self.gyro.getAngle()
         
-    def get_chassis_speeds(self) -> wpimath.kinematics.ChassisSpeeds:
-        """Get the current chassis speeds."""
-        return self.kinematics.toChassisSpeeds((
-            self.front_left.get_state(),
-            self.front_right.get_state(),
-            self.back_left.get_state(),
-            self.back_right.get_state()
-        ))
+    def getChassisSpeeds(self):
+        """Get current chassis speeds"""
+        # Get module states
+        module_states = []
+        for module in self.swerve_modules:
+            state = module.get_state()
+            if state is not None:
+                module_states.append(state)
+            else:
+                print(f"Warning: Module {module.name} returned None state")
+                # Use a safe default state
+                module_states.append(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d()))
+        
+        # Convert to chassis speeds using kinematics
+        chassis_speeds = self.kinematics.toChassisSpeeds(module_states)
+        
+        # Store for next drive command
+        self.last_chassis_speed = chassis_speeds
+        
+        return chassis_speeds
         
     def drive(self, chassis_speeds: wpimath.kinematics.ChassisSpeeds):
         """
@@ -207,10 +165,53 @@ class SwerveDriveSim:
             chassis_speeds: Desired chassis speeds
         """
         if chassis_speeds is None:
-            return
+            print("Warning: Received None chassis speeds in drive, using zero speeds")
+            chassis_speeds = wpimath.kinematics.ChassisSpeeds()
             
-        # Convert chassis speeds to module states
-        module_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
+        try:
+            # Convert chassis speeds to module states
+            module_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
+            
+            # Set module states
+            self.setModuleStates(module_states)
+        except Exception as e:
+            print(f"Error in drive method: {e}")
+            # Try to stop the robot
+            try:
+                self.stop()
+            except Exception as e2:
+                print(f"Error stopping robot: {e2}")
         
-        # Set module states
-        self.set_module_states(module_states) 
+    def stop(self):
+        """Stop all motors"""
+        self.drive(wpimath.kinematics.ChassisSpeeds())
+    
+    def reset_pose(self, pose: wpimath.geometry.Pose2d):
+        """Reset the robot's pose."""
+        self.robot_pose = pose
+        self.gyro.reset()
+        
+        # Reset odometry
+        self.odometry.resetPosition(
+            pose.rotation(),
+            (
+                self.swerve_modules[0].get_position().x,
+                self.swerve_modules[1].get_position().x,
+                self.swerve_modules[2].get_position().x,
+                self.swerve_modules[3].get_position().x
+            ),
+            pose
+        )
+    
+    def reset_encoders(self):
+        """Reset all module encoders."""
+        for module in self.swerve_modules:
+            module.reset_encoders()
+            
+    def get_module_states(self) -> list[wpimath.kinematics.SwerveModuleState]:
+        """Get the current states of all modules."""
+        return [module.get_state() for module in self.swerve_modules]
+    
+    def get_module_positions(self) -> list[wpimath.kinematics.SwerveModulePosition]:
+        """Get the current positions of all modules."""
+        return [module.get_position() for module in self.swerve_modules] 

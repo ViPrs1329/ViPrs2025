@@ -90,7 +90,7 @@ class PhysicsEngine:
                 dt = self.robot.container.drivetrain
 
                 # Get the chassis speeds from the drivetrain
-                speeds = dt.getChassisSpeed()
+                speeds = dt.getChassisSpeeds()
                 
                 # Print current speeds for debugging
                 print(f"Sim speeds - vx: {speeds.vx:.2f}, vy: {speeds.vy:.2f}, omega: {speeds.omega:.2f}")

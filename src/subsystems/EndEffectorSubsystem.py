@@ -260,7 +260,7 @@ class EndEffector(BaseSubsystem):
             
             if safety_issues:
                 # If safety issue detected, stop motors
-                self.stopAllMotors()
+                self.stopMotors()
                 issues_str = ", ".join(safety_issues)
                 wpilib.SmartDashboard.putString("EndEffector/Status", f"Safety: {issues_str}")
             
@@ -548,19 +548,22 @@ class EndEffector(BaseSubsystem):
     
     # ============ Stop Methods ============
     
-    def stopAllMotors(self):
+    def stopMotors(self):
         """Stop all motors in the end effector."""
         try:
-            self.stopCoralIntake()
+            # Stop coral intake motors
+            self.coral_left_motor.set(0)
+            self.coral_right_motor.set(0)
+            
+            # Stop algae motors
             self.algae_rotation_motor.set(0)
             self.algae_intake_motor.set(0)
+            
+            # Update dashboard status
             wpilib.SmartDashboard.putString("EndEffector/Status", "All Motors Stopped")
+            
         except Exception as e:
-            self.handleError("stopAllMotors", e)
-    
-    def stopMotors(self):
-        """Alias for stopAllMotors to match BaseSubsystem interface."""
-        self.stopAllMotors()
+            self.handleError("stopMotors", e)
     
     def subsystemSimulationPeriodic(self):
         """Periodic simulation code for the end effector."""

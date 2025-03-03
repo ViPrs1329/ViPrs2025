@@ -11,8 +11,8 @@
       "style": "0",
       "userScale": "2",
       "width": "1699",
-      "xpos": "214",
-      "ypos": "127"
+      "xpos": "63",
+      "ypos": "70"
     }
   },
   "Table": {
@@ -29,6 +29,11 @@
     }
   },
   "Window": {
+    "###/SmartDashboard/Field": {
+      "Collapsed": "0",
+      "Pos": "595,131",
+      "Size": "952,686"
+    },
     "###FMS": {
       "Collapsed": "0",
       "Pos": "7,681",
@@ -51,7 +56,7 @@
     },
     "###Other Devices": {
       "Collapsed": "0",
-      "Pos": "956,26",
+      "Pos": "1001,22",
       "Size": "250,695"
     },
     "###System Joysticks": {
@@ -62,7 +67,7 @@
     "###Timing": {
       "Collapsed": "0",
       "Pos": "12,143",
-      "Size": "135,150"
+      "Size": "135,127"
     },
     "Debug##Default": {
       "Collapsed": "0",

@@ -7,7 +7,7 @@ import wpimath
 from wpimath import controller
 
 from constants import CANIDs, elevatorConsts
-from team254.LazySparkMax import LazySparkMax, SimSparkMaxAbsoluteEncoder
+from team254.LazySparkMax import LazySparkMax
 from team254.SparkMaxFactory import SparkMaxFactory
 from subsystems.BaseSubsystem import BaseSubsystem
 
@@ -45,6 +45,18 @@ class Elevator(BaseSubsystem):
         """Initialize the elevator subsystem."""
         super().__init__("Elevator")
         
+        # Initialize default values first to avoid AttributeError if initialization fails
+        self.left_encoder = None
+        self.right_encoder = None
+        self.use_absolute_encoder = False
+        self.absolute_encoder = None
+        self.min_height = elevatorConsts.MIN_HEIGHT
+        self.max_height = elevatorConsts.MAX_HEIGHT
+        self.position_tolerance = elevatorConsts.POSITION_TOLERANCE
+        self.target_position = 0.0
+        self.left_motor = None
+        self.right_motor = None
+        
         try:
             # Initialize cache
             self.cache = self.Cache()
@@ -81,74 +93,73 @@ class Elevator(BaseSubsystem):
             self.right_motor = SparkMaxFactory.createSparkMax(CANIDs.ElevatorRightID, right_config)
             
             # Set up the right motor to follow the left
-            self.right_motor.follow(self.left_motor, True)  # Follow with inversion
+            if self.right_motor and self.left_motor:
+                try:
+                    self.right_motor.follow(self.left_motor, True)  # Follow with inversion
+                except Exception as e:
+                    print(f"Warning: Could not set up follower mode: {e}")
             
             # Initialize simulation-specific attributes
             self.is_simulation = wpilib.RobotBase.isSimulation()
             
-            # Initialize encoder attributes
-            self.left_encoder = None
-            self.right_encoder = None
-            self.use_absolute_encoder = False
-            self.absolute_encoder = None
-            
-            # Get encoders - always create these first
-            if self.is_simulation:
-                # In simulation, create simulated encoders
-                self.left_encoder = SimSparkMaxAbsoluteEncoder(self.left_motor)
-                self.right_encoder = SimSparkMaxAbsoluteEncoder(self.right_motor)
-            else:
-                # On real hardware, get the actual encoders
-                self.left_encoder = self.left_motor.getEncoder()
-                self.right_encoder = self.right_motor.getEncoder()
-                
-                # Try to get absolute encoder if available
+            # Initialize encoder attributes - create these before accessing them
+            if self.left_motor:
                 try:
-                    self.absolute_encoder = self.left_motor.getAbsoluteEncoder(
-                        rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle
-                    )
-                    self.use_absolute_encoder = True
+                    if self.is_simulation:
+                        # In simulation, try to use the simulation helper if available
+                        from team254.LazySparkMax import SimSparkMaxAbsoluteEncoder
+                        self.left_encoder = SimSparkMaxAbsoluteEncoder(self.left_motor)
+                        self.right_encoder = SimSparkMaxAbsoluteEncoder(self.right_motor) if self.right_motor else None
+                    else:
+                        # On real hardware, get the actual encoders
+                        self.left_encoder = self.left_motor.getEncoder()
+                        self.right_encoder = self.right_motor.getEncoder() if self.right_motor else None
+                        
+                        # Try to get absolute encoder if available
+                        try:
+                            self.absolute_encoder = self.left_motor.getAbsoluteEncoder(
+                                rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle
+                            )
+                            self.use_absolute_encoder = True
+                        except Exception as e:
+                            print(f"Warning: Could not initialize absolute encoder, falling back to relative: {e}")
+                            self.use_absolute_encoder = False
+                            self.absolute_encoder = None
                 except Exception as e:
-                    print(f"Warning: Could not initialize absolute encoder, falling back to relative: {e}")
-                    self.use_absolute_encoder = False
-                    self.absolute_encoder = None
+                    print(f"Warning: Could not initialize encoders: {e}")
             
             # Set up conversion factors for relative encoders
-            if not self.is_simulation:
-                self.left_encoder.setPositionConversionFactor(
-                    elevatorConsts.POSITION_CONVERSION_FACTOR
-                )
-                self.right_encoder.setPositionConversionFactor(
-                    elevatorConsts.POSITION_CONVERSION_FACTOR
-                )
+            if not self.is_simulation and self.left_encoder:
+                try:
+                    self.left_encoder.setPositionConversionFactor(
+                        elevatorConsts.POSITION_CONVERSION_FACTOR
+                    )
+                    if self.right_encoder:
+                        self.right_encoder.setPositionConversionFactor(
+                            elevatorConsts.POSITION_CONVERSION_FACTOR
+                        )
+                except Exception as e:
+                    print(f"Warning: Could not set conversion factors: {e}")
             
             # Configure built-in PID to use absolute encoder
-            if self.use_absolute_encoder:
-                self.motor_pid_controller = self.left_motor.getPIDController()
-                self.motor_pid_controller.setFeedbackDevice(self.absolute_encoder)
-                
-                # Set PID values
-                self.motor_pid_controller.setP(elevatorConsts.kP)
-                self.motor_pid_controller.setI(elevatorConsts.kI)
-                self.motor_pid_controller.setD(elevatorConsts.kD)
-                self.motor_pid_controller.setFF(elevatorConsts.kF)
-            
-            # Soft limits for safety
-            self.min_height = elevatorConsts.MIN_HEIGHT
-            self.max_height = elevatorConsts.MAX_HEIGHT
-            
-            # Position tolerance
-            self.position_tolerance = elevatorConsts.POSITION_TOLERANCE
-            
-            # Current target position
-            self.target_position = 0.0
+            if self.use_absolute_encoder and self.left_motor:
+                try:
+                    self.motor_pid_controller = self.left_motor.getPIDController()
+                    self.motor_pid_controller.setFeedbackDevice(self.absolute_encoder)
+                    
+                    # Set PID values
+                    self.motor_pid_controller.setP(elevatorConsts.kP)
+                    self.motor_pid_controller.setI(elevatorConsts.kI)
+                    self.motor_pid_controller.setD(elevatorConsts.kD)
+                    self.motor_pid_controller.setFF(elevatorConsts.kF)
+                except Exception as e:
+                    print(f"Warning: Could not configure PID controller: {e}")
             
             # Initialize WPILib PID controller for position control
             self.position_pid_controller = controller.PIDController(
                 elevatorConsts.kP,
                 elevatorConsts.kI,
-                elevatorConsts.kD,
-                elevatorConsts.kF
+                elevatorConsts.kD
             )
             
             # Initialize default position
@@ -164,35 +175,58 @@ class Elevator(BaseSubsystem):
             
         except Exception as e:
             self.handleError("__init__", e)
+            # Make sure we still have valid defaults even if initialization fails
+            if not hasattr(self, 'left_encoder') or self.left_encoder is None:
+                print("Warning: Elevator encoders not initialized properly, using dummy values")
+                # Create dummy encoder implementation for simulation
+                class DummyEncoder:
+                    def getPosition(self): return 0.0
+                    def getVelocity(self): return 0.0
+                    def setPosition(self, pos): pass
+                
+                self.left_encoder = DummyEncoder()
+                self.right_encoder = DummyEncoder()
     
     def cacheSensors(self):
         """Cache sensor values to reduce CAN bus traffic."""
         try:
-            # Always cache positions
-            self.cache.left_position = self.left_encoder.getPosition()
-            self.cache.right_position = self.right_encoder.getPosition()
+            # Always cache positions if encoders are available
+            if hasattr(self, 'left_encoder') and self.left_encoder:
+                self.cache.left_position = self.left_encoder.getPosition()
             
-            if self.use_absolute_encoder:
+            if hasattr(self, 'right_encoder') and self.right_encoder:
+                self.cache.right_position = self.right_encoder.getPosition()
+            
+            if hasattr(self, 'use_absolute_encoder') and self.use_absolute_encoder and hasattr(self, 'absolute_encoder') and self.absolute_encoder:
                 self.cache.absolute_position = self.absolute_encoder.getPosition()
             else:
                 # When no absolute encoder, use left encoder as the source of truth
                 self.cache.absolute_position = self.cache.left_position
             
-            # Always cache velocities
-            self.cache.left_velocity = self.left_encoder.getVelocity()
-            self.cache.right_velocity = self.right_encoder.getVelocity()
+            # Always cache velocities if encoders are available
+            if hasattr(self, 'left_encoder') and self.left_encoder:
+                self.cache.left_velocity = self.left_encoder.getVelocity()
             
-            # Cache current every 5 iterations
+            if hasattr(self, 'right_encoder') and self.right_encoder:
+                self.cache.right_velocity = self.right_encoder.getVelocity()
+            
+            # Cache current every 5 iterations if motors are available
             if self.cache.current_counter == 0:
-                self.cache.left_current = self.left_motor.getOutputCurrent()
-                self.cache.right_current = self.right_motor.getOutputCurrent()
+                if hasattr(self, 'left_motor') and self.left_motor:
+                    self.cache.left_current = self.left_motor.getOutputCurrent()
+                
+                if hasattr(self, 'right_motor') and self.right_motor:
+                    self.cache.right_current = self.right_motor.getOutputCurrent()
                 
             self.cache.current_counter = (self.cache.current_counter + 1) % 5
             
-            # Cache temperature every 20 iterations
+            # Cache temperature every 20 iterations if motors are available
             if self.cache.temp_counter == 0:
-                self.cache.left_temp = self.left_motor.getMotorTemperature()
-                self.cache.right_temp = self.right_motor.getMotorTemperature()
+                if hasattr(self, 'left_motor') and self.left_motor:
+                    self.cache.left_temp = self.left_motor.getMotorTemperature()
+                
+                if hasattr(self, 'right_motor') and self.right_motor:
+                    self.cache.right_temp = self.right_motor.getMotorTemperature()
                 
             self.cache.temp_counter = (self.cache.temp_counter + 1) % 20
             
@@ -244,7 +278,8 @@ class Elevator(BaseSubsystem):
     
     def getCurrentPosition(self):
         """Get the current position of the elevator."""
-        if self.use_absolute_encoder:
+        # Make sure we check if attributes exist
+        if hasattr(self, 'use_absolute_encoder') and self.use_absolute_encoder and hasattr(self, 'absolute_encoder') and self.absolute_encoder:
             return self.cache.absolute_position
         else:
             return self.cache.left_position
@@ -252,14 +287,17 @@ class Elevator(BaseSubsystem):
     def resetPosition(self, position=0.0):
         """Reset the elevator position to a specific value."""
         try:
-            if self.use_absolute_encoder:
+            if hasattr(self, 'use_absolute_encoder') and self.use_absolute_encoder and hasattr(self, 'absolute_encoder') and self.absolute_encoder:
                 # Can't "reset" an absolute encoder, but we can adjust the offset
                 # Not typically needed as the absolute encoder has a fixed frame of reference
                 pass
             else:
-                # Reset the relative encoder
-                self.left_encoder.setPosition(position)
-                self.right_encoder.setPosition(position)
+                # Reset the relative encoder if available
+                if hasattr(self, 'left_encoder') and self.left_encoder:
+                    self.left_encoder.setPosition(position)
+                
+                if hasattr(self, 'right_encoder') and self.right_encoder:
+                    self.right_encoder.setPosition(position)
             
             print(f"Elevator position reset to {position}")
             
@@ -282,7 +320,7 @@ class Elevator(BaseSubsystem):
             wpilib.SmartDashboard.putNumber("Elevator/Target", position)
             
             # If using built-in PID with absolute encoder
-            if self.use_absolute_encoder and hasattr(self, 'motor_pid_controller'):
+            if hasattr(self, 'use_absolute_encoder') and self.use_absolute_encoder and hasattr(self, 'motor_pid_controller') and self.motor_pid_controller:
                 self.motor_pid_controller.setReference(
                     position, 
                     rev.CANSparkMax.ControlType.kPosition
@@ -301,8 +339,9 @@ class Elevator(BaseSubsystem):
                 # Clamp output to valid range
                 output = max(min(output, 1.0), -1.0)
                 
-                # Set motor output
-                self.left_motor.set(output)
+                # Set motor output if available
+                if hasattr(self, 'left_motor') and self.left_motor:
+                    self.left_motor.set(output)
                 
             wpilib.SmartDashboard.putString("Elevator/Status", "Moving")
             
@@ -332,9 +371,16 @@ class Elevator(BaseSubsystem):
     
     def holdPosition(self):
         """Hold the elevator at its current position."""
-        current_position = self.getCurrentPosition()
-        self.moveToPosition(current_position)
-        wpilib.SmartDashboard.putString("Elevator/Status", "Holding")
+        try:
+            # Get current position
+            current_position = self.getCurrentPosition()
+            
+            # Move to current position (this will maintain position)
+            self.moveToPosition(current_position)
+            
+        except Exception as e:
+            self.handleError("holdPosition", e)
+            self.stopMotors()
     
     def setManualSpeed(self, speed):
         """
@@ -362,8 +408,9 @@ class Elevator(BaseSubsystem):
                 # Re-clamp to valid range
                 speed = max(min(speed, 1.0), -1.0)
             
-            # Set motor output
-            self.left_motor.set(speed)
+            # Set motor output if available
+            if hasattr(self, 'left_motor') and self.left_motor:
+                self.left_motor.set(speed)
             
         except Exception as e:
             self.handleError("setManualSpeed", e)
@@ -372,8 +419,9 @@ class Elevator(BaseSubsystem):
     def stopMotors(self):
         """Stop all elevator motors."""
         try:
-            self.left_motor.set(0)
-            # Right motor follows left, so no need to stop it separately
+            if hasattr(self, 'left_motor') and self.left_motor:
+                self.left_motor.set(0)
+                # Right motor follows left, so no need to stop it separately
             wpilib.SmartDashboard.putString("Elevator/Status", "Stopped")
         except Exception as e:
             self.handleError("stopMotors", e)
