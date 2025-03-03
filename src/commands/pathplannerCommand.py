@@ -1,25 +1,25 @@
 import wpilib
 import pathplannerlib
-from wpilib.command import Command
+import commands2
 from constants import autonomousCommand
 from subsystems.SwerveDriveSubsystem import DriveTrain
 
-class FollowPathCommand(Command):
+class FollowPathCommand(commands2.Command):
     """
     A command to follow a PathPlanner path.
     """
 
-    def __init__(self, path_name: autonomousCommand, drive_function: DriveTrain.driveFromChassisSpeeds):
+    def __init__(self, pathName: autonomousCommand, driveFunction: DriveTrain.driveFromChassisSpeeds):
         """
         Initializes the FollowPathCommand.
 
         Args:
-            path_name (str): The name of the PathPlanner path file (without .path).
-            drive_function (function): A function that takes x, y, and heading outputs and drives the robot.
+            pathName (str): The name of the PathPlanner path file (without .path).
+            driveFunction (function): A function that takes x, y, and heading outputs and drives the robot.
         """
         super().__init__("Follow Path")
-        self.path_name = path_name
-        self.drive_function = drive_function
+        self.pathName = pathName
+        self.driveFunction = driveFunction
         self.trajectory = None
         self.timer = wpilib.Timer()
 
@@ -28,7 +28,7 @@ class FollowPathCommand(Command):
         Called when the command is started.
         """
         self.trajectory = pathplannerlib.PathPlannerTrajectory(
-            pathplannerlib.PathPlanner.loadPath(self.path_name, pathplannerlib.PathPlanner.FileType.ON_ROBOT)
+            pathplannerlib.PathPlanner.loadPath(self.pathName, pathplannerlib.PathPlanner.FileType.ON_ROBOT)
         )
         self.timer.restart()
 
@@ -36,17 +36,17 @@ class FollowPathCommand(Command):
         """
         Called repeatedly while the command is running.
         """
-        current_state = self.trajectory.sample(self.timer.get())
+        currentState = self.trajectory.sample(self.timer.get())
 
         # Here, you would use PID controllers to calculate the outputs
         # based on the current state and your robot's sensors.
         # For simplicity, we'll just use the desired state directly.
-        desired_x = current_state.x
-        desired_y = current_state.y
-        desired_heading = current_state.heading
+        desiredX = currentState.x
+        desiredY = currentState.y
+        desiredHeading = currentState.heading
 
         # Call the drive function to move the robot
-        self.drive_function(desired_x, desired_y, desired_heading)
+        self.driveFunction(desiredX, desiredY, desiredHeading)
 
     def isFinished(self):
         """
@@ -59,4 +59,5 @@ class FollowPathCommand(Command):
         Called when the command ends.
         """
         self.timer.stop()
-        #optional: stop the robot here.
+        DriveTrain.resetMotors()
+        
