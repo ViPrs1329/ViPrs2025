@@ -14,7 +14,7 @@ from subsystems.EndEffectorSubsystem import EndEffector
 from constants import driveConsts, autoConsts
 
 
-class DriveForwardCommand(commands2.CommandBase):
+class DriveForwardCommand(commands2.Command):
     """
     Command to drive the robot forward a specified distance.
     """
@@ -192,7 +192,7 @@ class DriveForwardCommand(commands2.CommandBase):
         return at_target or timed_out
 
 
-class RotateToAngleCommand(commands2.CommandBase):
+class RotateToAngleCommand(commands2.Command):
     """
     Command to rotate the robot to a specified angle.
     """

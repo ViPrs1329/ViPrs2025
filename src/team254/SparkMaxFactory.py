@@ -1,6 +1,7 @@
 # src/team254/SparkMaxFactory.py
 from team254.LazySparkMax import LazySparkMax, LazySparkFlex
 import rev
+import wpilib
 
 class SparkMaxFactory:
     """
@@ -11,8 +12,13 @@ class SparkMaxFactory:
         """Configuration for SparkMax or SparkFlex controllers."""
         def __init__(self):
             self.inverted = False
-            # TODO: Check on rev.CANSparkMax.IdleMode.kCoast, does it exist? https://robotpy.readthedocs.io/projects/rev/en/stable/rev/
-            self.idle_mode = rev.CANSparkMax.IdleMode.kCoast
+            # Handle different idle mode enums for simulation vs hardware
+            if wpilib.RobotBase.isSimulation():
+                # In simulation, use SparkMax.IdleMode
+                self.idle_mode = rev.SparkMax.IdleMode.kCoast
+            else:
+                # In hardware, use CANSparkMax.IdleMode
+                self.idle_mode = rev.SparkMax.IdleMode.kCoast
             self.voltage_comp_enabled = False
             self.voltage_comp_saturation = 12.0
             self.current_limit = 80

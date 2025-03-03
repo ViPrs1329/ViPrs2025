@@ -90,12 +90,12 @@ class SwerveDriveSim:
         self.last_time = current_time
         
         # Get current chassis speeds from module states
-        chassis_speeds = self.kinematics.toChassisSpeeds(
+        chassis_speeds = self.kinematics.toChassisSpeeds((
             self.front_left.get_state(),
             self.front_right.get_state(),
             self.back_left.get_state(),
             self.back_right.get_state()
-        )
+        ))
         
         # Update robot pose
         self.gyro_angle += chassis_speeds.omega * dt
@@ -188,4 +188,29 @@ class SwerveDriveSim:
     
     def get_module_positions(self) -> list[wpimath.kinematics.SwerveModulePosition]:
         """Get the current positions of all modules."""
-        return [module.get_position() for module in self.modules] 
+        return [module.get_position() for module in self.modules]
+        
+    def get_chassis_speeds(self) -> wpimath.kinematics.ChassisSpeeds:
+        """Get the current chassis speeds."""
+        return self.kinematics.toChassisSpeeds((
+            self.front_left.get_state(),
+            self.front_right.get_state(),
+            self.back_left.get_state(),
+            self.back_right.get_state()
+        ))
+        
+    def drive(self, chassis_speeds: wpimath.kinematics.ChassisSpeeds):
+        """
+        Drive the robot using chassis speeds.
+        
+        Args:
+            chassis_speeds: Desired chassis speeds
+        """
+        if chassis_speeds is None:
+            return
+            
+        # Convert chassis speeds to module states
+        module_states = self.kinematics.toSwerveModuleStates(chassis_speeds)
+        
+        # Set module states
+        self.set_module_states(module_states) 

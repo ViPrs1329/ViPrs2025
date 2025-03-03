@@ -7,7 +7,7 @@ import wpimath
 from wpimath import controller
 
 from constants import CANIDs, elevatorConsts
-from team254.LazySparkMax import LazySparkMax
+from team254.LazySparkMax import LazySparkMax, SimSparkMaxAbsoluteEncoder
 from team254.SparkMaxFactory import SparkMaxFactory
 from subsystems.BaseSubsystem import BaseSubsystem
 
@@ -51,7 +51,10 @@ class Elevator(BaseSubsystem):
             
             # Create motor configurations
             left_config = SparkMaxFactory.Configuration()
-            left_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
+            if wpilib.RobotBase.isSimulation():
+                left_config.idle_mode = rev.SparkMax.IdleMode.kBrake
+            else:
+                left_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
             left_config.current_limit = elevatorConsts.currentLimit
             left_config.voltage_comp_enabled = True
             left_config.voltage_comp_saturation = 12.0
@@ -64,7 +67,10 @@ class Elevator(BaseSubsystem):
             
             # Create follower configuration (right side follows left but inverted)
             right_config = SparkMaxFactory.Configuration()
-            right_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
+            if wpilib.RobotBase.isSimulation():
+                right_config.idle_mode = rev.SparkMax.IdleMode.kBrake
+            else:
+                right_config.idle_mode = rev.CANSparkMax.IdleMode.kBrake
             right_config.current_limit = elevatorConsts.currentLimit
             right_config.voltage_comp_enabled = True
             right_config.voltage_comp_saturation = 12.0
@@ -77,29 +83,47 @@ class Elevator(BaseSubsystem):
             # Set up the right motor to follow the left
             self.right_motor.follow(self.left_motor, True)  # Follow with inversion
             
-            # Get encoders
-            self.left_encoder = self.left_motor.getEncoder()
-            self.right_encoder = self.right_motor.getEncoder()
+            # Initialize simulation-specific attributes
+            self.is_simulation = wpilib.RobotBase.isSimulation()
             
-            # Try to get absolute encoder if available
-            try:
-                self.absolute_encoder = self.left_motor.getAbsoluteEncoder(
-                    rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle
-                )
+            # Initialize encoder attributes
+            self.left_encoder = None
+            self.right_encoder = None
+            self.use_absolute_encoder = False
+            self.absolute_encoder = None
+            
+            # Get encoders - always create these first
+            if self.is_simulation:
+                # In simulation, create simulated encoders
+                self.left_encoder = SimSparkMaxAbsoluteEncoder(self.left_motor)
+                self.right_encoder = SimSparkMaxAbsoluteEncoder(self.right_motor)
+            else:
+                # On real hardware, get the actual encoders
+                self.left_encoder = self.left_motor.getEncoder()
+                self.right_encoder = self.right_motor.getEncoder()
                 
-                # Configure absolute encoder
-                self.absolute_encoder.setPositionConversionFactor(
+                # Try to get absolute encoder if available
+                try:
+                    self.absolute_encoder = self.left_motor.getAbsoluteEncoder(
+                        rev.SparkMaxAbsoluteEncoder.Type.kDutyCycle
+                    )
+                    self.use_absolute_encoder = True
+                except Exception as e:
+                    print(f"Warning: Could not initialize absolute encoder, falling back to relative: {e}")
+                    self.use_absolute_encoder = False
+                    self.absolute_encoder = None
+            
+            # Set up conversion factors for relative encoders
+            if not self.is_simulation:
+                self.left_encoder.setPositionConversionFactor(
                     elevatorConsts.POSITION_CONVERSION_FACTOR
                 )
-                self.absolute_encoder.setZeroOffset(
-                    elevatorConsts.ABSOLUTE_ENCODER_OFFSET if hasattr(elevatorConsts, 'ABSOLUTE_ENCODER_OFFSET') else 0.0
+                self.right_encoder.setPositionConversionFactor(
+                    elevatorConsts.POSITION_CONVERSION_FACTOR
                 )
-                
-                # Use absolute encoder for feedback if available
-                self.use_absolute_encoder = True
-                print("Using absolute encoder for elevator position feedback")
-                
-                # Configure built-in PID to use absolute encoder
+            
+            # Configure built-in PID to use absolute encoder
+            if self.use_absolute_encoder:
                 self.motor_pid_controller = self.left_motor.getPIDController()
                 self.motor_pid_controller.setFeedbackDevice(self.absolute_encoder)
                 
@@ -108,24 +132,6 @@ class Elevator(BaseSubsystem):
                 self.motor_pid_controller.setI(elevatorConsts.kI)
                 self.motor_pid_controller.setD(elevatorConsts.kD)
                 self.motor_pid_controller.setFF(elevatorConsts.kF)
-                
-            except Exception as e:
-                # Fall back to relative encoder if absolute not available
-                print(f"Warning: Could not initialize absolute encoder, falling back to relative: {e}")
-                self.use_absolute_encoder = False
-                
-                # Set up conversion factor for relative encoder
-                self.left_encoder.setPositionConversionFactor(
-                    elevatorConsts.POSITION_CONVERSION_FACTOR
-                )
-                self.right_encoder.setPositionConversionFactor(
-                    elevatorConsts.POSITION_CONVERSION_FACTOR
-                )
-                
-                # Create WPILib PID controller as fallback
-                self.position_pid_controller = controller.PIDController(
-                    elevatorConsts.kP, elevatorConsts.kI, elevatorConsts.kD
-                )
             
             # Soft limits for safety
             self.min_height = elevatorConsts.MIN_HEIGHT
@@ -136,6 +142,14 @@ class Elevator(BaseSubsystem):
             
             # Current target position
             self.target_position = 0.0
+            
+            # Initialize WPILib PID controller for position control
+            self.position_pid_controller = controller.PIDController(
+                elevatorConsts.kP,
+                elevatorConsts.kI,
+                elevatorConsts.kD,
+                elevatorConsts.kF
+            )
             
             # Initialize default position
             self.resetPosition()

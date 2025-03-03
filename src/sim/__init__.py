@@ -13,241 +13,255 @@ import sys
 import ntcore
 import commands2
 from commands2.button import CommandXboxController
+import wpilib.simulation
 
 # Only execute simulation setup in simulation mode
 if wpilib.RobotBase.isSimulation():
     print("==== Initializing Simulation Mode ====")
     
+    class KeyboardState:
+        """Tracks keyboard state for simulation controls."""
+        def __init__(self):
+            self.keys = {}
+            self.axes = {
+                'left_x': 0.0,
+                'left_y': 0.0,
+                'right_x': 0.0,
+                'right_y': 0.0,
+                'left_trigger': 0.0,
+                'right_trigger': 0.0
+            }
+            self.pressed_keys = set()
+            
+        def set_key(self, key, value):
+            """Set a key's state and update pressed keys set."""
+            self.keys[key] = value
+            if value:
+                self.pressed_keys.add(key)
+            else:
+                self.pressed_keys.discard(key)
+            
+        def get_key(self, key):
+            """Get a key's state."""
+            return self.keys.get(key, False)
+            
+        def set_axis(self, axis, value):
+            """Set an axis value."""
+            if axis in self.axes:
+                self.axes[axis] = value
+                
+        def get_axis(self, axis):
+            """Get an axis value."""
+            return self.axes.get(axis, 0.0)
+        
+        def is_key_pressed(self, key):
+            """Check if a key is currently pressed."""
+            return key in self.pressed_keys
+
+    # Create a global keyboard state instance
+    keyboard_state = KeyboardState()
+    
     # Create a mock controller class for simulation
     class MockXboxController(CommandXboxController):
-        """Mock Xbox controller for simulation to prevent joystick warnings."""
+        """Mock Xbox controller for simulation with keyboard input support."""
+        
+        # Key bindings for Xbox controller buttons
+        KEY_BINDINGS = {
+            'a': 'A',           # A button
+            's': 'B',           # B button
+            'd': 'X',           # X button
+            'f': 'Y',           # Y button
+            'q': 'LB',          # Left bumper
+            'e': 'RB',          # Right bumper
+            'tab': 'Back',      # Back button
+            'enter': 'Start',   # Start button
+            'space': 'LSB',     # Left stick button
+            'rshift': 'RSB'     # Right stick button
+        }
+        
+        # Axis mappings
+        AXIS_MAPPINGS = {
+            'w': ('left_y', 1.0),    # Forward
+            'x': ('left_y', -1.0),   # Backward
+            'a': ('left_x', -1.0),   # Left
+            'd': ('left_x', 1.0),    # Right
+            'i': ('right_y', 1.0),   # Look up
+            'k': ('right_y', -1.0),  # Look down
+            'j': ('right_x', -1.0),  # Look left
+            'l': ('right_x', 1.0),   # Look right
+            'r': ('right_trigger', 1.0),  # Right trigger
+            't': ('left_trigger', 1.0)    # Left trigger
+        }
         
         def __init__(self, port):
             """Initialize the mock controller."""
             super().__init__(port)
-            # Create a mock HID object with proper self parameter handling
-            self._hid = type('MockHID', (), {
-                'getRawButton': lambda self, button: False,
-                'getRawAxis': lambda self, axis: 0.0,
-                'getStartButton': lambda self: False,
-                'getBackButton': lambda self: False,
-                'getAButton': lambda self: False,
-                'getBButton': lambda self: False,
-                'getXButton': lambda self: False,
-                'getYButton': lambda self: False,
-                'getLeftBumper': lambda self: False,
-                'getRightBumper': lambda self: False,
-                'getLeftStickButton': lambda self: False,
-                'getRightStickButton': lambda self: False,
-                'getLeftTriggerAxis': lambda self: 0.0,
-                'getRightTriggerAxis': lambda self: 0.0,
-                'getLeftX': lambda self: 0.0,
-                'getLeftY': lambda self: 0.0,
-                'getRightX': lambda self: 0.0,
-                'getRightY': lambda self: 0.0,
-                'setRumble': lambda self, type, value: None
-            })()
-            print(f"Created MockXboxController on port {port}")
+            print(f"Created MockXboxController on port {port} with keyboard mapping")
+            print("Keyboard Controls:")
+            print("  Movement: WASD")
+            print("  Camera: IJKL")
+            print("  Buttons: A(a) B(s) X(d) Y(f)")
+            print("  Bumpers: Q(LB) E(RB)")
+            print("  Triggers: T(LT) R(RT)")
+            print("  Special: Tab(Back) Enter(Start) Space(LSB) RShift(RSB)")
             
         def getRawButton(self, button):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getRawButton(button)
+            """Map keyboard input to controller buttons."""
+            return keyboard_state.get_key(button)
             
         def getRawAxis(self, axis):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getRawAxis(axis)
+            """Map keyboard input to controller axes."""
+            # Map axis numbers to our named axes
+            axis_map = {
+                0: 'left_x',
+                1: 'left_y',
+                2: 'left_trigger',
+                3: 'right_trigger',
+                4: 'right_x',
+                5: 'right_y'
+            }
             
-        def setRawButton(self, button, value):
-            """Override to prevent warnings about setting buttons."""
-            pass
+            # Get the axis name
+            axis_name = axis_map.get(axis, 'unknown')
             
-        def setRawAxis(self, axis, value):
-            """Override to prevent warnings about setting axes."""
-            pass
+            # Get the current axis value
+            value = keyboard_state.get_axis(axis_name)
             
-        def getStartButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getStartButton()
+            # Print debug info
+            print(f"getRawAxis({axis}) -> {axis_name} = {value}")
+            
+            return value
             
         def getBackButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getBackButton()
+            return keyboard_state.get_key('Back')
             
         def getAButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getAButton()
+            return keyboard_state.get_key('A')
             
         def getBButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getBButton()
+            return keyboard_state.get_key('B')
             
         def getXButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getXButton()
+            return keyboard_state.get_key('X')
             
         def getYButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getYButton()
+            return keyboard_state.get_key('Y')
             
         def getLeftBumper(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getLeftBumper()
+            return keyboard_state.get_key('LB')
             
         def getRightBumper(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getRightBumper()
+            return keyboard_state.get_key('RB')
             
         def getLeftStickButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getLeftStickButton()
+            return keyboard_state.get_key('LSB')
             
         def getRightStickButton(self):
-            """Override to prevent warnings about missing buttons."""
-            return self._hid.getRightStickButton()
+            return keyboard_state.get_key('RSB')
             
         def getLeftTriggerAxis(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getLeftTriggerAxis()
+            return keyboard_state.get_axis('left_trigger')
             
         def getRightTriggerAxis(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getRightTriggerAxis()
+            return keyboard_state.get_axis('right_trigger')
             
         def getLeftX(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getLeftX()
+            return keyboard_state.get_axis('left_x')
             
         def getLeftY(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getLeftY()
+            return keyboard_state.get_axis('left_y')
             
         def getRightX(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getRightX()
+            return keyboard_state.get_axis('right_x')
             
         def getRightY(self):
-            """Override to prevent warnings about missing axes."""
-            return self._hid.getRightY()
+            return keyboard_state.get_axis('right_y')
+            
+        def getStartButton(self):
+            """Get the Start button state (mapped to Enter key)."""
+            return keyboard_state.get_key('Start')
             
         def setRumble(self, type, value):
-            """Override to prevent warnings about setting rumble."""
-            self._hid.setRumble(type, value)
-    
-    # Store the original CommandXboxController class
-    original_CommandXboxController = commands2.button.CommandXboxController
-    
-    # Replace with our mock version in simulation
-    commands2.button.CommandXboxController = MockXboxController
-    
-    # Store the original import function
-    original_import = builtins.__import__
-    
-    def simulation_import_hook(name, globals=None, locals=None, fromlist=(), level=0):
-        """
-        Import hook that replaces hardware modules with simulation versions.
+            pass  # Ignore rumble in simulation
+
+    # Create a keyboard input handler for the simulation GUI
+    def handle_keyboard_input(window, key, scancode, action, mods):
+        """Handle keyboard input in the simulation GUI."""
+        key = str(key)
+        print(f"Keyboard input: key={key}, action={action}, scancode={scancode}, mods={mods}")
         
-        This allows the robot code to use the same imports in both real and simulation mode.
-        """
+        # Handle button presses
+        if action == wpilib.simulation.Action.kPress:
+            if key in MockXboxController.KEY_BINDINGS:
+                button = MockXboxController.KEY_BINDINGS[key]
+                keyboard_state.set_key(button, True)
+                print(f"Button pressed: {button}")
+                
+            # Handle axis inputs
+            if key in MockXboxController.AXIS_MAPPINGS:
+                axis, value = MockXboxController.AXIS_MAPPINGS[key]
+                keyboard_state.set_axis(axis, value)
+                print(f"Axis set: {axis} = {value}")
+                
+        # Handle button releases
+        elif action == wpilib.simulation.Action.kRelease:
+            if key in MockXboxController.KEY_BINDINGS:
+                button = MockXboxController.KEY_BINDINGS[key]
+                keyboard_state.set_key(button, False)
+                print(f"Button released: {button}")
+                
+            # Handle axis releases
+            if key in MockXboxController.AXIS_MAPPINGS:
+                axis, _ = MockXboxController.AXIS_MAPPINGS[key]
+                # Check if the opposite key is pressed
+                if axis == "left_y":
+                    if keyboard_state.is_key_pressed("w"):
+                        keyboard_state.set_axis(axis, -1.0)
+                    elif keyboard_state.is_key_pressed("x"):
+                        keyboard_state.set_axis(axis, 1.0)
+                    else:
+                        keyboard_state.set_axis(axis, 0.0)
+                elif axis == "left_x":
+                    if keyboard_state.is_key_pressed("a"):
+                        keyboard_state.set_axis(axis, -1.0)
+                    elif keyboard_state.is_key_pressed("d"):
+                        keyboard_state.set_axis(axis, 1.0)
+                    else:
+                        keyboard_state.set_axis(axis, 0.0)
+                elif axis == "right_y":
+                    if keyboard_state.is_key_pressed("i"):
+                        keyboard_state.set_axis(axis, -1.0)
+                    elif keyboard_state.is_key_pressed("k"):
+                        keyboard_state.set_axis(axis, 1.0)
+                    else:
+                        keyboard_state.set_axis(axis, 0.0)
+                elif axis == "right_x":
+                    if keyboard_state.is_key_pressed("j"):
+                        keyboard_state.set_axis(axis, -1.0)
+                    elif keyboard_state.is_key_pressed("l"):
+                        keyboard_state.set_axis(axis, 1.0)
+                    else:
+                        keyboard_state.set_axis(axis, 0.0)
+                print(f"Axis released: {axis}")
         
-        # Handle specific hardware libraries
-        if name == 'rev':
-            try:
-                # Try to import our simulation version
-                from sim.rev_sim import (
-                    SparkMax, SparkFlex, CANSparkMax, SparkMaxAbsoluteEncoder,
-                    SparkRelativeEncoder, SparkPIDController
-                )
-                
-                # Create a fake module to return
-                rev_module = type('rev', (), {})()
-                
-                # Add simulation classes to the module
-                rev_module.SparkMax = SparkMax
-                rev_module.SparkFlex = SparkFlex
-                rev_module.CANSparkMax = CANSparkMax
-                rev_module.SparkMaxAbsoluteEncoder = SparkMaxAbsoluteEncoder
-                rev_module.SparkRelativeEncoder = SparkRelativeEncoder
-                rev_module.SparkPIDController = SparkPIDController
-                
-                # Add enum types and other necessary components
-                rev_module.IdleMode = type('IdleMode', (), {
-                    'kCoast': 0,
-                    'kBrake': 1
-                })
-                
-                rev_module.MotorType = type('MotorType', (), {
-                    'kBrushless': 0,
-                    'kBrushed': 1
-                })
-                
-                rev_module.ControlType = type('ControlType', (), {
-                    'kDutyCycle': 0,
-                    'kVelocity': 1,
-                    'kPosition': 2,
-                    'kVoltage': 3,
-                    'kCurrent': 4,
-                    'kSmartMotion': 5,
-                    'kSmartVelocity': 6,
-                    'kSmartVoltage': 7
-                })
-                
-                print("Using simulated REV library")
-                return rev_module
-                
-            except ImportError as e:
-                print(f"Error importing simulation REV library: {e}")
-                # If our simulation version fails, try to import the real library
-                try:
-                    import rev
-                    return rev
-                except ImportError:
-                    # If that also fails, use original import
-                    pass
-        
-        elif name == 'phoenix6' or name.startswith('phoenix6.'):
-            # Handle Phoenix 6 imports
-            if name == 'phoenix6':
-                # Import the main phoenix6 module
-                try:
-                    from sim.phoenix6 import hardware
-                    
-                    # Create phoenix6 module with hardware submodule
-                    phoenix6_module = type('phoenix6', (), {})()
-                    phoenix6_module.hardware = hardware
-                    
-                    print("Using simulated Phoenix 6 library")
-                    return phoenix6_module
-                    
-                except ImportError as e:
-                    print(f"Error importing simulation Phoenix 6 library: {e}")
-                    # Fall back to original import
-                    pass
-                    
-            elif name == 'phoenix6.hardware':
-                # Import specific hardware submodule
-                try:
-                    from sim.phoenix6 import hardware
-                    print("Using simulated Phoenix 6 hardware library")
-                    return hardware
-                    
-                except ImportError as e:
-                    print(f"Error importing simulation Phoenix 6 hardware library: {e}")
-                    # Fall back to original import
-                    pass
-        
-        # For any other imports, use the original import function
-        return original_import(name, globals, locals, fromlist, level)
-    
-    # Replace the built-in import with our custom import hook
-    builtins.__import__ = simulation_import_hook
-    
-    # Initialize NetworkTables for simulation
-    print("Initializing NetworkTables for simulation")
-    instance = ntcore.NetworkTableInstance.getDefault()
-    instance.startServer()
-    
-    # Create a simulation dashboard table
-    sim_table = instance.getTable("Simulation")
-    sim_table.getStringTopic("status").publish().set("Running")
-    
-    print("==== Simulation Initialized ====")
+        print(f"Current keyboard state: pressed_keys={keyboard_state.pressed_keys}, axes={keyboard_state.axes}")
+
+    # Create a mock controller instance for simulation
+    try:
+        driver_controller = MockXboxController(0)
+        operator_controller = MockXboxController(1)
+        print("Successfully created mock controllers")
+    except Exception as e:
+        print(f"Warning: Could not create mock controllers: {e}")
+
+    # Register keyboard input handler with the simulation window
+    try:
+        if hasattr(wpilib.simulation, "keyboard_callback"):
+            wpilib.simulation.keyboard_callback = handle_keyboard_input
+            print("Successfully registered keyboard input handler")
+        else:
+            print("Warning: keyboard_callback not available in wpilib.simulation")
+    except Exception as e:
+        print(f"Warning: Could not register keyboard input handler: {e}")
+
+    print("==== Simulation Mode Initialized ====")

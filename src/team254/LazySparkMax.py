@@ -18,14 +18,14 @@ class LazySparkBase:
 
 class LazySparkMax(rev.SparkMax, LazySparkBase):
     """
-    Lazy version of CANSparkMax that reduces CAN bus traffic by skipping duplicate set commands.
+    Lazy version of SparkMax that reduces CAN bus traffic by skipping duplicate set commands.
     """
     
     def __init__(self, device_number: int, motor_type=rev.SparkMax.MotorType.kBrushless):
-        rev.CANSparkMax.__init__(self, device_number, motor_type)
+        rev.SparkMax.__init__(self, device_number, motor_type)
         LazySparkBase.__init__(self)
 
-    def follow(self, leader: rev.CANSparkMax, invert=False):
+    def follow(self, leader: rev.SparkMax, invert=False):
         self.m_leader = leader
         return super().follow(leader, invert)
 
