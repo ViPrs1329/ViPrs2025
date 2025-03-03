@@ -1,6 +1,6 @@
 # commands/IntakeCommands.py
 import commands2
-from subsystems.EndEffector import EndEffector
+from subsystems.EndEffectorSubsystem import EndEffector
 from constants import endEffectorConsts
 import wpilib
 

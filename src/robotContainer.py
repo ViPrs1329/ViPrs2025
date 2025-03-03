@@ -80,7 +80,7 @@ class RobotContainer:
         self.driver_controller.y().onTrue(
             commands2.RunCommand(
                 lambda: self.emergency_stop(),
-                [self.drivetrain, self.elevator, self.end_effector]
+                self.drivetrain, self.elevator, self.end_effector
             )
         )
         

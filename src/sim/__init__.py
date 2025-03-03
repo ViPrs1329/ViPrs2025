@@ -11,10 +11,133 @@ import builtins
 import importlib.util
 import sys
 import ntcore
+import commands2
+from commands2.button import CommandXboxController
 
 # Only execute simulation setup in simulation mode
 if wpilib.RobotBase.isSimulation():
     print("==== Initializing Simulation Mode ====")
+    
+    # Create a mock controller class for simulation
+    class MockXboxController(CommandXboxController):
+        """Mock Xbox controller for simulation to prevent joystick warnings."""
+        
+        def __init__(self, port):
+            """Initialize the mock controller."""
+            super().__init__(port)
+            # Create a mock HID object with proper self parameter handling
+            self._hid = type('MockHID', (), {
+                'getRawButton': lambda self, button: False,
+                'getRawAxis': lambda self, axis: 0.0,
+                'getStartButton': lambda self: False,
+                'getBackButton': lambda self: False,
+                'getAButton': lambda self: False,
+                'getBButton': lambda self: False,
+                'getXButton': lambda self: False,
+                'getYButton': lambda self: False,
+                'getLeftBumper': lambda self: False,
+                'getRightBumper': lambda self: False,
+                'getLeftStickButton': lambda self: False,
+                'getRightStickButton': lambda self: False,
+                'getLeftTriggerAxis': lambda self: 0.0,
+                'getRightTriggerAxis': lambda self: 0.0,
+                'getLeftX': lambda self: 0.0,
+                'getLeftY': lambda self: 0.0,
+                'getRightX': lambda self: 0.0,
+                'getRightY': lambda self: 0.0,
+                'setRumble': lambda self, type, value: None
+            })()
+            print(f"Created MockXboxController on port {port}")
+            
+        def getRawButton(self, button):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getRawButton(button)
+            
+        def getRawAxis(self, axis):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getRawAxis(axis)
+            
+        def setRawButton(self, button, value):
+            """Override to prevent warnings about setting buttons."""
+            pass
+            
+        def setRawAxis(self, axis, value):
+            """Override to prevent warnings about setting axes."""
+            pass
+            
+        def getStartButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getStartButton()
+            
+        def getBackButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getBackButton()
+            
+        def getAButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getAButton()
+            
+        def getBButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getBButton()
+            
+        def getXButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getXButton()
+            
+        def getYButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getYButton()
+            
+        def getLeftBumper(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getLeftBumper()
+            
+        def getRightBumper(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getRightBumper()
+            
+        def getLeftStickButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getLeftStickButton()
+            
+        def getRightStickButton(self):
+            """Override to prevent warnings about missing buttons."""
+            return self._hid.getRightStickButton()
+            
+        def getLeftTriggerAxis(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getLeftTriggerAxis()
+            
+        def getRightTriggerAxis(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getRightTriggerAxis()
+            
+        def getLeftX(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getLeftX()
+            
+        def getLeftY(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getLeftY()
+            
+        def getRightX(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getRightX()
+            
+        def getRightY(self):
+            """Override to prevent warnings about missing axes."""
+            return self._hid.getRightY()
+            
+        def setRumble(self, type, value):
+            """Override to prevent warnings about setting rumble."""
+            self._hid.setRumble(type, value)
+    
+    # Store the original CommandXboxController class
+    original_CommandXboxController = commands2.button.CommandXboxController
+    
+    # Replace with our mock version in simulation
+    commands2.button.CommandXboxController = MockXboxController
     
     # Store the original import function
     original_import = builtins.__import__
@@ -30,7 +153,7 @@ if wpilib.RobotBase.isSimulation():
         if name == 'rev':
             try:
                 # Try to import our simulation version
-                from sim.rev import (
+                from sim.rev_sim import (
                     SparkMax, SparkFlex, CANSparkMax, SparkMaxAbsoluteEncoder,
                     SparkRelativeEncoder, SparkPIDController
                 )

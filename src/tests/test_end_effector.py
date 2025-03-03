@@ -2,7 +2,7 @@
 import wpilib
 import commands2
 import ntcore
-from subsystems.EndEffector import EndEffector
+from subsystems.EndEffectorSubsystem import EndEffector
 from commands.IntakeCommands import IntakeCoralCommand
 
 class EndEffectorTestRobot(wpilib.TimedRobot):

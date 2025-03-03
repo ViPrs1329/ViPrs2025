@@ -9,6 +9,7 @@ import time
 import wpilib
 import commands2
 import ntcore
+from commands2.button import CommandXboxController
 
 # If in simulation mode, initialize simulation hooks
 if wpilib.RobotBase.isSimulation():
@@ -152,39 +153,47 @@ class Robot(commands2.TimedCommandRobot):
     
     def startRumble(self):
         """Start rumble on controllers for feedback."""
+        # Skip rumble in simulation mode
+        if wpilib.RobotBase.isSimulation():
+            return
+            
         if hasattr(self.container, 'driver_controller'):
-            self.container.driver_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kLeftRumble, 0.5
-            )
-            self.container.driver_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kRightRumble, 0.5
-            )
+            try:
+                self.container.driver_controller.setRumble(
+                    commands2.button.CommandXboxController.RumbleType.kBothRumble, 0.5
+                )
+            except Exception as e:
+                print(f"Warning: Could not set rumble: {e}")
             
         if hasattr(self.container, 'operator_controller'):
-            self.container.operator_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kLeftRumble, 0.5
-            )
-            self.container.operator_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kRightRumble, 0.5
-            )
+            try:
+                self.container.operator_controller.setRumble(
+                    commands2.button.CommandXboxController.RumbleType.kBothRumble, 0.5
+                )
+            except Exception as e:
+                print(f"Warning: Could not set rumble: {e}")
     
     def stopRumble(self):
         """Stop rumble on all controllers."""
+        # Skip rumble in simulation mode
+        if wpilib.RobotBase.isSimulation():
+            return
+            
         if hasattr(self.container, 'driver_controller'):
-            self.container.driver_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kLeftRumble, 0
-            )
-            self.container.driver_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kRightRumble, 0
-            )
+            try:
+                self.container.driver_controller.setRumble(
+                    commands2.button.CommandXboxController.RumbleType.kBothRumble, 0
+                )
+            except Exception as e:
+                print(f"Warning: Could not stop rumble: {e}")
             
         if hasattr(self.container, 'operator_controller'):
-            self.container.operator_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kLeftRumble, 0
-            )
-            self.container.operator_controller.setRumble(
-                wpilib.GenericHID.RumbleType.kRightRumble, 0
-            )
+            try:
+                self.container.operator_controller.setRumble(
+                    commands2.button.CommandXboxController.RumbleType.kBothRumble, 0
+                )
+            except Exception as e:
+                print(f"Warning: Could not stop rumble: {e}")
 
 
 if __name__ == "__main__":

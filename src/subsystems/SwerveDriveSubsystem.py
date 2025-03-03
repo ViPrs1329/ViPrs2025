@@ -8,13 +8,16 @@ import ntcore
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds, SwerveDrive4Odometry, SwerveModulePosition
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpimath import controller
-from wpilib import DriverStation
+from wpilib import DriverStation, RobotBase
 
 from constants import CANIDs, driveConsts
 from team254.LazySparkMax import LazySparkMax
 from team254.SparkMaxFactory import SparkMaxFactory
 from subsystems.BaseSubsystem import BaseSubsystem
 from phoenix6.hardware import CANcoder, Pigeon2
+
+if RobotBase.isSimulation():
+    from sim.swerve_drive_sim import SwerveDriveSim
 
 
 def lratio(angle):
@@ -167,6 +170,11 @@ class SwerveDrive(BaseSubsystem):
         super().__init__("SwerveDrive")
         
         try:
+            # Create simulation object if in simulation mode
+            self.is_simulation = RobotBase.isSimulation()
+            if self.is_simulation:
+                self.sim = SwerveDriveSim()
+            
             # Create locations for swerve modules
             # Assuming square drivetrain with modules at the corners
             lv = driveConsts.WHEELBASE / 2  # Distance from center to module
@@ -323,6 +331,10 @@ class SwerveDrive(BaseSubsystem):
     def subsystemPeriodic(self):
         """Periodic code for the swerve drive subsystem."""
         try:
+            # Update simulation if in simulation mode
+            if self.is_simulation:
+                self.sim.update()
+            
             # Update odometry
             self.updateOdometry()
             
@@ -396,6 +408,9 @@ class SwerveDrive(BaseSubsystem):
     def resetOdometry(self, pose: Pose2d = Pose2d()):
         """Reset odometry to the given pose."""
         try:
+            if self.is_simulation:
+                self.sim.reset_pose(pose)
+            
             # Reset gyro to match pose heading
             self.gyro.set_yaw(pose.rotation().degrees())
             
@@ -426,18 +441,25 @@ class SwerveDrive(BaseSubsystem):
     def resetGyro(self):
         """Reset the gyro to zero heading."""
         try:
-            self.gyro.set_yaw(0)
-            self.gyro_yaw = 0.0
+            if self.is_simulation:
+                self.sim.reset_pose(Pose2d())
+            else:
+                self.gyro.set_yaw(0)
+                self.gyro_yaw = 0.0
             print("Gyro reset to 0°")
         except Exception as e:
             self.handleError("resetGyro", e)
     
     def getPose(self) -> Pose2d:
         """Get the current estimated pose of the robot."""
+        if self.is_simulation:
+            return self.sim.get_pose()
         return self.robot_pose
     
     def getGyroYaw(self) -> float:
         """Get the current yaw angle from the gyro."""
+        if self.is_simulation:
+            return math.degrees(self.sim.get_gyro_angle())
         return self.gyro_yaw
     
     def toggleFieldOriented(self):
@@ -491,6 +513,15 @@ class SwerveDrive(BaseSubsystem):
             SwerveDrive4Kinematics.desaturateWheelSpeeds(
                 module_states, driveConsts.MAX_SPEED
             )
+            
+            # Update simulation if in simulation mode
+            if self.is_simulation:
+                self.sim.set_module_states([
+                    module_states[0],  # Front Left
+                    module_states[1],  # Front Right
+                    module_states[2],  # Back Left
+                    module_states[3]   # Back Right
+                ])
             
             # Set module states
             self.frontLeftModule.setDesiredState(module_states[0])

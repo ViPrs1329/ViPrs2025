@@ -1,6 +1,6 @@
 # commands/AlgaeCommands.py
 import commands2
-from subsystems.EndEffector import EndEffector
+from subsystems.EndEffectorSubsystem import EndEffector
 import wpilib
 
 class SetAlgaePositionCommand(commands2.CommandBase):

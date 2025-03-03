@@ -1,7 +1,7 @@
 # commands/ScoringCommands.py
 import commands2
 from subsystems.ElevatorSubsystem import Elevator
-from subsystems.EndEffector import EndEffector
+from subsystems.EndEffectorSubsystem import EndEffector
 from commands.IntakeCommands import EjectCoralCommand
 from commands.ElevatorCommands import (
     ElevatorLowPositionCommand, 
