@@ -55,6 +55,7 @@ class inputConsts:
 
 class driveConsts:
     wheelDiameter = 4
+    autonomousTime = 5000
 
 
 class intakeConsts:
