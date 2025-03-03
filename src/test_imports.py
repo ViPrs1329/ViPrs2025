@@ -5,6 +5,7 @@ import rev
 import wpimath
 
 def main():
+    print(dir(wpimath))
     print(hasattr(rev, "SparkMax"))  # Should return False if it doesn't exist
     print(hasattr(rev, "CANSparkMax"))  # Should return True if it exists
 

@@ -3,6 +3,7 @@ import rev
 import math
 import commands2
 import wpilib
+import wpimath
 from wpimath import controller
 
 from constants import CANIDs, elevatorConsts
