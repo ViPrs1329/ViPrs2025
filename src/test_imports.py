@@ -2,6 +2,7 @@
 # Simple test script to verify module imports
 
 import rev
+import wpimath
 
 def main():
     print(hasattr(rev, "SparkMax"))  # Should return False if it doesn't exist
