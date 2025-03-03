@@ -1,63 +1,120 @@
-# Team 1329 Robot Code 2025
+# Team 1329 FRC Robot Code (2025 Season)
 
-## Robot Overview
-Our 2025 robot features a swerve drive base with an elevator and specialized end effector for manipulating game pieces (Coral and Algae).
+## Overview
 
-### Hardware Configuration
-- **Drivetrain**: Swerve drive with Rev NEO motors and Spark MAX controllers
-  - CANcoder absolute encoders for wheel orientation
-  - Pigeon 2.0 IMU for field-oriented control
-- **Elevator**: Cascading two-stage design powered by NEO Vortex motors
-  - 16:1 planetary gearboxes for mechanical advantage
-- **End Effector**:
-  - Coral Manipulator: Dual NEO motors with compliant wheels
-    - LaserCAN sensors for precise positioning
-  - Algae Manipulator: Rotatable intake system with NEO motors
-    - Absolute encoder for position feedback
+This repository contains the robot code for Team 1329's 2025 season robot. The code is structured using WPILib's command-based framework and follows a standardized approach to subsystem management for improved maintainability and reliability.
+
+## Robot Features
+
+- **Swerve Drive**: Four-module swerve drive with field-oriented control
+- **Elevator**: Two-stage cascading elevator with precise position control
+- **End Effector**: Dual-purpose end effector for manipulating Coral and Algae game pieces
 
 ## Code Structure
-- `robot.py`: Main robot class and program entry point
-- `robotContainer.py`: Wires together subsystems, controllers, and commands
-- `/subsystems/`: Core robot subsystem implementations
-  - `SwerveDriveSubsystem.py`: Swerve drive implementation
-  - `ElevatorSubsystem.py`: Elevator control system
-  - `EndEffector.py`: Combined end effector for game piece manipulation
-- `/commands/`: Command-based operations
-  - `IntakeCommands.py`: Coral intake/ejection
-  - `ElevatorCommands.py`: Elevator positioning
-  - `AlgaeCommands.py`: Algae collection
-  - `ScoringCommands.py`: Scoring sequences
-  - `AutonomousCommands.py`: Autonomous routines
-- `/team254/`: Performance optimized motor control
-  - `LazySparkMax.py`: Reduces CAN bus traffic
-  - `SparkMaxFactory.py`: Consistent motor configuration
-- `/constants.py`: Central repository for robot constants
+
+### Core Architecture
+
+- `robot.py`: Main robot class that manages robot lifecycle and modes
+- `robotContainer.py`: Container for subsystems, commands, and controllers
+- `constants.py`: Centralized robot constants and configuration
+- `/subsystems/`: Robot subsystem implementations
+- `/commands/`: Command implementations for robot actions
 - `/sim/`: Simulation support for testing without hardware
 
-## Key Features
-- Command-based programming paradigm
-- Field-oriented swerve drive control
-- Sensor call caching to reduce CAN bus overhead
-- Mode-based operator control scheme
-- Comprehensive simulation support
-- Autonomous path following and scoring
+### Standardized Subsystem Pattern
 
-## Control Scheme
-- **Driver Controller**: Swerve drive, field orientation toggle, emergency stop
-- **Operator Controller**: Mode selection, game piece manipulation
-  - Base Mode: Home positions
-  - Coral Mode: Coral intake/scoring
-  - Algae Mode: Algae collection positions
+All subsystems follow a standardized pattern that includes:
 
-See the detailed [Control Scheme Documentation](Controls.md) for a complete mapping of all controls.
+- Error handling
+- Sensor caching to reduce CAN traffic
+- Simulation support
+- Status reporting
 
-## Build & Deploy
-```bash
-python -m robotpy deploy --skip-tests
-python -m robotpy sync
+### Primary Subsystems
+
+- `SwerveDriveSubsystem.py`: Swerve drive implementation
+- `ElevatorSubsystem.py`: Elevator control
+- `EndEffectorSubsystem.py`: Coral and Algae game piece manipulation
+
+## Hardware Configuration
+
+- **Drive Motors**: NEO brushless motors with SparkMax controllers
+- **Rotation Motors**: NEO brushless motors with SparkMax controllers
+- **Rotation Encoders**: CANcoders for absolute position feedback
+- **IMU**: Pigeon 2.0 for robot orientation
+- **Elevator Motors**: NEO Vortex motors with SparkFlex controllers
+- **End Effector Motors**: NEO motors for Coral and Algae manipulation
+- **Distance Sensors**: LaserCAN for game piece detection and positioning
+
+## Development Setup
+
+### Prerequisites
+
+- Python 3.9+
+- RobotPy 2025.3.1.1+
+- Visual Studio Code with Python and WPILib extensions (recommended)
+
+### Installation
+
+1. Clone this repository:
+   ```
+   git clone https://github.com/team1329/2025-robot-code.git
+   ```
+
+2. Install RobotPy and dependencies:
+   ```
+   python -m pip install robotpy[all]
+   ```
+
+3. Install robot-specific dependencies:
+   ```
+   cd 2025-robot-code
+   pip install -r requirements.txt
+   ```
+
+### Building and Deploying
+
+Deploy to the robot:
+```
+python -m robotpy deploy
+```
+
+Run in simulation:
+```
+python -m robotpy sim
 ```
 
 ## Testing
-```bash
+
+To run tests:
+```
+python -m robotpy test
+```
+
+## Simulation
+
+The code includes comprehensive simulation support for testing without hardware. To run the robot in simulation:
+
+```
 python -m robotpy sim
 ```
+
+Simulation provides:
+- Simulated motor controllers and encoders
+- Simulated sensors
+- NetworkTables for simulated values
+- Visualization of robot state
+
+## Contributing
+
+Please follow these guidelines when contributing to the codebase:
+
+1. Follow the standardized subsystem pattern
+2. Use consistent error handling
+3. Add sensor caching where appropriate
+4. Include simulation support for new features
+5. Add proper documentation and comments
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
