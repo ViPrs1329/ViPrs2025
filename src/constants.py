@@ -107,6 +107,18 @@ class endEffectorConsts:
     ALGAE_KD = 0.005
     ALGAE_KF = 0.0
 
+    # Current thresholds
+    CURRENT_WARNING_THRESHOLD = 30.0  # Amps - when to start warning/slowing
+    CURRENT_CRITICAL_THRESHOLD = 40.0  # Amps - when to stop motors
+
+    # Jam detection thresholds
+    CORAL_JAM_CURRENT_THRESHOLD = 25.0  # Amps
+    ALGAE_JAM_CURRENT_THRESHOLD = 25.0  # Amps
+
+    # Algae rotation limits
+    ALGAE_MIN_ANGLE = -100.0  # Degrees
+    ALGAE_MAX_ANGLE = 100.0   # Degrees
+
 # Add these to your constants.py file in the elevatorConsts class
 
 class elevatorConsts:
