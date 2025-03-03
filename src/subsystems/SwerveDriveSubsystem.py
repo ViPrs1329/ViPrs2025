@@ -372,26 +372,35 @@ class SwerveDrive(commands2.Subsystem):
             self.gyro = Pigeon2(CANIDs.PIGEON)
         else:
             # Create a dummy gyro for simulation
-            class DummyGyro:
+            class DummyEncoder:
                 def __init__(self):
-                    self._yaw = 0.0
-                    self._pitch = 0.0
+                    self._value = 0.0
+                    self._velocity = 0.0
                 
-                def getYaw(self):
-                    return self._yaw
+                def get_position(self):
+                    class DummyValue:
+                        def __init__(self, val):
+                            self.value_as_double = val
+                    return DummyValue(self._value)
                     
-                def getPitch(self):
-                    return self._pitch
+                def get_absolute_position(self):
+                    return self.get_position()
                     
-                def setYaw(self, yaw):
-                    self._yaw = yaw
+                def getPosition(self):
+                    """Get the position of the encoder."""
+                    return self._value
                     
-                def setPitch(self, pitch):
-                    self._pitch = pitch
+                def getVelocity(self):
+                    """Get the velocity of the encoder."""
+                    return self._velocity
                     
-                def reset(self):
-                    self._yaw = 0.0
-                    self._pitch = 0.0
+                def setPosition(self, position):
+                    """Set the position of the encoder."""
+                    self._value = position
+                    
+                def setVelocity(self, velocity):
+                    """Set the velocity of the encoder."""
+                    self._velocity = velocity
             
             self.gyro = DummyGyro()
             print("Created dummy gyro for simulation")
@@ -456,6 +465,7 @@ class SwerveDrive(commands2.Subsystem):
         # Initialize network tables
         self.nt = ntcore.NetworkTableInstance.getDefault()
         self.drive_table = self.nt.getTable("SwerveDrive")
+        self.speeds_pub = self.drive_table.getDoubleTopic("ChassisSpeedsX").publish()
         
         # Initialize simulation publishers if needed
         if self.is_simulation:
@@ -739,49 +749,72 @@ class SwerveDrive(commands2.Subsystem):
         # The robot's pose is already being published in updateNetworkTables()
         return None
 
+    
     def setModuleStates(self, desired_states):
         """Set the desired states for all swerve modules."""
         try:
             # Handle None states
             if desired_states is None:
                 print("Warning: Received None states, using default states")
-                desired_states = [SwerveModuleState(0, Rotation2d())] * 4
+                desired_states = [
+                    wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d())
+                ] * 4
             
             # Ensure we have enough states
             if len(desired_states) < 4:
                 print(f"Warning: Not enough states ({len(desired_states)}), padding with defaults")
-                desired_states.extend([SwerveModuleState(0, Rotation2d())] * (4 - len(desired_states)))
+                default_state = wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d())
+                desired_states.extend([default_state] * (4 - len(desired_states)))
             
-            # Optimize each module's state
-            optimized_states = []
-            for i, state in enumerate(desired_states):
+            # Validate and optimize each module's state
+            for i, (module, state) in enumerate(zip(self.modules, desired_states)):
                 try:
+                    # Validate the state
                     if state is None:
                         print(f"Warning: Module {i} state is None, using default")
-                        state = SwerveModuleState(0, Rotation2d())
+                        state = wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d())
                     
-                    # Get current module state
-                    current_state = self.getModuleState(i)
-                    if current_state is None:
-                        print(f"Warning: Module {i} current state is None, using default")
-                        current_state = SwerveModuleState(0, Rotation2d())
+                    # Validate the state's attributes
+                    if not hasattr(state, 'speed') or state.speed is None:
+                        print(f"Warning: Module {i} has invalid speed, using 0")
+                        speed = 0
+                    else:
+                        speed = state.speed
+                        
+                    if not hasattr(state, 'angle') or state.angle is None:
+                        print(f"Warning: Module {i} has invalid angle, using current")
+                        # Try to get current angle, default to 0 if that fails
+                        try:
+                            angle = module.getState().angle
+                        except:
+                            angle = wpimath.geometry.Rotation2d()
+                    else:
+                        angle = state.angle
                     
-                    # Optimize the state
-                    optimized = SwerveModuleState.optimize(state, current_state.angle)
-                    optimized_states.append(optimized)
-                except Exception as e:
-                    print(f"Error optimizing module {i} state: {e}")
-                    optimized_states.append(SwerveModuleState(0, Rotation2d()))
-            
-            # Set the optimized states
-            for i, (module, state) in enumerate(zip(self.modules, optimized_states)):
-                try:
-                    module.setDesiredState(state)
+                    # Recreate the state with validated components
+                    validated_state = wpimath.kinematics.SwerveModuleState(speed, angle)
+                    
+                    # Set the module state
+                    module.setDesiredState(validated_state)
+                    
                 except Exception as e:
                     print(f"Error setting module {i} state: {e}")
-                    
+                    # Set a safe default state
+                    try:
+                        module.setDesiredState(
+                            wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d())
+                        )
+                    except Exception as inner_e:
+                        print(f"Critical error setting default state for module {i}: {inner_e}")
+                        
         except Exception as e:
             print(f"Error in setModuleStates: {e}")
+            # Attempt to stop all modules in case of severe error
+            for module in self.modules:
+                try:
+                    module.stop()
+                except:
+                    pass
 
     def getModuleState(self, index):
         """Get the current state of a swerve module."""

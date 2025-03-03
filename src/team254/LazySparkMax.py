@@ -93,6 +93,12 @@ class LazySparkMax(rev.SparkMax, LazySparkBase):
             # TODO: getPIDController() isn't part of the parent class
             self._pid_controller = super().getPIDController()
         return self._pid_controller
+    
+    def getVelocity(self):
+        """Get the velocity of the motor."""
+        if hasattr(self, "_encoder") and self._encoder is not None:
+            return self._encoder.getVelocity()
+        return 0.0  # Default value for simulation
 
 class LazySparkFlex(rev.SparkFlex, LazySparkBase):
     """
