@@ -17,7 +17,7 @@ class FollowPathCommand(commands2.Command):
             pathName (str): The name of the PathPlanner path file (without .path).
             driveFunction (function): A function that takes x, y, and heading outputs and drives the robot.
         """
-        super().__init__("Follow Path")
+        super().__init__()
         self.pathName = pathName
         self.driveFunction = driveFunction
         self.trajectory = None
