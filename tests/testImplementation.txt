@@ -1,0 +1,49 @@
+TEST_ARCHITECTURE = {
+    "core_mocking": {
+        "location": "tests/conftest.py",
+        "components": {
+            "MockSparkMax": {
+                "type": "class(MagicMock)",
+                "features": ["instance_tracking", "default_mock_methods"],
+                "tracked_instances": {"_instances": "dict[device_id, MockSparkMax]"},
+                "mocked_methods": ["getEncoder", "getAbsoluteEncoder", "getPIDController", "setIdleMode", "follow", "set"],
+                "mocked_attributes": ["IdleMode", "ControlType", "SoftLimitDirection"]
+            },
+            "fixtures": {
+                "mock_sparkmax_class": {
+                    "scope": "function",
+                    "autouse": True,
+                    "patches": ["rev.SparkMax", "rev.SparkLowLevel.MotorType"],
+                    "instance_management": "clear_before_after"
+                },
+                "mock_hardware": {
+                    "provides": ["motor", "encoder", "pid", "absolute_encoder", "cancoder", "gyro"]
+                }
+            }
+        }
+    },
+    "test_structure": {
+        "elevator": {
+            "unit_tests": {
+                "location": "tests/subsystems/test_elevator_subsystem.py",
+                "class": "TestElevatorSubsystem",
+                "fixtures": ["elevator_subsystem", "mock_elevator"],
+                "test_cases": [
+                    "init", "set_position", "set_position_clamping", "get_current_position",
+                    "get_current_velocity", "is_at_position", "go_to_positions", "periodic"
+                ]
+            },
+            "integration_tests": {
+                "location": "tests/integration/test_elevator_integration.py",
+                "class": "TestElevatorIntegration",
+                "fixtures": ["mock_elevator", "elevator_subsystem", "elevator_command"],
+                "mocking_strategy": "use_conftest_mocks"
+            }
+        }
+    },
+    "mocking_strategy": {
+        "SparkMax": "centralized_instance_tracking",
+        "hardware_interfaces": "fixture_based",
+        "subsystems": "composition_based"
+    }
+}

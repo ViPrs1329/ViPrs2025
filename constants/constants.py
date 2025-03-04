@@ -93,13 +93,16 @@ class ElevatorConstants:
 
 @dataclass
 class CoralManipulatorConstants:
-    # Motor CAN IDs
-    LEFT_MOTOR: Final[int] = 11
-    RIGHT_MOTOR: Final[int] = 12
-
-    # Sensor DIO Ports
-    LEFT_SENSOR: Final[int] = 0
-    RIGHT_SENSOR: Final[int] = 1
+    # Motor IDs
+    LEFT_MOTOR: Final[int] = 30  # Update with actual CAN ID
+    RIGHT_MOTOR: Final[int] = 31  # Update with actual CAN ID
+    
+    # Sensor IDs
+    LEFT_SENSOR: Final[int] = 40  # Update with actual CAN ID
+    RIGHT_SENSOR: Final[int] = 41  # Update with actual CAN ID
+    
+    # Detection threshold (4 inches = ~100mm)
+    DETECTION_THRESHOLD_MM: Final[int] = 100
 
     # Motor Characteristics
     GEAR_RATIO: Final[float] = 4.0
@@ -108,9 +111,9 @@ class CoralManipulatorConstants:
 
 @dataclass
 class AlgaeManipulatorConstants:
-    # Motor CAN IDs
-    ROTATION_MOTOR: Final[int] = 13
-    INTAKE_MOTOR: Final[int] = 14
+    # Motor IDs
+    ROTATION_MOTOR: Final[int] = 32  # Update with actual CAN ID
+    INTAKE_MOTOR: Final[int] = 33    # Update with actual CAN ID
 
     # Encoder Port
     ABSOLUTE_ENCODER: Final[int] = 2
