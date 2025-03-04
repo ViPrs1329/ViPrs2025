@@ -7,54 +7,83 @@ from pathplannerlib.path import PathPlannerPath
 from robotcontainer import RobotContainer
 
 class Robot(commands2.TimedCommandRobot):
-    def robotInit(self):
+    """
+    Main robot class.
+    """
+    
+    def robotInit(self) -> None:
         """
-        This function is called upon program startup and
-        should be used for any initialization code.
+        Robot initialization.
         """
-        # Create SmartDashboard instance
-        self.sd = wpilib.SmartDashboard
-
-        # Initialize subsystems
+        # Create the robot container
         self.container = RobotContainer()
-
-    def robotPeriodic(self):
-        """This function is called periodically regardless of mode."""
+        
+        # Set up autonomous command
+        self.autonomous_command = None
+    
+    def robotPeriodic(self) -> None:
+        """
+        Periodic code for all robot modes.
+        This runs after mode-specific periodic functions.
+        """
+        # Run command scheduler
         commands2.CommandScheduler.getInstance().run()
-
-    def autonomousInit(self):
-        """This function is called once each time the robot enters autonomous mode."""
+        
+        # Update telemetry
+        self.container.periodic()
+    
+    def autonomousInit(self) -> None:
+        """
+        Called when autonomous mode starts.
+        """
         self.autonomous_command = self.container.getAutonomousCommand()
+        
         if self.autonomous_command:
             self.autonomous_command.schedule()
-
-    def autonomousPeriodic(self):
-        """This function is called periodically during autonomous."""
+    
+    def autonomousPeriodic(self) -> None:
+        """
+        Periodic code for autonomous mode.
+        """
         pass
-
-    def teleopInit(self):
-        """This function is called once each time the robot enters teleop mode."""
+    
+    def teleopInit(self) -> None:
+        """
+        Called when teleop mode starts.
+        """
+        # Cancel autonomous command if it's still running
         if self.autonomous_command:
             self.autonomous_command.cancel()
-
-    def teleopPeriodic(self):
-        """This function is called periodically during teleop."""
+    
+    def teleopPeriodic(self) -> None:
+        """
+        Periodic code for teleop mode.
+        """
         pass
-
-    def testInit(self):
-        """This function is called once each time the robot enters test mode."""
+    
+    def testInit(self) -> None:
+        """
+        Called when test mode starts.
+        """
+        # Cancel all running commands
         commands2.CommandScheduler.getInstance().cancelAll()
-
-    def testPeriodic(self):
-        """This function is called periodically during test mode."""
+    
+    def testPeriodic(self) -> None:
+        """
+        Periodic code for test mode.
+        """
         pass
-
-    def disabledInit(self):
-        """This function is called once each time the robot is disabled."""
+    
+    def disabledInit(self) -> None:
+        """
+        Called when the robot is disabled.
+        """
         pass
-
-    def disabledPeriodic(self):
-        """This function is called periodically while disabled."""
+    
+    def disabledPeriodic(self) -> None:
+        """
+        Periodic code for disabled mode.
+        """
         pass
 
 if __name__ == "__main__":

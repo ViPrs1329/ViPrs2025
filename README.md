@@ -105,4 +105,137 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - WPILib team
 - Our mentors
 - All team members
-- FRC community 
+- FRC community
+
+## VIPRS 2025 Robot Code
+
+## Overview
+
+This repository contains the robot code for Team VIPRS's 2025 FRC Crescendo competition robot. The code is written in Python using WPILib and follows a command-based structure.
+
+## Features
+
+- **Swerve Drive System**
+  - Field-relative control
+  - Advanced path following
+  - Optimized sensor caching
+  - Synchronized module updates
+
+- **Game-Specific Mechanisms**
+  - Elevator with precise position control
+  - Note handling end effector
+  - Speaker and Amp scoring capabilities
+  - Stage climbing mechanism
+
+- **Advanced Telemetry**
+  - Real-time visualization with AdvantageScope
+  - Game-specific data tracking
+  - Performance monitoring and statistics
+  - System health tracking
+  - Comprehensive event logging
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) - Overall code structure and design patterns
+- [Controls](docs/CONTROLS.md) - Control mappings and driver interface
+- [Subsystems](docs/SUBSYSTEMS.md) - Detailed subsystem documentation
+- [Telemetry](docs/TELEMETRY.md) - Telemetry system and AdvantageScope integration
+- [Sensors](docs/SENSORS.md) - Sensor configuration and usage
+- [Constants](docs/CONSTANTS.md) - Robot constants and calibration values
+
+## Getting Started
+
+1. **Prerequisites**
+   - Python 3.10 or newer
+   - WPILib 2025
+   - AdvantageScope (for telemetry visualization)
+   - Required Python packages:
+     ```bash
+     pip install -r requirements.txt
+     ```
+
+2. **Setup**
+   - Clone this repository
+   - Install dependencies
+   - Copy `advantagescope-config.json` to your AdvantageScope configuration directory
+
+3. **Development**
+   - Use VS Code with the WPILib extension
+   - Run simulation: `python robot.py sim`
+   - Deploy to robot: `python robot.py deploy`
+
+4. **Telemetry**
+   - Start AdvantageScope
+   - Connect to robot (NT4)
+   - Load VIPRS2025 configuration
+   - View real-time data and logs
+
+## Project Structure
+
+```
+robot/
+├── subsystems/        # Robot subsystems
+├── commands/          # Robot commands
+├── constants/         # Configuration constants
+├── utils/            # Utility classes
+│   ├── telemetry.py  # Telemetry system
+│   └── ...
+├── autonomous/        # Autonomous routines
+├── docs/             # Documentation
+├── tests/            # Unit tests
+├── robot.py          # Main robot class
+└── robotcontainer.py # Robot component wiring
+```
+
+## Contributing
+
+1. Follow the [Python Style Guide](docs/STYLE.md)
+2. Write unit tests for new features
+3. Update documentation as needed
+4. Submit pull requests for review
+
+## Testing
+
+Run unit tests:
+```bash
+python -m pytest tests/
+```
+
+Run simulation tests:
+```bash
+python robot.py sim
+```
+
+## Telemetry Features
+
+The robot includes a comprehensive telemetry system that provides:
+
+1. **Real-time Visualization**
+   - Field position and orientation
+   - Swerve module states
+   - Mechanism positions
+   - Game piece tracking
+
+2. **Performance Monitoring**
+   - System health metrics
+   - Scoring statistics
+   - Autonomous path tracking
+   - Event logging
+
+3. **Debug Tools**
+   - Event console
+   - Statistics tracking
+   - System health monitoring
+   - Network diagnostics
+
+For detailed information about the telemetry system, see [Telemetry Documentation](docs/TELEMETRY.md).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments
+
+- WPILib Team
+- Mechanical Advantage (AdvantageScope)
+- FIRST Robotics Competition 

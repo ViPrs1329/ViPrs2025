@@ -1,0 +1,175 @@
+{
+    "name": "VIPRS2025",
+    "sourceURL": "nt4://localhost",
+    "widgets": [
+        {
+            "name": "Field",
+            "type": "field2d",
+            "sources": {
+                "Robot": "/Telemetry/Odometry",
+                "Target": "/Telemetry/Vision/Target",
+                "Path": "/Telemetry/Auto/Path"
+            },
+            "options": {
+                "game": "2025",
+                "alliance": "blue",
+                "robotSize": {
+                    "width": 0.762,
+                    "length": 0.762
+                },
+                "elements": {
+                    "showSpeakers": true,
+                    "showAmps": true,
+                    "showSources": true,
+                    "showStage": true
+                }
+            }
+        },
+        {
+            "name": "Swerve",
+            "type": "swerve",
+            "sources": {
+                "modules": "/Telemetry/Swerve",
+                "robot": "/Telemetry/Odometry"
+            },
+            "options": {
+                "moduleConfig": {
+                    "maxSpeed": 4.0,
+                    "wheelDiameter": 0.1016,
+                    "wheelPositions": {
+                        "frontLeft": [0.381, 0.381],
+                        "frontRight": [0.381, -0.381],
+                        "backLeft": [-0.381, 0.381],
+                        "backRight": [-0.381, -0.381]
+                    }
+                }
+            }
+        },
+        {
+            "name": "Mechanisms",
+            "type": "mechanism",
+            "sources": {
+                "elevator": "/Telemetry/Mechanisms/Elevator",
+                "endEffector": "/Telemetry/Mechanisms/EndEffector"
+            },
+            "options": {
+                "elevatorConfig": {
+                    "type": "elevator",
+                    "minHeight": 0.0,
+                    "maxHeight": 2.0
+                },
+                "endEffectorConfig": {
+                    "type": "mechanism2d",
+                    "components": [
+                        {
+                            "name": "algaeArm",
+                            "type": "rotatingArm",
+                            "angle": "algae_rotation",
+                            "length": 0.3
+                        },
+                        {
+                            "name": "coralGripper",
+                            "type": "gripper",
+                            "width": "coral_width",
+                            "baseWidth": 0.2
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "name": "Gyro",
+            "type": "gyro",
+            "sources": {
+                "rotation": "/Telemetry/Drive/gyro_yaw",
+                "pitch": "/Telemetry/Drive/gyro_pitch",
+                "roll": "/Telemetry/Drive/gyro_roll"
+            }
+        },
+        {
+            "name": "System Health",
+            "type": "line",
+            "sources": {
+                "Battery Voltage": "/Telemetry/Drive/voltage",
+                "Drive Temperature": "/Telemetry/Drive/temperature",
+                "Elevator Temperature": "/Telemetry/Elevator/temperature",
+                "CPU Usage": "/Telemetry/System/cpu_usage",
+                "Memory Usage": "/Telemetry/System/memory_usage"
+            },
+            "options": {
+                "yMin": 0,
+                "yMax": 100,
+                "legend": true
+            }
+        },
+        {
+            "name": "Game Piece",
+            "type": "line",
+            "sources": {
+                "Note Detected": "/Telemetry/EndEffector/note_detected",
+                "Note Distance": "/Telemetry/Vision/note_distance",
+                "Speaker Distance": "/Telemetry/Vision/speaker_distance",
+                "Amp Distance": "/Telemetry/Vision/amp_distance"
+            },
+            "options": {
+                "yMin": 0,
+                "yMax": 5,
+                "legend": true
+            }
+        },
+        {
+            "name": "Scoring",
+            "type": "table",
+            "sources": {
+                "Speaker": {
+                    "Ready": "/Telemetry/Scoring/speaker_ready",
+                    "Distance": "/Telemetry/Scoring/speaker_distance",
+                    "Angle": "/Telemetry/Scoring/speaker_angle",
+                    "Success Rate": "/Telemetry/Statistics/speaker_success_rate"
+                },
+                "Amp": {
+                    "Ready": "/Telemetry/Scoring/amp_ready",
+                    "Distance": "/Telemetry/Scoring/amp_distance",
+                    "Success Rate": "/Telemetry/Statistics/amp_success_rate"
+                },
+                "Stage": {
+                    "Ready": "/Telemetry/Scoring/stage_ready",
+                    "Position": "/Telemetry/Scoring/stage_position",
+                    "Success Rate": "/Telemetry/Statistics/stage_success_rate"
+                }
+            }
+        },
+        {
+            "name": "Statistics",
+            "type": "table",
+            "sources": {
+                "Drive": "/Telemetry/Drive/Statistics/*",
+                "Elevator": "/Telemetry/Elevator/Statistics/*",
+                "EndEffector": "/Telemetry/EndEffector/Statistics/*",
+                "Vision": "/Telemetry/Vision/Statistics/*"
+            }
+        },
+        {
+            "name": "Events",
+            "type": "console",
+            "sources": {
+                "Drive": "/Telemetry/Drive/Events/*",
+                "Elevator": "/Telemetry/Elevator/Events/*",
+                "EndEffector": "/Telemetry/EndEffector/Events/*",
+                "Vision": "/Telemetry/Vision/Events/*",
+                "Scoring": "/Telemetry/Scoring/Events/*",
+                "System": "/Telemetry/TelemetryManager/Events/*"
+            }
+        }
+    ],
+    "layout": {
+        "type": "grid",
+        "rows": 3,
+        "columns": 4,
+        "widgets": [
+            ["Field", "Swerve", "Mechanisms", "Gyro"],
+            ["System Health", "Game Piece", "Scoring", "Statistics"],
+            ["Events", "Events", "Events", "Events"]
+        ]
+    }
+} 

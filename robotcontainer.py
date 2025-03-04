@@ -11,6 +11,7 @@ from commands.test_swerve_command import TestSwerveCommand
 from commands.coral_intake_command import CoralIntakeCommand
 from commands.algae_manipulate_command import AlgaeManipulateCommand
 from commands.elevator_to_position_command import ElevatorToPositionCommand
+from utils.telemetry import TelemetryManager
 
 class RobotContainer:
     """
@@ -28,15 +29,18 @@ class RobotContainer:
     """
 
     def __init__(self):
-        """Constructor"""
+        """Initialize robot container with telemetry system."""
+        # Initialize telemetry system first
+        self.telemetry = TelemetryManager("VIPRS2025")
+        
         # Create controllers
         self.driver_controller = XboxController(OIConstants.DRIVER_CONTROLLER_PORT)
         self.operator_controller = XboxController(OIConstants.OPERATOR_CONTROLLER_PORT)
 
-        # Create subsystems
-        self.drive_subsystem = DriveSubsystem()
-        self.end_effector = EndEffector()
-        self.elevator_subsystem = ElevatorSubsystem()
+        # Create subsystems with telemetry
+        self.drive_subsystem = DriveSubsystem(self.telemetry)
+        self.end_effector = EndEffector(self.telemetry)
+        self.elevator_subsystem = ElevatorSubsystem(self.telemetry)
 
         # Create commands
         self.test_swerve_command = TestSwerveCommand(self.drive_subsystem)
@@ -89,14 +93,6 @@ class RobotContainer:
             intake_speed=-0.8
         )
 
-        # Set default commands
-        self.drive_subsystem.setDefaultCommand(
-            DriveCommand(
-                self.drive_subsystem,
-                self.driver_controller
-            )
-        )
-
         # Configure button bindings
         self.configureButtonBindings()
 
@@ -104,6 +100,12 @@ class RobotContainer:
         self.autonomous_chooser = wpilib.SendableChooser()
         # TODO: Add autonomous options
         wpilib.SmartDashboard.putData("Auto Mode", self.autonomous_chooser)
+
+        # Set up default commands
+        self._configure_default_commands()
+        
+        # Log robot initialization
+        self.telemetry.log_event("RobotContainer", "Initialization complete")
 
     def configureButtonBindings(self):
         """
@@ -227,12 +229,35 @@ class RobotContainer:
             self.algae_outtake_command
         )
 
-    def getAutonomousCommand(self) -> commands2.Command:
+    def _configure_default_commands(self) -> None:
+        """Configure default commands for subsystems."""
+        # Set default commands
+        self.drive_subsystem.setDefaultCommand(
+            DriveCommand(
+                self.drive_subsystem,
+                self.driver_controller
+            )
+        )
+
+    def periodic(self) -> None:
         """
-        Use this to pass the autonomous command to the main Robot class.
+        Periodic updates for the robot container.
+        Called from robotPeriodic in the Robot class.
+        """
+        # Update telemetry timestamp and flush updates
+        self.telemetry.periodic()
         
-        Returns
-        -------
-        Command: the command to run in autonomous
+        # Log robot pose for field visualization
+        if hasattr(self, 'drive_subsystem'):
+            self.telemetry.log_odometry(self.drive_subsystem.get_pose())
+
+    def getAutonomousCommand(self) -> Optional[commands2.Command]:
         """
-        return self.autonomous_chooser.getSelected() 
+        Get the selected autonomous command.
+        Logs the selection to telemetry.
+        """
+        selected_auto = self.autonomous_chooser.getSelected()
+        if selected_auto:
+            self.telemetry.log_event("Autonomous", 
+                                   f"Selected routine: {selected_auto.__class__.__name__}")
+        return selected_auto 
