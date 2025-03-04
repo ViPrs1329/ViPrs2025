@@ -22,4 +22,4 @@ class driveForward(commands2.Command):
         self.DT.resetMotors()
         
     def isFinished(self) -> bool:
-        return self.timer.get() >= constants.driveConsts.autonomousTimeautonomousTime
+        return self.timer.get() >= constants.driveConsts.autonomousTime
