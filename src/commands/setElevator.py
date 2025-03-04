@@ -39,6 +39,10 @@ class SetElevator(commands2.Command):
     elif pressedButtons[2] == False and pressedButtons[3] == True:
       return self.increaseLevel()  
 
+  def gotoLevel(self):
+    level = Elevator.currentLevel
+    Elevator.gotoPosition(constants.reefConsts.reefLevels[level] + constants.elevatorConsts.verticaloffset)
+
   def execute(self):
     pass
   
