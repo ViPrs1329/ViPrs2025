@@ -5,7 +5,7 @@ This document outlines the control scheme for Team 1329's 2025 FRC robot. The ro
 ## Controller Layout Reference
 
 ### Xbox Controller Button Map
-![Xbox Controller Layout](https://docs.wpilib.org/en/stable/_images/xbox-controller.png)
+![Xbox Controller Layout](https://user-images.githubusercontent.com/580022/45268303-10a03e80-b4ce-11e8-883c-1f586566c040.png)
 
 | Button/Axis | Number/Name |
 |-------------|-------------|
