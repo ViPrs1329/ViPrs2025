@@ -9,7 +9,7 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 from wpilib import DriverStation, MotorControllerGroup
 from wpimath import controller
 
-from constants import CANIDs
+from constants import CANIDs, reefConsts, elevatorConsts
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
