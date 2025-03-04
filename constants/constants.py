@@ -27,6 +27,9 @@ class DriveConstants:
     BACK_LEFT_CANCODER: Final[int] = 23
     BACK_RIGHT_CANCODER: Final[int] = 24
 
+    # Pigeon 2.0 ID
+    PIGEON_ID: Final[int] = 25  # Update with actual CAN ID
+
     # CANcoder offsets (in rotations)
     FRONT_LEFT_OFFSET: Final[float] = 0.0  # Replace with actual measured offset
     FRONT_RIGHT_OFFSET: Final[float] = 0.0  # Replace with actual measured offset

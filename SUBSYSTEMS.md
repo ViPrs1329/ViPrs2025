@@ -76,6 +76,11 @@ def get_coral_intake_sensor(self):
   - One motor to make the wheel spin (drive)
   - One motor to make the wheel turn (steer)
   - One CANcoder to know which way the wheel is pointing
+- Uses CTRE Pigeon 2.0 IMU for:
+  - Precise robot orientation (yaw)
+  - Field-relative driving
+  - Robot tilt detection (pitch/roll)
+  - Odometry updates
 
 **Cool Features:**
 - Field-relative driving (forward is always field forward)
@@ -84,6 +89,10 @@ def get_coral_intake_sensor(self):
   - Normal: Regular driving
   - Precision: Slower for careful movements
   - Boost: Faster for quick movements
+- Advanced Sensor Integration:
+  - CANcoders for absolute wheel angles
+  - Pigeon 2.0 for accurate robot orientation
+  - Cached sensor readings for consistency
 
 ## How They Work Together 🤝
 

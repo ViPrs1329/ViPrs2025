@@ -2,12 +2,35 @@ import rev
 import wpilib
 from libgrapplefrc import LaserCan, CanBridge
 from commands2 import SubsystemBase
+from utils.caching import CachingSubsystemBase
 from constants.constants import AlgaeManipulatorConstants, CoralManipulatorConstants
 
-class EndEffector(SubsystemBase):
+class EndEffector(CachingSubsystemBase):
     """
     The End Effector subsystem handles both the Algae and Coral manipulators.
     """
+    
+    class Cache(CachingSubsystemBase.Cache):
+        """Cache specific to end effector subsystem"""
+        def __init__(self):
+            super().__init__()
+            # Initialize with default values
+            # Algae manipulator
+            self.set_cached("algae_arm_position", 0.0)
+            self.set_cached("algae_intake_speed", 0.0)
+            self.set_setpoint("algae_target_position", None)
+            self.set_setpoint("algae_target_speed", 0.0)
+            
+            # Coral manipulator
+            self.set_cached("coral_intake_distance", -1)
+            self.set_cached("coral_outlet_distance", -1)
+            self.set_cached("coral_intake_detected", False)
+            self.set_cached("coral_outlet_detected", False)
+            self.set_setpoint("coral_intake_speed", 0.0)
+            
+            # State flags
+            self.set_cached("coral_intaking", False)
+            self.set_cached("coral_fully_intaken", False)
     
     def __init__(self):
         super().__init__()
@@ -55,55 +78,84 @@ class EndEffector(SubsystemBase):
                 sensor.setTimingBudget(LaserCan.TimingBudget.TIMING_BUDGET_33MS)
         except Exception as e:
             print(f"LaserCan configuration failed: {e}")
-        
-        # Initialize state variables
-        self.coral_intaking = False
-        self.coral_fully_intaken = False
-        
-        # Add to SmartDashboard
-        self.init_smartdashboard()
     
-    def init_smartdashboard(self):
-        """Initialize SmartDashboard entries."""
+    def cache_sensors(self) -> None:
+        """Cache all sensor values."""
+        # Cache Algae manipulator values
+        self.cache.set_cached("algae_arm_position", 
+                            self.algae_rotation_motor.getEncoder().getPosition())
+        self.cache.set_cached("algae_intake_speed", 
+                            self.algae_intake_motor.getEncoder().getVelocity())
+        
+        # Cache Coral manipulator sensor values
+        intake_measurement = self.coral_intake_sensor.getMeasurement()
+        outlet_measurement = self.coral_outlet_sensor.getMeasurement()
+        
+        # Update intake sensor cache
+        if intake_measurement and intake_measurement.status == 0:
+            distance = intake_measurement.distance_mm
+            self.cache.set_cached("coral_intake_distance", distance)
+            self.cache.set_cached("coral_intake_detected", 
+                                distance < CoralManipulatorConstants.DETECTION_THRESHOLD_MM)
+        else:
+            self.cache.set_cached("coral_intake_distance", -1)
+            self.cache.set_cached("coral_intake_detected", False)
+            
+        # Update outlet sensor cache
+        if outlet_measurement and outlet_measurement.status == 0:
+            distance = outlet_measurement.distance_mm
+            self.cache.set_cached("coral_outlet_distance", distance)
+            self.cache.set_cached("coral_outlet_detected", 
+                                distance < CoralManipulatorConstants.DETECTION_THRESHOLD_MM)
+        else:
+            self.cache.set_cached("coral_outlet_distance", -1)
+            self.cache.set_cached("coral_outlet_detected", False)
+    
+    def update_hardware(self) -> None:
+        """Update hardware with cached setpoints."""
+        # Update Algae manipulator
+        target_position = self.cache.get_setpoint("algae_target_position")
+        if target_position is not None:
+            self.algae_rotation_motor.getPIDController().setReference(
+                target_position,
+                rev.SparkMax.ControlType.kPosition
+            )
+        
+        # Update motor speeds
+        self.algae_intake_motor.set(self.cache.get_setpoint("algae_target_speed"))
+        coral_speed = self.cache.get_setpoint("coral_intake_speed")
+        self.coral_left_motor.set(coral_speed)
+        self.coral_right_motor.set(coral_speed)
+    
+    def periodic_logic(self) -> None:
+        """Update SmartDashboard with cached values."""
         # Algae state
-        wpilib.SmartDashboard.putNumber("Algae/Arm Position", 0)
-        wpilib.SmartDashboard.putNumber("Algae/Intake Speed", 0)
-        
-        # Coral state
-        wpilib.SmartDashboard.putBoolean("Coral/Intaking", False)
-        wpilib.SmartDashboard.putBoolean("Coral/Fully Intaken", False)
-        wpilib.SmartDashboard.putNumber("Coral/Intake Distance (mm)", -1)
-        wpilib.SmartDashboard.putNumber("Coral/Outlet Distance (mm)", -1)
-    
-    def periodic(self):
-        """Update SmartDashboard with current state."""
-        # Update Algae state
         wpilib.SmartDashboard.putNumber(
             "Algae/Arm Position",
-            self.algae_rotation_motor.getEncoder().getPosition()
+            self.cache.get_cached("algae_arm_position")
         )
         wpilib.SmartDashboard.putNumber(
             "Algae/Intake Speed",
-            self.algae_intake_motor.getEncoder().getVelocity()
+            self.cache.get_cached("algae_intake_speed")
         )
         
-        # Update Coral state and sensor readings
-        wpilib.SmartDashboard.putBoolean("Coral/Intaking", self.coral_intaking)
-        wpilib.SmartDashboard.putBoolean("Coral/Fully Intaken", self.coral_fully_intaken)
-        
-        # Get and update intake sensor measurement
-        intake_measurement = self.coral_intake_sensor.getMeasurement()
-        if intake_measurement and intake_measurement.status == 0:
-            wpilib.SmartDashboard.putNumber("Coral/Intake Distance (mm)", intake_measurement.distance_mm)
-        else:
-            wpilib.SmartDashboard.putNumber("Coral/Intake Distance (mm)", -1)
-            
-        # Get and update outlet sensor measurement
-        outlet_measurement = self.coral_outlet_sensor.getMeasurement()
-        if outlet_measurement and outlet_measurement.status == 0:
-            wpilib.SmartDashboard.putNumber("Coral/Outlet Distance (mm)", outlet_measurement.distance_mm)
-        else:
-            wpilib.SmartDashboard.putNumber("Coral/Outlet Distance (mm)", -1)
+        # Coral state
+        wpilib.SmartDashboard.putBoolean(
+            "Coral/Intaking", 
+            self.cache.get_cached("coral_intaking")
+        )
+        wpilib.SmartDashboard.putBoolean(
+            "Coral/Fully Intaken",
+            self.cache.get_cached("coral_fully_intaken")
+        )
+        wpilib.SmartDashboard.putNumber(
+            "Coral/Intake Distance (mm)",
+            self.cache.get_cached("coral_intake_distance")
+        )
+        wpilib.SmartDashboard.putNumber(
+            "Coral/Outlet Distance (mm)",
+            self.cache.get_cached("coral_outlet_distance")
+        )
     
     # Algae Manipulator Methods
     def set_algae_arm_position(self, position: float):
@@ -112,10 +164,7 @@ class EndEffector(SubsystemBase):
         
         :param position: Target position in radians
         """
-        self.algae_rotation_motor.getPIDController().setReference(
-            position,
-            rev.SparkMax.ControlType.kPosition
-        )
+        self.cache.set_setpoint("algae_target_position", position)
     
     def set_algae_intake_speed(self, speed: float):
         """
@@ -123,7 +172,7 @@ class EndEffector(SubsystemBase):
         
         :param speed: Speed from -1 to 1
         """
-        self.algae_intake_motor.set(speed)
+        self.cache.set_setpoint("algae_target_speed", speed)
     
     def get_algae_arm_position(self) -> float:
         """
@@ -131,7 +180,7 @@ class EndEffector(SubsystemBase):
         
         :return: Current position in radians
         """
-        return self.algae_rotation_motor.getEncoder().getPosition()
+        return self.cache.get_cached("algae_arm_position")
     
     # Coral Manipulator Methods
     def set_coral_intake_speed(self, speed: float):
@@ -140,8 +189,7 @@ class EndEffector(SubsystemBase):
         
         :param speed: Speed from -1 to 1
         """
-        self.coral_left_motor.set(speed)
-        self.coral_right_motor.set(speed)
+        self.cache.set_setpoint("coral_intake_speed", speed)
     
     def get_coral_intake_sensor(self) -> bool:
         """
@@ -149,11 +197,7 @@ class EndEffector(SubsystemBase):
         
         :return: True if Coral is detected at intake (within detection threshold)
         """
-        measurement = self.coral_intake_sensor.getMeasurement()
-        if measurement and measurement.status == 0:
-            # Return True if object is detected within threshold distance (adjust as needed)
-            return measurement.distance_mm < CoralManipulatorConstants.DETECTION_THRESHOLD_MM
-        return False
+        return self.cache.get_cached("coral_intake_detected")
     
     def get_coral_outlet_sensor(self) -> bool:
         """
@@ -161,11 +205,7 @@ class EndEffector(SubsystemBase):
         
         :return: True if Coral is detected at outlet (within detection threshold)
         """
-        measurement = self.coral_outlet_sensor.getMeasurement()
-        if measurement and measurement.status == 0:
-            # Return True if object is detected within threshold distance (adjust as needed)
-            return measurement.distance_mm < CoralManipulatorConstants.DETECTION_THRESHOLD_MM
-        return False
+        return self.cache.get_cached("coral_outlet_detected")
     
     def is_coral_fully_intaken(self) -> bool:
         """
@@ -173,7 +213,7 @@ class EndEffector(SubsystemBase):
         
         :return: True if Coral is fully intaken
         """
-        return self.coral_fully_intaken
+        return self.cache.get_cached("coral_fully_intaken")
     
     def set_coral_intaking(self, intaking: bool):
         """
@@ -181,7 +221,7 @@ class EndEffector(SubsystemBase):
         
         :param intaking: True if Coral is being intaken
         """
-        self.coral_intaking = intaking
+        self.cache.set_cached("coral_intaking", intaking)
     
     def set_coral_fully_intaken(self, fully_intaken: bool):
         """
@@ -189,11 +229,10 @@ class EndEffector(SubsystemBase):
         
         :param fully_intaken: True if Coral is fully intaken
         """
-        self.coral_fully_intaken = fully_intaken
+        self.cache.set_cached("coral_fully_intaken", fully_intaken)
     
     def stop_all(self):
         """Stop all motors."""
-        self.algae_rotation_motor.set(0)
-        self.algae_intake_motor.set(0)
-        self.coral_left_motor.set(0)
-        self.coral_right_motor.set(0) 
+        self.set_algae_arm_position(self.get_algae_arm_position())  # Hold current position
+        self.set_algae_intake_speed(0)
+        self.set_coral_intake_speed(0) 

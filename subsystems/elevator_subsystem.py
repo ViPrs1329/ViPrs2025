@@ -1,9 +1,23 @@
 from commands2 import SubsystemBase
-from rev import CANSparkMax, CANSparkLowLevel, SparkAbsoluteEncoder, SparkPIDController
+from rev import SparkMax, SparkLowLevel, SparkAbsoluteEncoder, SparkPIDController, SparkBase
 from wpilib import SmartDashboard
 from constants.constants import ElevatorConstants
+from utils.caching import CachingSubsystemBase
 
-class ElevatorSubsystem(SubsystemBase):
+class ElevatorSubsystem(CachingSubsystemBase):
+    """Subsystem for controlling the elevator mechanism."""
+    
+    class Cache(CachingSubsystemBase.Cache):
+        """Cache specific to elevator subsystem"""
+        def __init__(self):
+            super().__init__()
+            # Initialize with default values
+            self.set_cached("position", 0.0)
+            self.set_cached("velocity", 0.0)
+            self.set_cached("left_current", 0.0)
+            self.set_cached("right_current", 0.0)
+            self.set_setpoint("target_position", ElevatorConstants.BASE_HEIGHT)
+            
     def __init__(self) -> None:
         """Creates a new ElevatorSubsystem."""
         super().__init__()
@@ -11,11 +25,11 @@ class ElevatorSubsystem(SubsystemBase):
         # Initialize motors
         self.left_motor = CANSparkMax(
             ElevatorConstants.LEFT_MOTOR_ID, 
-            CANSparkLowLevel.MotorType.kBrushless
+            SparkLowLevel.MotorType.kBrushless
         )
         self.right_motor = CANSparkMax(
             ElevatorConstants.RIGHT_MOTOR_ID, 
-            CANSparkLowLevel.MotorType.kBrushless
+            SparkLowLevel.MotorType.kBrushless
         )
         
         # Reset motor controllers to factory defaults
@@ -62,22 +76,19 @@ class ElevatorSubsystem(SubsystemBase):
         
         # Set soft limits
         self.left_motor.setSoftLimit(
-            CANSparkMax.SoftLimitDirection.kForward,
+            SparkBase.SoftLimitDirection.kForward,
             ElevatorConstants.MAX_HEIGHT
         )
         self.left_motor.setSoftLimit(
-            CANSparkMax.SoftLimitDirection.kReverse,
+            SparkBase.SoftLimitDirection.kReverse,
             ElevatorConstants.MIN_HEIGHT
         )
-        self.left_motor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kForward, True)
-        self.left_motor.enableSoftLimit(CANSparkMax.SoftLimitDirection.kReverse, True)
+        self.left_motor.enableSoftLimit(SparkBase.SoftLimitDirection.kForward, True)
+        self.left_motor.enableSoftLimit(SparkBase.SoftLimitDirection.kReverse, True)
         
         # Save configurations
         self.left_motor.burnFlash()
         self.right_motor.burnFlash()
-        
-        # Initialize target position
-        self.target_position = ElevatorConstants.BASE_HEIGHT
     
     def setPosition(self, position: float) -> None:
         """
@@ -88,26 +99,23 @@ class ElevatorSubsystem(SubsystemBase):
         # Clamp position to soft limits
         position = min(max(position, ElevatorConstants.MIN_HEIGHT), 
                       ElevatorConstants.MAX_HEIGHT)
-        self.target_position = position
-        self.pid_controller.setReference(
-            position, 
-            CANSparkMax.ControlType.kSmartMotion
-        )
+        self.cache.set_setpoint("target_position", position)
     
     def getCurrentPosition(self) -> float:
         """Returns the current position of the elevator in meters."""
-        return self.absolute_encoder.getPosition()
+        return self.cache.get_cached("position")
     
     def getCurrentVelocity(self) -> float:
         """Returns the current velocity of the elevator in meters per second."""
-        return self.absolute_encoder.getVelocity()
+        return self.cache.get_cached("velocity")
     
     def isAtPosition(self) -> bool:
         """Returns whether the elevator is at the target position."""
         current_pos = self.getCurrentPosition()
         current_vel = self.getCurrentVelocity()
+        target_pos = self.cache.get_setpoint("target_position")
         
-        return (abs(current_pos - self.target_position) < ElevatorConstants.POSITION_TOLERANCE
+        return (abs(current_pos - target_pos) < ElevatorConstants.POSITION_TOLERANCE
                 and abs(current_vel) < ElevatorConstants.VELOCITY_TOLERANCE)
     
     def goToBase(self) -> None:
@@ -130,12 +138,29 @@ class ElevatorSubsystem(SubsystemBase):
         """Moves the elevator to L4 position."""
         self.setPosition(ElevatorConstants.L4_HEIGHT)
     
-    def periodic(self) -> None:
-        """Periodic function that runs every scheduler loop."""
-        # Update SmartDashboard with elevator data
+    def cache_sensors(self) -> None:
+        """Cache all sensor values."""
+        self.cache.set_cached("position", self.absolute_encoder.getPosition())
+        self.cache.set_cached("velocity", self.absolute_encoder.getVelocity())
+        self.cache.set_cached("left_current", self.left_motor.getOutputCurrent())
+        self.cache.set_cached("right_current", self.right_motor.getOutputCurrent())
+    
+    def update_hardware(self) -> None:
+        """Update hardware with cached setpoints."""
+        target_position = self.cache.get_setpoint("target_position")
+        self.pid_controller.setReference(
+            target_position, 
+            SparkLowLevel.ControlType.kSmartMotion
+        )
+    
+    def periodic_logic(self) -> None:
+        """Update SmartDashboard with cached values."""
         SmartDashboard.putNumber("Elevator Position (m)", self.getCurrentPosition())
         SmartDashboard.putNumber("Elevator Velocity (m/s)", self.getCurrentVelocity())
-        SmartDashboard.putNumber("Elevator Target Position (m)", self.target_position)
+        SmartDashboard.putNumber("Elevator Target Position (m)", 
+                                self.cache.get_setpoint("target_position"))
         SmartDashboard.putBoolean("Elevator At Position", self.isAtPosition())
-        SmartDashboard.putNumber("Left Motor Current", self.left_motor.getOutputCurrent())
-        SmartDashboard.putNumber("Right Motor Current", self.right_motor.getOutputCurrent()) 
+        SmartDashboard.putNumber("Left Motor Current", 
+                                self.cache.get_cached("left_current"))
+        SmartDashboard.putNumber("Right Motor Current", 
+                                self.cache.get_cached("right_current")) 

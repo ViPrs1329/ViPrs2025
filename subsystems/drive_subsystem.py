@@ -9,13 +9,36 @@ from wpimath.kinematics import (
     SwerveDrive4Odometry
 )
 from wpimath.controller import PIDController
+from phoenix6.hardware import Pigeon2
 from constants.constants import DriveConstants
 from subsystems.swerve_module import SwerveModule
+from utils.caching import CachingSubsystemBase
 
-class DriveSubsystem(commands2.SubsystemBase):
+class DriveSubsystem(CachingSubsystemBase):
     """
     The drive subsystem, controlling the robot's swerve drive.
     """
+    
+    class Cache(CachingSubsystemBase.Cache):
+        """Cache specific to drive subsystem"""
+        def __init__(self):
+            super().__init__()
+            # Initialize with default values
+            self.set_cached("gyro_angle", 0.0)
+            self.set_cached("robot_x", 0.0)
+            self.set_cached("robot_y", 0.0)
+            self.set_cached("robot_heading", 0.0)
+            self.set_cached("roll", 0.0)
+            self.set_cached("pitch", 0.0)
+            
+            # Drive mode
+            self.set_cached("field_relative", True)
+            self.set_cached("speed_mode", DriveConstants.NORMAL_SPEED_MULTIPLIER)
+            
+            # Setpoints
+            self.set_setpoint("x_speed", 0.0)
+            self.set_setpoint("y_speed", 0.0)
+            self.set_setpoint("rot_speed", 0.0)
 
     def __init__(self):
         super().__init__()
@@ -75,15 +98,14 @@ class DriveSubsystem(commands2.SubsystemBase):
             "Back Right"
         )
 
-        # Create the gyro
-        self.gyro = wpilib.ADIS16470_IMU()
-        self.gyro.calibrate()
+        # Create the Pigeon 2.0 gyro
+        self.gyro = Pigeon2(DriveConstants.PIGEON_ID)
         self.gyro.reset()
 
         # Create the odometry object
         self.odometry = SwerveDrive4Odometry(
             self.kinematics,
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.gyro.get_yaw().value),
             (
                 self.front_left_module.get_position(),
                 self.front_right_module.get_position(),
@@ -93,15 +115,22 @@ class DriveSubsystem(commands2.SubsystemBase):
             Pose2d()
         )
 
-        # Initialize drive mode
-        self.field_relative = True
-        self.speed_mode = DriveConstants.NORMAL_SPEED_MULTIPLIER
-
-    def periodic(self):
-        """Update odometry and dashboard values."""
-        # Update odometry
+    def cache_sensors(self) -> None:
+        """Cache all sensor values."""
+        # Cache gyro values
+        self.cache.set_cached("gyro_angle", self.gyro.get_yaw().value)
+        self.cache.set_cached("roll", self.gyro.get_roll().value)
+        self.cache.set_cached("pitch", self.gyro.get_pitch().value)
+        
+        # Cache odometry values
+        pose = self.odometry.getPose()
+        self.cache.set_cached("robot_x", pose.X())
+        self.cache.set_cached("robot_y", pose.Y())
+        self.cache.set_cached("robot_heading", pose.rotation().degrees())
+        
+        # Update odometry with cached values
         self.odometry.update(
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.cache.get_cached("gyro_angle")),
             (
                 self.front_left_module.get_position(),
                 self.front_right_module.get_position(),
@@ -110,30 +139,24 @@ class DriveSubsystem(commands2.SubsystemBase):
             )
         )
 
-        # Update SmartDashboard
-        pose = self.odometry.getPose()
-        wpilib.SmartDashboard.putNumber("Robot X", pose.X())
-        wpilib.SmartDashboard.putNumber("Robot Y", pose.Y())
-        wpilib.SmartDashboard.putNumber("Robot Heading", pose.rotation().degrees())
-        wpilib.SmartDashboard.putBoolean("Field Relative", self.field_relative)
-
-    def drive(self, x_speed: float, y_speed: float, rot: float, period: float = None):
-        """
-        Drive the robot with given speeds.
+    def update_hardware(self) -> None:
+        """Update hardware with cached setpoints."""
+        # Get drive setpoints
+        x_speed = self.cache.get_setpoint("x_speed")
+        y_speed = self.cache.get_setpoint("y_speed")
+        rot = self.cache.get_setpoint("rot_speed")
         
-        :param x_speed: Speed of the robot in the x direction (forward) in m/s
-        :param y_speed: Speed of the robot in the y direction (sideways) in m/s
-        :param rot: Angular rate of the robot in rad/s
-        :param period: Time between calls for velocity calculations
-        """
         # Apply speed multiplier
-        x_speed *= self.speed_mode
-        y_speed *= self.speed_mode
-        rot *= self.speed_mode
-
-        if self.field_relative:
+        speed_mode = self.cache.get_cached("speed_mode")
+        x_speed *= speed_mode
+        y_speed *= speed_mode
+        rot *= speed_mode
+        
+        # Calculate chassis speeds
+        if self.cache.get_cached("field_relative"):
             chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                x_speed, y_speed, rot, Rotation2d.fromDegrees(self.gyro.getAngle())
+                x_speed, y_speed, rot, 
+                Rotation2d.fromDegrees(self.cache.get_cached("gyro_angle"))
             )
         else:
             chassis_speeds = ChassisSpeeds(x_speed, y_speed, rot)
@@ -149,6 +172,28 @@ class DriveSubsystem(commands2.SubsystemBase):
         self.front_right_module.set_desired_state(swerve_module_states[1])
         self.back_left_module.set_desired_state(swerve_module_states[2])
         self.back_right_module.set_desired_state(swerve_module_states[3])
+
+    def periodic_logic(self) -> None:
+        """Update SmartDashboard with cached values."""
+        wpilib.SmartDashboard.putNumber("Robot X", self.cache.get_cached("robot_x"))
+        wpilib.SmartDashboard.putNumber("Robot Y", self.cache.get_cached("robot_y"))
+        wpilib.SmartDashboard.putNumber("Robot Heading", self.cache.get_cached("robot_heading"))
+        wpilib.SmartDashboard.putNumber("Robot Roll", self.cache.get_cached("roll"))
+        wpilib.SmartDashboard.putNumber("Robot Pitch", self.cache.get_cached("pitch"))
+        wpilib.SmartDashboard.putBoolean("Field Relative", self.cache.get_cached("field_relative"))
+
+    def drive(self, x_speed: float, y_speed: float, rot: float, period: float = None):
+        """
+        Drive the robot with given speeds.
+        
+        :param x_speed: Speed of the robot in the x direction (forward) in m/s
+        :param y_speed: Speed of the robot in the y direction (sideways) in m/s
+        :param rot: Angular rate of the robot in rad/s
+        :param period: Time between calls for velocity calculations
+        """
+        self.cache.set_setpoint("x_speed", x_speed)
+        self.cache.set_setpoint("y_speed", y_speed)
+        self.cache.set_setpoint("rot_speed", rot)
 
     def set_module_states(self, desired_states: list[SwerveModuleState]):
         """
@@ -170,7 +215,7 @@ class DriveSubsystem(commands2.SubsystemBase):
         :param pose: The pose to reset to
         """
         self.odometry.resetPosition(
-            Rotation2d.fromDegrees(self.gyro.getAngle()),
+            Rotation2d.fromDegrees(self.cache.get_cached("gyro_angle")),
             (
                 self.front_left_module.get_position(),
                 self.front_right_module.get_position(),
@@ -183,6 +228,7 @@ class DriveSubsystem(commands2.SubsystemBase):
     def zero_heading(self):
         """Reset the gyro heading to zero."""
         self.gyro.reset()
+        self.cache_sensors()  # Update cached values
     
     # Alias for zero_heading to maintain consistent naming convention
     def zeroHeading(self):
@@ -195,7 +241,7 @@ class DriveSubsystem(commands2.SubsystemBase):
         
         :return: The robot's heading in degrees
         """
-        return math.remainder(self.gyro.getAngle(), 360.0)
+        return math.remainder(self.cache.get_cached("gyro_angle"), 360.0)
 
     def get_pose(self) -> Pose2d:
         """
@@ -203,12 +249,15 @@ class DriveSubsystem(commands2.SubsystemBase):
         
         :return: The robot's current pose
         """
-        return self.odometry.getPose()
+        return Pose2d(
+            self.cache.get_cached("robot_x"),
+            self.cache.get_cached("robot_y"),
+            Rotation2d.fromDegrees(self.cache.get_cached("robot_heading"))
+        )
 
     def toggle_field_relative(self):
         """Toggle between field-relative and robot-relative control."""
-        self.field_relative = not self.field_relative
-        wpilib.SmartDashboard.putBoolean("Field Relative", self.field_relative)
+        self.cache.set_cached("field_relative", not self.cache.get_cached("field_relative"))
     
     # Alias for toggle_field_relative to maintain consistent naming convention
     def toggleFieldRelative(self):
@@ -217,7 +266,7 @@ class DriveSubsystem(commands2.SubsystemBase):
 
     def set_speed_mode(self, mode: float):
         """Set the speed mode multiplier."""
-        self.speed_mode = mode
+        self.cache.set_cached("speed_mode", mode)
     
     def setX(self):
         """Set the modules in an X configuration to prevent movement."""

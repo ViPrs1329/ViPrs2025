@@ -58,13 +58,26 @@ robot-code-2025/
 ## Features ✨
 
 - Swerve drive system
+  - Advanced field-relative control with Pigeon 2.0 IMU
+  - Optimized sensor caching
+  - Synchronized module updates
+  - Precise orientation tracking
+  - Tilt detection and monitoring
 - Advanced elevator control
+  - Precise position management
+  - Efficient motor control
+  - Smart motion profiling
 - Dual manipulator system
   - Coral game piece handler
   - Algae game piece handler
 - Vision processing
 - Autonomous routines
 - Safety systems
+- Performance Optimization
+  - Smart sensor caching
+  - Reduced CAN bus traffic
+  - Consistent 20ms loop timing
+  - Efficient hardware updates
 
 ## Contributing 🤝
 

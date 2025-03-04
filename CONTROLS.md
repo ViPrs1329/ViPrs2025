@@ -100,6 +100,13 @@ Our robot uses two Xbox controllers:
    - Operator confirms actions
    - Both watch for obstacles
 
+4. **Performance Optimization**
+   - Controls use a caching system for better responsiveness
+   - Sensor readings and motor commands are optimized
+   - Consistent 20ms update rate for smooth operation
+   - Field-relative driving uses cached gyro data
+   - Swerve modules update efficiently in sync
+
 ## Common Issues 🔧
 
 ### Robot Won't Move?
