@@ -30,7 +30,7 @@ from commands.intake import Intake
 from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 from commands.pathplannerCommand import FollowPathCommand
-import libgrapplefrc
+import libgrapplefrc # TODO figure out this import
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
     motorControllers = [
@@ -78,8 +78,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
-    
-    # TODO add a line here that calls a command when a coral is detected
+    self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.laserCanFunnel.get_measurement)
   autonomousCommand = driveForward
 
   def robotInit(self):
