@@ -38,7 +38,7 @@ def mock_hardware():
         p.start()
     
     yield
-    
+     
     # Remove all patches
     for p in patches:
         p.stop()
