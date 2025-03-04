@@ -30,7 +30,7 @@ from commands.intake import Intake
 from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 from commands.pathplannerCommand import FollowPathCommand
-
+import libgrapplefrc
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
     motorControllers = [
@@ -109,6 +109,9 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
 
     self.scheduler = commands2.CommandScheduler.getInstance()
+
+    self.laserCanFunnel = libgrapplefrc.LaserCan(21)
+    self.laserCanEE = libgrapplefrc.LaserCan(22)
 
     print("robotInit()")
 
