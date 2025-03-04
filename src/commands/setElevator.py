@@ -40,8 +40,9 @@ class SetElevator(commands2.Command):
       return self.increaseLevel()  
 
   def gotoLevel(self):
+    #constants.reefConsts.reefLevels[level][0] is the maximum height of a branch
     level = Elevator.currentLevel
-    Elevator.gotoPosition(constants.reefConsts.reefLevels[level] + constants.elevatorConsts.verticaloffset)
+    Elevator.gotoPosition(constants.reefConsts.reefLevels[level][0] + constants.elevatorConsts.verticaloffset)
 
   def execute(self):
     pass
