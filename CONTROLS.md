@@ -1,123 +1,145 @@
-# Robot Control Scheme
+# Robot Controls Guide 🎮
 
-This document outlines the control scheme for Team 1329's 2025 FRC robot. The robot uses a two-driver control system with Xbox controllers.
+## Overview 🌟
 
-## Controller Layout Reference
+Our robot uses two Xbox controllers:
+- **Driver Controller** (Port 0) - Controls robot movement
+- **Operator Controller** (Port 1) - Controls mechanisms (elevator, end effector)
 
-### Xbox Controller Button Map
-![Xbox Controller Layout](https://user-images.githubusercontent.com/580022/45268303-10a03e80-b4ce-11e8-883c-1f586566c040.png)
+## Driver Controls 🚗
 
-| Button/Axis | Number/Name |
-|-------------|-------------|
-| A Button | 1 |
-| B Button | 2 |
-| X Button | 3 |
-| Y Button | 4 |
-| Left Bumper | 5 |
-| Right Bumper | 6 |
-| Back Button | 7 |
-| Start Button | 8 |
-| Left Stick Button | 9 |
-| Right Stick Button | 10 |
-| Left Trigger | Axis 2 |
-| Right Trigger | Axis 3 |
-| Left Stick X | Axis 0 |
-| Left Stick Y | Axis 1 |
-| Right Stick X | Axis 4 |
-| Right Stick Y | Axis 5 |
+### Left Stick
+- **X-Axis**: Strafe left/right
+- **Y-Axis**: Drive forward/backward
 
-## Driver 1 (Driving)
+### Right Stick
+- **X-Axis**: Turn robot left/right
 
-Driver 1 is responsible for controlling the robot's movement using the swerve drive system.
+### Triggers & Bumpers
+- **Left Trigger**: Precision mode (slower, more accurate)
+- **Right Trigger**: Boost mode (faster movement)
+- **Left Bumper**: Quick turn left 90°
+- **Right Bumper**: Quick turn right 90°
 
-### Movement Controls
-| Control | Function |
-|---------|----------|
-| Left Stick Y-Axis | Forward/Backward Movement |
-| Left Stick X-Axis | Left/Right Movement |
-| Right Stick X-Axis | Rotation |
+### Buttons
+- **A**: Reset gyro (face robot forward)
+- **B**: Emergency stop
+- **X**: Lock wheels (X pattern)
+- **Y**: Auto-align with target
 
-### Special Functions
-| Button | Function | Description |
-|--------|----------|-------------|
-| A Button | X-Formation | Positions wheels in an X pattern for stability |
-| Left Bumper | Precision Mode | Reduces speed for precise movements |
-| Right Bumper | Boost Mode | Increases speed for faster movements |
-| Back Button | Reset Gyro | Resets the robot's heading to zero |
-| Start Button | Toggle Field-Relative | Switches between field-relative and robot-relative control |
-| Y Button | Test Swerve | Runs the swerve drive test sequence (temporary) |
+### D-Pad
+- **Up/Down**: Fine-tune forward/backward
+- **Left/Right**: Fine-tune strafe
 
-## Driver 2 (Mechanisms)
-
-Driver 2 is responsible for controlling the robot's mechanisms, including the elevator, Coral manipulator, and Algae manipulator.
+## Operator Controls 🦾
 
 ### Elevator Controls
-| Button | Function | Description |
-|--------|----------|-------------|
-| A Button | Base Position | Moves elevator to the base position (fully retracted) |
-| B Button | L1 Position | Moves elevator to the L1 height (0.5m) |
-| X Button | L2 Position | Moves elevator to the L2 height (1.0m) |
-| Y Button | L3 Position | Moves elevator to the L3 height (1.5m) |
-| Right Stick Button | L4 Position | Moves elevator to the L4 height (2.0m) |
+- **Left Stick Y**: Manual elevator control
+- **A**: Move to base position
+- **B**: Move to L1 height
+- **X**: Move to L2 height
+- **Y**: Move to L3 height
 
-### Coral Manipulator Controls
-| Button | Function | Description |
-|--------|----------|-------------|
-| Left Bumper | Intake | Runs the Coral intake (while held) |
-| Right Bumper | Outtake | Runs the Coral outtake (while held) |
+### End Effector Controls
+- **Right Trigger**: Coral manipulator grab
+- **Left Trigger**: Algae manipulator grab
+- **Right Bumper**: Release Coral manipulator
+- **Left Bumper**: Release Algae manipulator
 
-### Algae Manipulator Controls
-| Control | Function | Description |
-|---------|----------|-------------|
-| Back Button | Retracted Position | Moves Algae arm to retracted position (0.0 rad) |
-| Start Button | Top Pickup | Moves Algae arm to top pickup position (2.1 rad, ~120°) |
-| Left Stick Button | Bottom Pickup | Moves Algae arm to bottom pickup position (-0.52 rad, ~-30°) |
-| Left Trigger | Intake | Runs Algae intake (proportional to trigger pull) |
-| Right Trigger | Outtake | Runs Algae outtake (proportional to trigger pull) |
+### D-Pad
+- **Up**: Elevator to max height
+- **Down**: Elevator to min height
+- **Left**: Retract end effector
+- **Right**: Extend end effector
 
-## Control Diagram
+## Safety Features ⚠️
 
-```
-Driver 1 (Driving)                    Driver 2 (Mechanisms)
-┌───────────────────────┐             ┌───────────────────────┐
-│    ┌───┐     ┌───┐    │             │    ┌───┐     ┌───┐    │
-│    │LB │     │RB │    │             │    │LB │     │RB │    │
-│    └───┘     └───┘    │             │    └───┘     └───┘    │
-│                       │             │                       │
-│    ┌───┐     ┌───┐    │             │    ┌───┐     ┌───┐    │
-│    │LT │     │RT │    │             │    │LT │     │RT │    │
-│    └───┘     └───┘    │             │    └───┘     └───┘    │
-│                       │             │                       │
-│  ┌─────┐     ┌─────┐  │             │  ┌─────┐     ┌─────┐  │
-│  │     │     │     │  │             │  │     │     │     │  │
-│  │  ←→ │     │  ←→ │  │             │  │  ←→ │     │  ←→ │  │
-│  │  ↑↓ │     │  ↑↓ │  │             │  │  ↑↓ │     │  ↑↓ │  │
-│  └─────┘     └─────┘  │             │  └─────┘     └─────┘  │
-│                       │             │                       │
-│    ┌───┐     ┌───┐    │             │    ┌───┐     ┌───┐    │
-│    │Bck│     │Str│    │             │    │Bck│     │Str│    │
-│    └───┘     └───┘    │             │    └───┘     └───┘    │
-│                       │             │                       │
-│      ┌───┐ ┌───┐      │             │      ┌───┐ ┌───┐      │
-│      │ X │ │ Y │      │             │      │ X │ │ Y │      │
-│      └───┘ └───┘      │             │      └───┘ └───┘      │
-│      ┌───┐ ┌───┐      │             │      ┌───┐ ┌───┐      │
-│      │ A │ │ B │      │             │      │ A │ │ B │      │
-│      └───┘ └───┘      │             │      └───┘ └───┘      │
-└───────────────────────┘             └───────────────────────┘
-```
+1. **Emergency Stop**
+   - Driver's B button stops ALL robot movement
+   - Use this if something goes wrong!
 
-## Notes for Drivers
+2. **Soft Limits**
+   - Elevator won't go past safe heights
+   - End effector has position limits
+   - Drive speeds are capped
 
-- **Field-Relative Control**: When enabled, the robot moves relative to the field, not its orientation. Forward on the stick is always away from the driver, regardless of robot orientation.
-- **Precision Mode**: Use this for fine adjustments or when near other robots/field elements.
-- **Boost Mode**: Use this for quick traversal across the field.
-- **X-Formation**: Use this to lock the robot in place when stability is needed.
-- **Elevator Positions**: The heights are approximate and may be adjusted during competition.
-- **Trigger Controls**: The Algae intake/outtake speed is proportional to how far the trigger is pressed.
+3. **Precision Mode**
+   - Use for careful alignment
+   - Reduces all speeds by 50%
 
-## Updating Controls
+## Special Moves 🌠
 
-If you need to modify the control scheme, update the following files:
-- `constants/constants.py` - `OIConstants` class
-- `robotcontainer.py` - `configureButtonBindings()` method 
+### Auto-Align
+1. Face roughly toward target
+2. Press Y on driver controller
+3. Robot aligns automatically
+
+### Quick Pickup
+1. Drive near game piece
+2. Press appropriate trigger
+3. End effector automatically grabs
+
+### Fast Scoring
+1. Use preset heights (A/B/X/Y)
+2. Release with bumper when ready
+
+## Tips & Tricks 💡
+
+1. **Practice Mode**
+   - Start in precision mode
+   - Get comfortable before using full speed
+   - Practice emergency stops
+
+2. **Smooth Control**
+   - Small stick movements
+   - Don't slam controls
+   - Use precision mode for final adjustments
+
+3. **Communication**
+   - Driver calls out movements
+   - Operator confirms actions
+   - Both watch for obstacles
+
+## Common Issues 🔧
+
+### Robot Won't Move?
+1. Check if emergency stop is active
+2. Verify controller is on port 0
+3. Check battery voltage
+4. Look for wheel lockup
+
+### Elevator Stuck?
+1. Check if at soft limit
+2. Try manual mode
+3. Look for obstructions
+4. Reset if necessary
+
+### End Effector Problems?
+1. Check sensor readings
+2. Verify pneumatic pressure
+3. Try manual release
+4. Reset manipulator
+
+## Practice Exercises 🎯
+
+1. **Basic Movement**
+   - Drive in a square
+   - Practice precise stops
+   - Try different speed modes
+
+2. **Elevator Control**
+   - Move between heights smoothly
+   - Practice quick height changes
+   - Test manual adjustments
+
+3. **Game Piece Handling**
+   - Pick up and place objects
+   - Use presets effectively
+   - Practice quick releases
+
+## Need Help? 🆘
+
+- Ask drive team veterans
+- Check diagnostic dashboard
+- Practice in a safe area
+- Start slow and build up speed 

@@ -1,73 +1,95 @@
-# Team 1329 FRC Robot - 2025 Season
+# Team 1329 Robot Code 2025 🤖
 
-This is the robot code for Team 1329's 2025 FRC season robot. The robot is designed to compete in the 2025 FRC game, featuring systems for handling Coral and Algae game pieces.
+Welcome to Team 1329's robot code for the 2025 FRC season! This repository contains all the code that powers our competition robot.
 
-## Project Structure
+## Documentation 📚
 
-```
-├── robot.py              # Main robot file
-├── robotcontainer.py     # Robot container managing subsystems and commands
-├── constants/            # Robot-wide constants
-├── subsystems/          # Robot subsystems
-├── commands/            # Robot commands
-├── autonomous/          # Autonomous routines
-├── tests/              # Unit tests
-└── deploy/             # Files to be deployed to the robot
-```
+We've organized our documentation to help you understand and contribute to our robot code:
 
-## Setup Instructions
+### Getting Started
+- [Robot Overview](ROBOT_OVERVIEW.md) - High-level explanation of how our robot works
+- [Contributing Guide](CONTRIBUTING.md) - How to contribute to the codebase
+- [Architecture Guide](ARCHITECTURE.md) - Understanding our code organization
 
-1. Install Python 3.11 or newer
-2. Install RobotPy and dependencies:
-   ```bash
-   py -3 -m pip install -r requirements.txt
-   ```
-3. Install RobotPy on the robot:
-   ```bash
-   py -3 -m robotpy deploy
-   ```
+### Technical Details
+- [Controls Guide](CONTROLS.md) - Detailed explanation of robot controls
+- [Sensors Guide](SENSORS.md) - Information about our robot's sensors
+- [Constants Reference](CONSTANTS.md) - Important robot configuration values
 
-## Key Features
+## Quick Start 🚀
 
-- Swerve drive system with field-oriented control
-- Two-stage elevator system
-- Coral game piece manipulator
-- Algae game piece manipulator
-- Comprehensive autonomous routines
-- Unit testing framework
-
-## Robot Controls
-
-The robot uses a two-driver control system with Xbox controllers:
-- **Driver 1**: Controls the robot's movement using the swerve drive
-- **Driver 2**: Controls the robot's mechanisms (elevator, Coral manipulator, Algae manipulator)
-
-For detailed control mappings, see [CONTROLS.md](CONTROLS.md).
-
-## Development
-
-### Running Tests
+1. **Set Up Environment**
 ```bash
-pytest
+# Clone repository
+git clone https://github.com/your-team/robot-code-2025.git
+cd robot-code-2025
+
+# Create and activate virtual environment
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+source venv/bin/activate # Linux/Mac
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-### Running Simulation
+2. **Run Tests**
 ```bash
-py -3 robot.py sim
+python -m pytest
 ```
 
-### Deploying to Robot
+3. **Start Simulator**
 ```bash
-py -3 robot.py deploy
+python robot.py sim
 ```
 
-## Contributing
+## Project Structure 📁
 
-1. Create a new branch for your feature
-2. Write tests for new functionality
-3. Ensure all tests pass
+```
+robot-code-2025/
+├── commands/          # Robot commands
+├── subsystems/       # Robot subsystems
+├── constants/        # Configuration values
+├── autonomous/       # Autonomous routines
+├── tests/           # Unit tests
+└── docs/            # Additional documentation
+```
+
+## Features ✨
+
+- Swerve drive system
+- Advanced elevator control
+- Dual manipulator system
+  - Coral game piece handler
+  - Algae game piece handler
+- Vision processing
+- Autonomous routines
+- Safety systems
+
+## Contributing 🤝
+
+We welcome contributions from all team members! Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+Key points:
+1. Create a new branch for your changes
+2. Write clear, documented code
+3. Test thoroughly
 4. Submit a pull request
 
-## License
+## Need Help? 🆘
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+- Check our documentation
+- Ask in our Discord server
+- Talk to a mentor
+- Open an issue
+
+## License 📄
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Acknowledgments 👏
+
+- WPILib team
+- Our mentors
+- All team members
+- FRC community 
