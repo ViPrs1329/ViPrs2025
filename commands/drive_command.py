@@ -1,7 +1,7 @@
 from commands2.command import Command
 from wpilib import XboxController
 from subsystems.drive_subsystem import DriveSubsystem
-from constants.constants import DriveConstants
+from constants.constants import DriveConstants, OIConstants
 
 class DriveCommand(Command):
     """
@@ -12,31 +12,24 @@ class DriveCommand(Command):
         self,
         drive_subsystem: DriveSubsystem,
         controller: XboxController,
-        precision_button: int = XboxController.Button.kLeftBumper,
-        boost_button: int = XboxController.Button.kRightBumper,
-        field_relative_toggle: int = XboxController.Button.kStart
     ):
         """
         Creates a new DriveCommand.
         
         :param drive_subsystem: The drive subsystem to use
         :param controller: The controller to use
-        :param precision_button: The button that enables precision mode
-        :param boost_button: The button that enables boost mode
-        :param field_relative_toggle: The button that toggles field-relative control
         """
         super().__init__()
         
         self.drive = drive_subsystem
         self.controller = controller
-        self.precision_button = precision_button
-        self.boost_button = boost_button
-        self.field_relative_toggle = field_relative_toggle
         
         self.addRequirements(drive_subsystem)
         
         # Initialize button states
         self.field_relative_pressed = False
+        self.precision_pressed = False
+        self.boost_pressed = False
     
     def initialize(self):
         """Called when the command is initially scheduled."""
@@ -50,26 +43,20 @@ class DriveCommand(Command):
         rot = -self.controller.getRightX()     # Rotation
         
         # Apply deadband
-        if abs(x_speed) < 0.1:
+        if abs(x_speed) < OIConstants.DRIVE_DEADBAND:
             x_speed = 0
-        if abs(y_speed) < 0.1:
+        if abs(y_speed) < OIConstants.DRIVE_DEADBAND:
             y_speed = 0
-        if abs(rot) < 0.1:
+        if abs(rot) < OIConstants.DRIVE_DEADBAND:
             rot = 0
         
         # Check speed mode buttons
-        if self.controller.getRawButton(self.precision_button):
+        if self.controller.getRawButton(OIConstants.PRECISION_MODE_BUTTON):
             self.drive.set_speed_mode(DriveConstants.PRECISION_SPEED_MULTIPLIER)
-        elif self.controller.getRawButton(self.boost_button):
+        elif self.controller.getRawButton(OIConstants.BOOST_MODE_BUTTON):
             self.drive.set_speed_mode(DriveConstants.BOOST_SPEED_MULTIPLIER)
         else:
             self.drive.set_speed_mode(DriveConstants.NORMAL_SPEED_MULTIPLIER)
-        
-        # Check field relative toggle
-        if (self.controller.getRawButton(self.field_relative_toggle) 
-            and not self.field_relative_pressed):
-            self.drive.toggle_field_relative()
-        self.field_relative_pressed = self.controller.getRawButton(self.field_relative_toggle)
         
         # Drive
         self.drive.drive(x_speed * 4.0, y_speed * 4.0, rot * 4.0)  # Scale to max speed of 4 m/s

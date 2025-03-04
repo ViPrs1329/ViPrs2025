@@ -181,8 +181,13 @@ class DriveSubsystem(commands2.SubsystemBase):
         )
 
     def zero_heading(self):
-        """Reset the robot's heading to zero."""
+        """Reset the gyro heading to zero."""
         self.gyro.reset()
+    
+    # Alias for zero_heading to maintain consistent naming convention
+    def zeroHeading(self):
+        """Reset the gyro heading to zero."""
+        self.zero_heading()
 
     def get_heading(self) -> float:
         """
@@ -204,11 +209,22 @@ class DriveSubsystem(commands2.SubsystemBase):
         """Toggle between field-relative and robot-relative control."""
         self.field_relative = not self.field_relative
         wpilib.SmartDashboard.putBoolean("Field Relative", self.field_relative)
+    
+    # Alias for toggle_field_relative to maintain consistent naming convention
+    def toggleFieldRelative(self):
+        """Toggle between field-relative and robot-relative control."""
+        self.toggle_field_relative()
 
     def set_speed_mode(self, mode: float):
-        """
-        Set the speed mode of the drive system.
-        
-        :param mode: The speed multiplier to use
-        """
-        self.speed_mode = mode 
+        """Set the speed mode multiplier."""
+        self.speed_mode = mode
+    
+    def setX(self):
+        """Set the modules in an X configuration to prevent movement."""
+        states = [
+            SwerveModuleState(0, Rotation2d.fromDegrees(45)),   # Front Left
+            SwerveModuleState(0, Rotation2d.fromDegrees(-45)),  # Front Right
+            SwerveModuleState(0, Rotation2d.fromDegrees(-45)),  # Back Left
+            SwerveModuleState(0, Rotation2d.fromDegrees(45))    # Back Right
+        ]
+        self.set_module_states(states) 

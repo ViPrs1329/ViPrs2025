@@ -36,6 +36,14 @@ This is the robot code for Team 1329's 2025 FRC season robot. The robot is desig
 - Comprehensive autonomous routines
 - Unit testing framework
 
+## Robot Controls
+
+The robot uses a two-driver control system with Xbox controllers:
+- **Driver 1**: Controls the robot's movement using the swerve drive
+- **Driver 2**: Controls the robot's mechanisms (elevator, Coral manipulator, Algae manipulator)
+
+For detailed control mappings, see [CONTROLS.md](CONTROLS.md).
+
 ## Development
 
 ### Running Tests

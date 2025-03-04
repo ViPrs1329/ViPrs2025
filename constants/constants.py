@@ -3,6 +3,7 @@ Constants for the robot.
 """
 from dataclasses import dataclass
 from typing import Final
+from math import pi
 
 @dataclass
 class DriveConstants:
@@ -44,19 +45,51 @@ class DriveConstants:
 
 @dataclass
 class ElevatorConstants:
-    # Motor CAN IDs
-    LEFT_MOTOR: Final[int] = 9
-    RIGHT_MOTOR: Final[int] = 10
-
-    # Elevator Positions (in meters)
-    RETRACTED_POSITION: Final[float] = 0.0
-    LOW_POSITION: Final[float] = 0.5
-    MEDIUM_POSITION: Final[float] = 1.2
-    HIGH_POSITION: Final[float] = 2.0
-
-    # Elevator Characteristics
-    GEAR_RATIO: Final[float] = 16.0
-    DRUM_DIAMETER_METERS: Final[float] = 0.0508  # 2 inches
+    # Motor IDs
+    LEFT_MOTOR_ID: Final[int] = 20  # Update with actual CAN ID
+    RIGHT_MOTOR_ID: Final[int] = 21  # Update with actual CAN ID
+    
+    # Encoder
+    THROUGH_BORE_ENCODER_ID: Final[int] = 0  # Update with actual CAN ID
+    
+    # Gear ratios and mechanical constants
+    GEAR_RATIO: Final[float] = 16.0  # 16:1 planetary gearbox
+    DRUM_DIAMETER_METERS: Final[float] = 0.0508  # 2 inch diameter drum (update with actual)
+    DRUM_CIRCUMFERENCE: Final[float] = DRUM_DIAMETER_METERS * pi
+    
+    # Conversion factors
+    POSITION_CONVERSION_FACTOR: Final[float] = DRUM_CIRCUMFERENCE / GEAR_RATIO  # meters per motor rotation
+    VELOCITY_CONVERSION_FACTOR: Final[float] = POSITION_CONVERSION_FACTOR / 60.0  # meters per second
+    
+    # PID Values
+    kP: Final[float] = 5.0
+    kI: Final[float] = 0.0
+    kD: Final[float] = 0.0
+    kFF: Final[float] = 0.0
+    
+    # Motion Profile Constraints
+    MAX_VELOCITY: Final[float] = 2.0  # meters per second
+    MAX_ACCELERATION: Final[float] = 2.0  # meters per second squared
+    
+    # Current Limits
+    CURRENT_LIMIT: Final[int] = 40  # amps
+    TRIGGER_THRESHOLD_CURRENT: Final[int] = 35  # amps
+    TRIGGER_THRESHOLD_TIME: Final[float] = 0.1  # seconds
+    
+    # Position Setpoints (in meters from base)
+    BASE_HEIGHT: Final[float] = 0.0
+    L1_HEIGHT: Final[float] = 0.5
+    L2_HEIGHT: Final[float] = 1.0
+    L3_HEIGHT: Final[float] = 1.5
+    L4_HEIGHT: Final[float] = 2.0  # TBD
+    
+    # Soft Limits (in meters)
+    MIN_HEIGHT: Final[float] = -0.05  # Slightly below 0 to ensure we can reach base
+    MAX_HEIGHT: Final[float] = 2.1  # Slightly above max height
+    
+    # Tolerance for position control
+    POSITION_TOLERANCE: Final[float] = 0.02  # meters
+    VELOCITY_TOLERANCE: Final[float] = 0.05  # meters per second
 
 @dataclass
 class CoralManipulatorConstants:
@@ -90,4 +123,42 @@ class AlgaeManipulatorConstants:
     # Motor Characteristics
     ROTATION_GEAR_RATIO: Final[float] = 49.0
     INTAKE_GEAR_RATIO: Final[float] = 4.0
-    INTAKE_SPEED: Final[float] = 0.8 
+    INTAKE_SPEED: Final[float] = 0.8
+
+@dataclass
+class OIConstants:
+    # Controller Ports (already defined in DriveConstants, but repeated here for clarity)
+    DRIVER_CONTROLLER_PORT: Final[int] = 0
+    OPERATOR_CONTROLLER_PORT: Final[int] = 1
+    
+    # Driver Controller (Drive)
+    # Left stick: Translation control (x/y movement)
+    # Right stick X-axis: Rotation control
+    DRIVE_DEADBAND: Final[float] = 0.05
+    
+    # Driver Buttons
+    FIELD_RELATIVE_TOGGLE_BUTTON: Final[int] = 8  # Start button
+    PRECISION_MODE_BUTTON: Final[int] = 5  # Left bumper
+    BOOST_MODE_BUTTON: Final[int] = 6  # Right bumper
+    RESET_GYRO_BUTTON: Final[int] = 7  # Back button
+    X_FORMATION_BUTTON: Final[int] = 1  # A button - wheels in X for stability
+    
+    # Operator Controller (Mechanisms)
+    # Elevator Controls
+    ELEVATOR_BASE_BUTTON: Final[int] = 1  # A button
+    ELEVATOR_L1_BUTTON: Final[int] = 2  # B button
+    ELEVATOR_L2_BUTTON: Final[int] = 3  # X button
+    ELEVATOR_L3_BUTTON: Final[int] = 4  # Y button
+    ELEVATOR_L4_BUTTON: Final[int] = 10  # Right stick button (less common position)
+    
+    # Coral Manipulator Controls
+    CORAL_INTAKE_BUTTON: Final[int] = 5  # Left bumper
+    CORAL_OUTTAKE_BUTTON: Final[int] = 6  # Right bumper
+    
+    # Algae Manipulator Controls
+    ALGAE_RETRACTED_BUTTON: Final[int] = 7  # Back button
+    ALGAE_TOP_PICKUP_BUTTON: Final[int] = 8  # Start button
+    ALGAE_BOTTOM_PICKUP_BUTTON: Final[int] = 9  # Left stick button
+    ALGAE_INTAKE_AXIS: Final[int] = 2  # Left trigger
+    ALGAE_OUTTAKE_AXIS: Final[int] = 3  # Right trigger
+    AXIS_THRESHOLD: Final[float] = 0.5  # Threshold for trigger activation 
