@@ -1,9 +1,10 @@
 import math
-import rev
-import wpilib
+from commands2 import SubsystemBase
+from rev import SparkMax, SparkLowLevel, SparkBase
 from phoenix6.hardware import CANcoder
 from wpimath.geometry import Rotation2d
 from wpimath.kinematics import SwerveModuleState, SwerveModulePosition
+from constants.constants import DriveConstants
 from utils.caching import CachingSubsystemBase
 
 class SwerveModule(CachingSubsystemBase):
@@ -34,9 +35,9 @@ class SwerveModule(CachingSubsystemBase):
         drive_motor_id: int,
         turn_motor_id: int,
         cancoder_id: int,
-        drive_motor_inverted: bool,
-        turn_motor_inverted: bool,
-        absolute_encoder_offset: float,
+        drive_inverted: bool,
+        turn_inverted: bool,
+        encoder_offset: float,
         module_name: str
     ):
         """
@@ -45,49 +46,49 @@ class SwerveModule(CachingSubsystemBase):
         :param drive_motor_id: CAN ID of the drive NEO motor
         :param turn_motor_id: CAN ID of the turning NEO motor
         :param cancoder_id: CAN ID of the CANcoder
-        :param drive_motor_inverted: Whether to invert the drive motor
-        :param turn_motor_inverted: Whether to invert the turn motor
-        :param absolute_encoder_offset: Offset of the absolute encoder in rotations
+        :param drive_inverted: Whether to invert the drive motor
+        :param turn_inverted: Whether to invert the turn motor
+        :param encoder_offset: Offset of the absolute encoder in rotations
         :param module_name: Name of this module for logging/debugging
         """
         super().__init__()
         
-        # Create motor controllers
-        self.drive_motor = rev.SparkMax(drive_motor_id, rev.SparkMax.MotorType.kBrushless)
-        self.turn_motor = rev.SparkMax(turn_motor_id, rev.SparkMax.MotorType.kBrushless)
+        # Initialize motors
+        self.drive_motor = SparkMax(drive_motor_id, SparkLowLevel.MotorType.kBrushless)
+        self.turn_motor = SparkMax(turn_motor_id, SparkLowLevel.MotorType.kBrushless)
         
         # Create CANcoder
         self.cancoder = CANcoder(cancoder_id)
         
         # Configure motor controllers
-        self.drive_motor.setInverted(drive_motor_inverted)
-        self.turn_motor.setInverted(turn_motor_inverted)
+        self.drive_motor.setInverted(drive_inverted)
+        self.turn_motor.setInverted(turn_inverted)
         
         # Get encoders
         self.drive_encoder = self.drive_motor.getEncoder()
         self.turn_encoder = self.turn_motor.getEncoder()
         
         # Configure PID controllers
-        self.drive_pid = self.drive_motor.getPIDController()
-        self.turn_pid = self.turn_motor.getPIDController()
+        self.drive_pid_controller = self.drive_motor.getPIDController()
+        self.turn_pid_controller = self.turn_motor.getPIDController()
         
         # PID coefficients for drive motor
-        self.drive_pid.setP(0.1)
-        self.drive_pid.setI(0)
-        self.drive_pid.setD(0)
-        self.drive_pid.setFF(0.2)
+        self.drive_pid_controller.setP(0.1)
+        self.drive_pid_controller.setI(0)
+        self.drive_pid_controller.setD(0)
+        self.drive_pid_controller.setFF(0.2)
         
         # PID coefficients for turn motor
-        self.turn_pid.setP(1.0)
-        self.turn_pid.setI(0)
-        self.turn_pid.setD(0)
+        self.turn_pid_controller.setP(1.0)
+        self.turn_pid_controller.setI(0)
+        self.turn_pid_controller.setD(0)
         
         # Save configuration to motor controllers
         self.drive_motor.burnFlash()
         self.turn_motor.burnFlash()
         
         self.name = module_name
-        self.absolute_encoder_offset = absolute_encoder_offset
+        self.encoder_offset = encoder_offset
         
         # Reset the turn encoder based on absolute position
         self.reset_to_absolute()
@@ -109,24 +110,19 @@ class SwerveModule(CachingSubsystemBase):
     
     def update_hardware(self) -> None:
         """Update hardware with cached setpoints."""
-        # Get setpoints
-        drive_setpoint = self.cache.get_setpoint("drive_setpoint")
-        turn_setpoint = self.cache.get_setpoint("turn_setpoint")
-        open_loop = self.cache.get_setpoint("open_loop")
-        
         # Update turn motor
-        self.turn_pid.setReference(
-            turn_setpoint,
-            rev.SparkMax.ControlType.kPosition
+        self.turn_pid_controller.setReference(
+            self.cache.get_setpoint("turn_setpoint"),
+            SparkLowLevel.ControlType.kPosition
         )
         
         # Update drive motor
-        if open_loop:
-            self.drive_motor.set(drive_setpoint)
+        if self.cache.get_setpoint("open_loop"):
+            self.drive_motor.set(self.cache.get_setpoint("drive_setpoint"))
         else:
-            self.drive_pid.setReference(
-                drive_setpoint,
-                rev.SparkMax.ControlType.kVelocity
+            self.drive_pid_controller.setReference(
+                self.cache.get_setpoint("drive_setpoint"),
+                SparkLowLevel.ControlType.kVelocity
             )
     
     def periodic_logic(self) -> None:
@@ -188,7 +184,7 @@ class SwerveModule(CachingSubsystemBase):
     def reset_to_absolute(self):
         """Reset the turn encoder based on the CANcoder's absolute position."""
         absolute_position = self.cancoder.get_position().value
-        adjusted_position = absolute_position - self.absolute_encoder_offset
+        adjusted_position = absolute_position - self.encoder_offset
         self.turn_encoder.setPosition(adjusted_position * 2 * math.pi)  # Convert to radians
         self.cache_sensors()  # Update cached values
 

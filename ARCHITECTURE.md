@@ -325,3 +325,34 @@ This organization makes our code:
 - Safe to run ⚡
 - Simple to change 🔧
 - Fun to work with 😊 
+
+## Hardware Configuration 🔧
+
+Our robot uses different types of motor controllers and sensors for optimal performance:
+
+1. **Motor Controllers**
+   - SparkFlex: Used in the elevator subsystem
+     - Advanced motion profiling
+     - Built-in current limiting
+     - Supports absolute encoders
+   - SparkMax: Used in drive and manipulator subsystems
+     - Reliable performance
+     - CAN bus communication
+     - Supports various encoder types
+
+2. **Encoders**
+   - Through Bore Encoder: Used on the algae rotation arm
+     - Absolute position tracking
+     - Direct shaft mounting
+     - High precision
+   - NEO Built-in Encoders: Used in drive motors
+     - Integrated into NEO motors
+     - Velocity and position feedback
+   - CANcoders: Used in swerve modules
+     - Absolute position tracking
+     - Maintains position through power cycles
+
+3. **Sensors**
+   - Pigeon 2.0 IMU: Robot orientation
+   - LaserCan: Game piece detection
+   - Limit switches: Safety bounds

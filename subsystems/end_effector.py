@@ -3,7 +3,9 @@ import wpilib
 from libgrapplefrc import LaserCan, CanBridge
 from commands2 import SubsystemBase
 from utils.caching import CachingSubsystemBase
-from constants.constants import AlgaeManipulatorConstants, CoralManipulatorConstants
+from constants.constants import AlgaeManipulatorConstants, CoralManipulatorConstants, EndEffectorConstants
+from rev import SparkMax, SparkLowLevel, SparkAbsoluteEncoder, SparkBase
+from wpilib import SmartDashboard
 
 class EndEffector(CachingSubsystemBase):
     """
@@ -38,29 +40,49 @@ class EndEffector(CachingSubsystemBase):
         # Initialize CanBridge for LaserCan
         CanBridge.runWebsocketInBackground(7171)
         
-        # Create Algae manipulator motors
-        self.algae_rotation_motor = rev.SparkMax(
-            AlgaeManipulatorConstants.ROTATION_MOTOR,
-            rev.SparkMax.MotorType.kBrushless
+        # Initialize motors
+        self.algae_rotation_motor = SparkMax(
+            EndEffectorConstants.ALGAE_ROTATION_MOTOR_ID,
+            SparkLowLevel.MotorType.kBrushless
         )
-        self.algae_intake_motor = rev.SparkMax(
-            AlgaeManipulatorConstants.INTAKE_MOTOR,
-            rev.SparkMax.MotorType.kBrushless
+        self.algae_intake_motor = SparkMax(
+            EndEffectorConstants.ALGAE_INTAKE_MOTOR_ID,
+            SparkLowLevel.MotorType.kBrushless
         )
         
-        # Create Coral manipulator motors
-        self.coral_left_motor = rev.SparkMax(
-            CoralManipulatorConstants.LEFT_MOTOR,
-            rev.SparkMax.MotorType.kBrushless
+        # Initialize coral manipulator motors
+        self.coral_left_motor = SparkMax(
+            EndEffectorConstants.CORAL_LEFT_MOTOR_ID,
+            SparkLowLevel.MotorType.kBrushless
         )
-        self.coral_right_motor = rev.SparkMax(
-            CoralManipulatorConstants.RIGHT_MOTOR,
-            rev.SparkMax.MotorType.kBrushless
+        self.coral_right_motor = SparkMax(
+            EndEffectorConstants.CORAL_RIGHT_MOTOR_ID,
+            SparkLowLevel.MotorType.kBrushless
         )
         
         # Configure Algae motors
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_intake_motor.setInverted(False)   # Adjust if needed
+        
+        # Get and configure the through bore encoder for algae rotation
+        self.algae_rotation_encoder = self.algae_rotation_motor.getAbsoluteEncoder(
+            SparkAbsoluteEncoder.Type.kDutyCycle
+        )
+        
+        # Configure the encoder
+        self.algae_rotation_encoder.setPositionConversionFactor(AlgaeManipulatorConstants.POSITION_CONVERSION_FACTOR)
+        self.algae_rotation_encoder.setVelocityConversionFactor(AlgaeManipulatorConstants.VELOCITY_CONVERSION_FACTOR)
+        self.algae_rotation_encoder.setZeroOffset(AlgaeManipulatorConstants.ENCODER_OFFSET)
+        
+        # Configure PID controller for algae rotation
+        self.algae_pid_controller = self.algae_rotation_motor.getPIDController()
+        self.algae_pid_controller.setFeedbackDevice(self.algae_rotation_encoder)
+        
+        # Set PID coefficients
+        self.algae_pid_controller.setP(AlgaeManipulatorConstants.kP)
+        self.algae_pid_controller.setI(AlgaeManipulatorConstants.kI)
+        self.algae_pid_controller.setD(AlgaeManipulatorConstants.kD)
+        self.algae_pid_controller.setFF(AlgaeManipulatorConstants.kFF)
         
         # Configure Coral motors (opposite directions for intake)
         self.coral_left_motor.setInverted(False)     # Adjust if needed
@@ -83,7 +105,7 @@ class EndEffector(CachingSubsystemBase):
         """Cache all sensor values."""
         # Cache Algae manipulator values
         self.cache.set_cached("algae_arm_position", 
-                            self.algae_rotation_motor.getEncoder().getPosition())
+                            self.algae_rotation_encoder.getPosition())  # Using through bore encoder
         self.cache.set_cached("algae_intake_speed", 
                             self.algae_intake_motor.getEncoder().getVelocity())
         
@@ -113,13 +135,11 @@ class EndEffector(CachingSubsystemBase):
     
     def update_hardware(self) -> None:
         """Update hardware with cached setpoints."""
-        # Update Algae manipulator
-        target_position = self.cache.get_setpoint("algae_target_position")
-        if target_position is not None:
-            self.algae_rotation_motor.getPIDController().setReference(
-                target_position,
-                rev.SparkMax.ControlType.kPosition
-            )
+        # Update algae rotation position
+        self.algae_pid_controller.setReference(
+            self.cache.get_setpoint("algae_rotation_setpoint"),
+            SparkLowLevel.ControlType.kPosition
+        )
         
         # Update motor speeds
         self.algae_intake_motor.set(self.cache.get_setpoint("algae_target_speed"))

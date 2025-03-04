@@ -13,18 +13,11 @@ A subsystem is like a part of your body - it has a specific job to do and works 
 - Can move to exact positions (like an elevator in a building)
 - Knows exactly where it is at all times
 
-**How it Works:**
-```python
-# Example of how we move the elevator to a position:
-def setPosition(self, target_position):
-    # Make sure we don't go too high or too low
-    safe_position = clamp(target_position, MIN_HEIGHT, MAX_HEIGHT)
-    # Tell the motor to go there
-    self.pid_controller.setReference(safe_position, ControlType.kSmartMotion)
-```
-
 **Key Components:**
-- Two SparkMax motors (left and right) working together
+- Two SparkFlex motors (left and right) working together
+  - Advanced motor controllers for precise movement
+  - Built-in motion profiling
+  - Smart current limiting
 - One motor follows the other (they're linked)
 - Absolute encoder to track position
 - PID controller for precise movement
@@ -43,15 +36,18 @@ def setPosition(self, target_position):
 - Has two different mechanisms in one subsystem
 - Uses smart sensors to know when it has game pieces
 
+**Algae Manipulator:**
+- SparkMax motor for rotation with through bore encoder
+  - Absolute position tracking
+  - Precise angle control
+  - Zero offset calibration
+- SparkMax motor for intake/outtake
+- PID control for accurate positioning
+
 **Coral Manipulator:**
-- Two motors for intake/outtake
+- Two SparkMax motors for intake/outtake
 - LaserCan sensors that can detect pieces within 4 inches
 - Keeps track of whether it has a game piece
-
-**Algae Manipulator:**
-- Rotating arm that can pick up from different heights
-- Intake motor to grab and hold game pieces
-- Can move to specific positions (top, bottom, retracted)
 
 **Example of How We Use Sensors:**
 ```python

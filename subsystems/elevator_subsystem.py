@@ -1,5 +1,5 @@
 from commands2 import SubsystemBase
-from rev import SparkMax, SparkLowLevel, SparkAbsoluteEncoder, SparkPIDController, SparkBase
+from rev import SparkFlex, SparkLowLevel, SparkAbsoluteEncoder, SparkBase
 from wpilib import SmartDashboard
 from constants.constants import ElevatorConstants
 from utils.caching import CachingSubsystemBase
@@ -23,12 +23,12 @@ class ElevatorSubsystem(CachingSubsystemBase):
         super().__init__()
         
         # Initialize motors
-        self.left_motor = CANSparkMax(
-            ElevatorConstants.LEFT_MOTOR_ID, 
+        self.left_motor = SparkFlex(
+            ElevatorConstants.LEFT_MOTOR_ID,
             SparkLowLevel.MotorType.kBrushless
         )
-        self.right_motor = CANSparkMax(
-            ElevatorConstants.RIGHT_MOTOR_ID, 
+        self.right_motor = SparkFlex(
+            ElevatorConstants.RIGHT_MOTOR_ID,
             SparkLowLevel.MotorType.kBrushless
         )
         

@@ -51,22 +51,39 @@ This guide explains all the sensors used on our robot and how they help us contr
 ## Through Bore Encoders 📏
 
 ### REV Through Bore Encoder
-- **Purpose**: Measure elevator height
+- **Purpose**: Measure absolute positions for critical mechanisms
 - **Key Features**:
   - Absolute position tracking
   - Direct shaft mounting
   - High resolution
+  - Maintains position through power cycles
 - **Usage**:
   ```python
   # In ElevatorSubsystem
   self.absolute_encoder = self.left_motor.getAbsoluteEncoder(
       SparkAbsoluteEncoder.Type.kDutyCycle
   )
+  
+  # In EndEffector (Algae Rotation)
+  self.algae_rotation_encoder = self.algae_rotation_motor.getAbsoluteEncoder(
+      SparkAbsoluteEncoder.Type.kDutyCycle
+  )
   ```
 - **Applications**:
   - Elevator height control
+  - Algae arm rotation
   - Position limits
   - Motion profiling
+- **Configuration**:
+  ```python
+  # Example configuration
+  encoder.setPositionConversionFactor(CONVERSION_FACTOR)
+  encoder.setVelocityConversionFactor(VELOCITY_FACTOR)
+  encoder.setZeroOffset(OFFSET)
+  
+  # Use as feedback device
+  pid_controller.setFeedbackDevice(encoder)
+  ```
 
 ## Distance Sensors 📏
 
