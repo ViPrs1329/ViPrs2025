@@ -78,7 +78,20 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
-    self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.laserCanFunnel.get_measurement)
+    # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.laserCanFunnel.get_measurement)
+    self.coralIntakeCommand = commands2.ConditionalCommand(
+      commands2.ConditionalCommand(
+        commands2.ConditionalCommand(
+          commands2.InstantCommand(), 
+          Intake(self.endEffector), 
+          self.laserCanFunnel.get_measurement
+        ), 
+        commands2.InstantCommand(), 
+        self.laserCanEE.get_measurement
+      ), 
+      commands2.InstantCommand(), 
+      self.laserCanFunnel.get_measurement
+    )
   autonomousCommand = driveForward
 
   def robotInit(self):
