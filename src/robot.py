@@ -30,7 +30,7 @@ from commands.intake import Intake
 from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 from commands.pathplannerCommand import FollowPathCommand
-import libgrapplefrc # TODO figure out this import
+import libgrapplefrc # Figured out this import. VSCode just takes a while to realise that this is a module that is installed by pip
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
     motorControllers = [
