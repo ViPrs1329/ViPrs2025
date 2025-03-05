@@ -263,9 +263,9 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
 
-    print(dSpeedList)
-    print(rSpeedList)
-    print('\n')
+    #print(dSpeedList)
+    #print(rSpeedList)
+    #print('\n')
 
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
@@ -307,12 +307,12 @@ class DriveTrain(commands2.Subsystem):
 
     for i in speedsList:
        if i<0.3: #voltage deadzone
-          i=0
+          speedsList[i]=0
 
-    self.backLeftDrive.setVoltage(blSpeed)
-    self.backRightDrive.setVoltage(brSpeed)
-    self.frontLeftDrive.setVoltage(flSpeed)
-    self.frontRightDrive.setVoltage(frSpeed)
+    self.backLeftDrive.setVoltage(speedsList[0])
+    self.backRightDrive.setVoltage(speedsList[1])
+    self.frontLeftDrive.setVoltage(speedsList[2])
+    self.frontRightDrive.setVoltage(speedsList[3])
 
 
   def stopMotors(self):
