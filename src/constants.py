@@ -12,6 +12,9 @@ class convert:
     def in2m(inches):
         return 0.0254 * inches
     
+    def m2in(m):
+        return 39.37 * m
+    
     def rev2rad(rev):
         return rev * 2 * numpy.pi
 
@@ -47,8 +50,8 @@ class CANIDs:
     CoralRight = 100
     AlgaeArm = 100
     AlgaeIntake = 100
+    canRange0 = 100
     canRange1 = 100
-    canRange2 = 100
 
 class inputConsts:
     inputScale = 0.8
@@ -65,6 +68,7 @@ class intakeConsts:
     algaeIntakeSpeed = 0.5
     algaeArmAngles = [0, 0, 0, 0, 0]
     algaeThresholdCurrent = 1
+    coralDetectionThreshold = 0.2
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [0, 1, 2, 3, 4]

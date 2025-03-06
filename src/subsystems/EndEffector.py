@@ -7,16 +7,17 @@
 
 import rev
 import commands2
-from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
+from constants import CANIDs, intakeConsts, convert  # Assuming CANIDs are defined in constants.py
 from wpimath.controller import PIDController
 from wpilib import MotorControllerGroup
 from phoenix6.hardware import CANrange
+
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
 
+        self.canRange0 = CANrange(CANIDs.canRange0)
         self.canRange1 = CANrange(CANIDs.canRange1)
-        self.canRange2 = CANrange(CANIDs.canRange2)
 
         # 1. Algae Intake Rotation Motor
         self.algaeRotationMotor = rev.SparkFlex(
@@ -117,6 +118,13 @@ class EndEffector(commands2.Subsystem):
 
     def startAlgaeIntake(self):
         self.algaeIntakeMotor.set(intakeConsts.algaeIntakeSpeed)
+
+    def getRange(self): #returns inches
+        return convert.m2in(self.canRange0.get_distance())
+
+    def hasCoral(self):
+        return self.canRange1.get_distance() <= intakeConsts.coralDetectionThreshold
+
 
     def stopAlgaeIntake(self):
         self.algaeIntakeMotor.set(0)
