@@ -9,6 +9,7 @@ import rev
 import commands2
 from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
 from wpimath.controller import PIDController
+from wpilib import MotorControllerGroup
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
@@ -52,6 +53,8 @@ class EndEffector(commands2.Subsystem):
         self.coralIntakeRightMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
         self.coralIntakeRightMotorConfig.smartCurrentLimit(10) #limit current
         self.coralIntakeRightMotor.configure(self.coralIntakeRightMotorConfig)
+
+        self.coralIntake = MotorControllerGroup(self.coralIntakeLeftMotor, self.coralIntakeRightMotor)
 
         Kp = 1
         Ki = 0
