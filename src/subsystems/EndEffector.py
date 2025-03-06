@@ -14,44 +14,44 @@ class EndEffector(commands2.Subsystem):
         super().__init__()
 
         # 1. Algae Intake Rotation Motor
-        self.algae_rotation_motor = rev.SparkMax(
-            CANIDs.AlgaeArm, rev.SparkMax.MotorType.kBrushless
+        self.algaeRotationMotor = rev.SparkFlex(
+            CANIDs.AlgaeArm, rev.SparkFlex.MotorType.kBrushless
         )
-        self.algae_rotation_motor.setInverted(False)  # Adjust if needed
-        self.algae_rotation_motor_config = rev.SparkMaxConfig()
-        self.algae_rotation_motor_config.idle_mode = rev.SparkMax.IdleMode.kBrake
-        self.algae_rotation_motor_config.smart_current_limit_amps = 20 #limit current
-        self.algae_rotation_motor.apply(self.algae_rotation_motor_config)
+        self.algaeRotationMotor.setInverted(False)  # Adjust if needed
+        self.algaeRotationMotorConfig = rev.SparkFlexConfig()
+        self.algaeRotationMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kBrake)
+        self.algaeRotationMotorConfig.smartCurrentLimit(10) #limit current
+        self.algaeRotationMotor.configure(self.algaeRotationMotorConfig)
 
         # 2. Algae Intake Motor
-        self.algae_intake_motor = rev.SparkMax(
-            CANIDs.AlgaeIntake, rev.SparkMax.MotorType.kBrushless
+        self.algaeIntakeMotor = rev.SparkFlex(
+            CANIDs.AlgaeIntake, rev.SparkFlex.MotorType.kBrushless
         )
-        self.algae_intake_motor.setInverted(False)  # Adjust if needed
-        self.algae_intake_motor_config = rev.SparkMaxConfig()
-        self.algae_intake_motor_config.idle_mode = rev.SparkMax.IdleMode.kBrake #can change to brake if needed
-        self.algae_intake_motor_config.smart_current_limit_amps = 20 #limit current
-        self.algae_intake_motor.apply(self.algae_intake_motor_config)
+        self.algaeIntakeMotor.setInverted(False)  # Adjust if needed
+        self.algaeIntakeMotorConfig = rev.SparkFlexConfig()
+        self.algaeIntakeMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.algaeIntakeMotorConfig.smartCurrentLimit(10) #limit current
+        self.algaeIntakeMotor.configure(self.algaeIntakeMotorConfig)
 
         # 3. Coral Intake Left Motor
-        self.coral_intake_left_motor = rev.SparkMax(
-            CANIDs.CoralLeft, rev.SparkMax.MotorType.kBrushless
+        self.coralIntakeLeftMotor = rev.SparkFlex(
+            CANIDs.CoralLeft, rev.SparkFlex.MotorType.kBrushless
         )
-        self.coral_intake_left_motor.setInverted(False)  # Adjust if needed
-        self.coral_intake_left_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_left_motor_config.idle_mode = rev.SparkMax.IdleMode.kCoast #can change to brake if needed
-        self.coral_intake_left_motor_config.smart_current_limit_amps = 20 #limit current
-        self.coral_intake_left_motor.apply(self.coral_intake_left_motor_config)
+        self.coralIntakeLeftMotor.setInverted(False)  # Adjust if needed
+        self.coralIntakeLeftMotorConfig = rev.SparkFlexConfig()
+        self.coralIntakeLeftMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.coralIntakeLeftMotorConfig.smartCurrentLimit(10) #limit current
+        self.coralIntakeLeftMotor.configure(self.coralIntakeLeftMotorConfig)
 
         # 4. Coral Intake Right Motor
-        self.coral_intake_right_motor = rev.SparkMax(
-            CANIDs.CoralRight, rev.SparkMax.MotorType.kBrushless
+        self.coralIntakeRightMotor = rev.SparkFlex(
+            CANIDs.CoralRight, rev.SparkFlex.MotorType.kBrushless
         )
-        self.coral_intake_right_motor.setInverted(True)  # Adjust if needed, may need to be inverted
-        self.coral_intake_right_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_right_motor_config.idle_mode = rev.SparkMax.IdleMode.kCoast #can change to brake if needed
-        self.coral_intake_right_motor_config.smart_current_limit_amps = 20 #limit current
-        self.coral_intake_right_motor.apply(self.coral_intake_right_motor_config)
+        self.coralIntakeRightMotor.setInverted(True)  # Adjust if needed, may need to be inverted
+        self.coralIntakeRightMotorConfig = rev.SparkFlexConfig()
+        self.coralIntakeRightMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.coralIntakeRightMotorConfig.smartCurrentLimit(10) #limit current
+        self.coralIntakeRightMotor.configure(self.coralIntakeRightMotorConfig)
 
         Kp = 1
         Ki = 0
@@ -65,7 +65,7 @@ class EndEffector(commands2.Subsystem):
         Args:
             speed (float): The desired speed (-1.0 to 1.0).
         """
-        self.algae_rotation_motor.set(speed)
+        self.algaeRotationMotor.set(speed)
 
     def setAlgaeIntakeSpeed(self, speed: float) -> None:
         """Sets the speed of the algae intake motor.
@@ -73,7 +73,7 @@ class EndEffector(commands2.Subsystem):
         Args:
             speed (float): The desired speed (-1.0 to 1.0).
         """
-        self.algae_intake_motor.set(speed)
+        self.algaeIntakeMotor.set(speed)
 
     def setCoralIntakeLeftSpeed(self, speed: float) -> None:
         """Sets the speed of the left coral intake motor.
@@ -81,7 +81,7 @@ class EndEffector(commands2.Subsystem):
         Args:
             speed (float): The desired speed (-1.0 to 1.0).
         """
-        self.coral_intake_left_motor.set(speed)
+        self.coralIntakeLeftMotor.set(speed)
 
     def setCoralIntakeRightSpeed(self, speed: float) -> None:
         """Sets the speed of the right coral intake motor.
@@ -89,27 +89,27 @@ class EndEffector(commands2.Subsystem):
         Args:
             speed (float): The desired speed (-1.0 to 1.0).
         """
-        self.coral_intake_right_motor.set(speed)
+        self.coralIntakeRightMotor.set(speed)
 
     def stopAllMotors(self) -> None:
         """Stops all motors in the end effector subsystem."""
-        self.algae_rotation_motor.set(0)
-        self.algae_intake_motor.set(0)
-        self.coral_intake_left_motor.set(0)
-        self.coral_intake_right_motor.set(0)
+        self.algaeRotationMotor.set(0)
+        self.algaeIntakeMotor.set(0)
+        self.coralIntakeLeftMotor.set(0)
+        self.coralIntakeRightMotor.set(0)
 
     def stopCoralMotors(self):
-        self.coral_intake_left_motor.set(0)
-        self.coral_intake_right_motor.set(0)
+        self.coralIntakeLeftMotor.set(0)
+        self.coralIntakeRightMotor.set(0)
 
     def startCoralMotors(self):
-        self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
-        self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)
+        self.coralIntakeLeftMotor.set(intakeConsts.intakeSpeed)
+        self.coralIntakeRightMotor.set(intakeConsts.intakeSpeed)
     def setAlgaeArmAngle(self, angle):
         self.algaePID.setSetpoint(angle)
 
     def startAlgaeIntake(self):
-        self.algae_intake_motor.set(intakeConsts.algaeIntakeSpeed)
+        self.algaeIntakeMotor.set(intakeConsts.algaeIntakeSpeed)
 
     def stopAlgaeIntake(self):
-        self.algae_intake_motor.set(0)
+        self.algaeIntakeMotor.set(0)
