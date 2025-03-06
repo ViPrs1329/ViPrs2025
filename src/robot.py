@@ -27,7 +27,6 @@ from commands.rb import RB
 from commands.rt import RT
 from commands.setElevator import SetElevator
 from commands.intake import Intake
-from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 from commands.pathplannerCommand import FollowPathCommand
 import libgrapplefrc # Figured out this import. VSCode just takes a while to realise that this is a module that is installed by pip
@@ -92,7 +91,6 @@ class MyRobot(commands2.TimedCommandRobot):
       commands2.InstantCommand(), 
       self.laserCanFunnel.get_measurement
     )
-  autonomousCommand = driveForward
 
   def robotInit(self):
     """
@@ -134,6 +132,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
+    FollowPathCommand(self.autonomousCommand)
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""

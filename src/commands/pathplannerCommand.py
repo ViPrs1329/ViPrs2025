@@ -9,7 +9,7 @@ class FollowPathCommand(commands2.Command):
     A command to follow a PathPlanner path.
     """
 
-    def __init__(self, pathName: autonomousCommand, driveFunction: DriveTrain.driveFromChassisSpeeds):
+    def __init__(self, pathName: autonomousCommand):
         """
         Initializes the FollowPathCommand.
 
@@ -19,7 +19,7 @@ class FollowPathCommand(commands2.Command):
         """
         super().__init__()
         self.pathName = pathName
-        self.driveFunction = driveFunction
+        self.driveFunction = DriveTrain.driveFromChassisSpeeds
         self.trajectory = None
         self.timer = wpilib.Timer()
 

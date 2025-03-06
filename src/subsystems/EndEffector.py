@@ -59,7 +59,7 @@ class EndEffector(commands2.Subsystem):
         self.coralIntakeRightMotorConfig.smartCurrentLimit(10) #limit current
         self.coralIntakeRightMotor.configure(self.coralIntakeRightMotorConfig)
 
-        self.coralIntake = MotorControllerGroup(self.coralIntakeLeftMotor, self.coralIntakeRightMotor)
+        self.coralIntakeMotor = MotorControllerGroup(self.coralIntakeLeftMotor, self.coralIntakeRightMotor)
 
         Kp = 1
         Ki = 0
@@ -83,36 +83,26 @@ class EndEffector(commands2.Subsystem):
         """
         self.algaeIntakeMotor.set(speed)
 
-    def setCoralIntakeLeftSpeed(self, speed: float) -> None:
-        """Sets the speed of the left coral intake motor.
+    def setCoralIntakeSpeed(self, speed: float) -> None:
+        """Sets the speed of the coral intake motors.
 
         Args:
             speed (float): The desired speed (-1.0 to 1.0).
         """
-        self.coralIntakeLeftMotor.set(speed)
-
-    def setCoralIntakeRightSpeed(self, speed: float) -> None:
-        """Sets the speed of the right coral intake motor.
-
-        Args:
-            speed (float): The desired speed (-1.0 to 1.0).
-        """
-        self.coralIntakeRightMotor.set(speed)
+        self.coralIntakeMotor.set(speed)
 
     def stopAllMotors(self) -> None:
         """Stops all motors in the end effector subsystem."""
         self.algaeRotationMotor.set(0)
         self.algaeIntakeMotor.set(0)
-        self.coralIntakeLeftMotor.set(0)
-        self.coralIntakeRightMotor.set(0)
+        self.coralIntakeMotor.set(0)
 
     def stopCoralMotors(self):
-        self.coralIntakeLeftMotor.set(0)
-        self.coralIntakeRightMotor.set(0)
+        self.coralIntakeMotor.set(0)
 
     def startCoralMotors(self):
-        self.coralIntakeLeftMotor.set(intakeConsts.intakeSpeed)
-        self.coralIntakeRightMotor.set(intakeConsts.intakeSpeed)
+        self.coralIntakeMotor.set(intakeConsts.intakeSpeed)
+
     def setAlgaeArmAngle(self, angle):
         self.algaePID.setSetpoint(angle)
 
@@ -124,7 +114,6 @@ class EndEffector(commands2.Subsystem):
 
     def hasCoral(self):
         return self.canRange1.get_distance() <= intakeConsts.coralDetectionThreshold
-
 
     def stopAlgaeIntake(self):
         self.algaeIntakeMotor.set(0)
