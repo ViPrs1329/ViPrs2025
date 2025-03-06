@@ -10,9 +10,13 @@ import commands2
 from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
 from wpimath.controller import PIDController
 from wpilib import MotorControllerGroup
+from phoenix6.hardware import CANrange
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
+
+        self.canRange1 = CANrange(CANIDs.canRange1)
+        self.canRange2 = CANrange(CANIDs.canRange2)
 
         # 1. Algae Intake Rotation Motor
         self.algaeRotationMotor = rev.SparkFlex(

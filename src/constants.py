@@ -47,6 +47,8 @@ class CANIDs:
     CoralRight = 100
     AlgaeArm = 100
     AlgaeIntake = 100
+    canRange1 = 100
+    canRange2 = 100
 
 class inputConsts:
     inputScale = 0.8
