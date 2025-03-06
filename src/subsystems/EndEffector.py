@@ -15,7 +15,7 @@ class EndEffector(commands2.Subsystem):
 
         # 1. Algae Intake Rotation Motor
         self.algae_rotation_motor = rev.SparkMax(
-            CANIDs.AlgaeIntakeRotation, rev.SparkMax.MotorType.kBrushless
+            CANIDs.AlgaeArm, rev.SparkMax.MotorType.kBrushless
         )
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_rotation_motor_config = rev.SparkMaxConfig()
@@ -35,7 +35,7 @@ class EndEffector(commands2.Subsystem):
 
         # 3. Coral Intake Left Motor
         self.coral_intake_left_motor = rev.SparkMax(
-            CANIDs.CoralIntakeLeft, rev.SparkMax.MotorType.kBrushless
+            CANIDs.CoralLeft, rev.SparkMax.MotorType.kBrushless
         )
         self.coral_intake_left_motor.setInverted(False)  # Adjust if needed
         self.coral_intake_left_motor_config = rev.SparkMaxConfig()
@@ -45,7 +45,7 @@ class EndEffector(commands2.Subsystem):
 
         # 4. Coral Intake Right Motor
         self.coral_intake_right_motor = rev.SparkMax(
-            CANIDs.CoralIntakeRight, rev.SparkMax.MotorType.kBrushless
+            CANIDs.CoralRight, rev.SparkMax.MotorType.kBrushless
         )
         self.coral_intake_right_motor.setInverted(True)  # Adjust if needed, may need to be inverted
         self.coral_intake_right_motor_config = rev.SparkMaxConfig()
