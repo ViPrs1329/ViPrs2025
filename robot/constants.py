@@ -1,5 +1,5 @@
 """
-Constants for the robot.
+Constants for the 2025 Reefscape robot.
 """
 import math
 from pathlib import Path
@@ -13,7 +13,7 @@ WHEEL_DIAMETER_INCHES = 4.0
 
 # Swerve Drive Constants
 SWERVE_MAX_SPEED_FPS = 12.0  # Limited from 15.1 ft/s
-SWERVE_MAX_ANGULAR_SPEED = math.pi  # 180 degrees/second
+SWERVE_MAX_ANGULAR_SPEED = 2 * math.pi  # 1 rotation per second
 
 # CAN IDs - Sensors
 PIGEON_ID = 21  # Pigeon 2.0 gyro
@@ -56,7 +56,7 @@ FRONT_RANGE_SENSOR_ID = 22 # DOUBLE CHECK
 BACK_RANGE_SENSOR_ID = 23 # DOUBLE CHECK
 
 # Elevator Heights (inches)
-ELEVATOR_MIN_HEIGHT = 25.36  # Base position
+ELEVATOR_MIN_HEIGHT = 25.36  # End Effector at elevator bottom
 ELEVATOR_L1_HEIGHT = 18.0
 ELEVATOR_L2_HEIGHT = 31.875
 ELEVATOR_L3_HEIGHT = 47.625
@@ -74,7 +74,7 @@ DEADBAND = 0.1  # 10% deadband on joysticks
 
 # Motor Configuration
 NEO_CURRENT_LIMIT = 40  # amps
-NEO_VORTEX_CURRENT_LIMIT = 50  # amps for elevator motors
+NEO_VORTEX_CURRENT_LIMIT = 40  # amps for elevator motors
 
 # PID Constants
 # These will need tuning on the real robot
@@ -86,13 +86,13 @@ SWERVE_TURN_P = 0.1
 SWERVE_TURN_I = 0.0
 SWERVE_TURN_D = 0.0
 
-ELEVATOR_P = 0.1
+ELEVATOR_P = 0.5
 ELEVATOR_I = 0.0
-ELEVATOR_D = 0.0
+ELEVATOR_D = 0.1
 
-CORAL_ARM_P = 0.1
+CORAL_ARM_P = 0.5
 CORAL_ARM_I = 0.0
-CORAL_ARM_D = 0.0
+CORAL_ARM_D = 0.1
 
 ALGAE_ARM_P = 0.1
 ALGAE_ARM_I = 0.0
