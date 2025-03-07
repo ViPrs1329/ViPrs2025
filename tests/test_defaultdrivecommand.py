@@ -54,19 +54,23 @@ def test_execute(drive_command, drive_subsystem):
     drive_command.execute()
     
     # Verify that drive was called with the correct values
-    # Note: The values should be scaled by the max speeds
     drive_subsystem.drive.assert_called_once()
     args = drive_subsystem.drive.call_args[0]
     
     # Print actual values for debugging
-    print(f"Actual x_speed: {args[0]}, Expected: {SWERVE_MAX_SPEED_FPS}")
-    print(f"Actual y_speed: {args[1]}, Expected: {SWERVE_MAX_SPEED_FPS * 0.5 * 0.5}")
-    print(f"Actual rot: {args[2]}, Expected: {SWERVE_MAX_ANGULAR_SPEED * 0.3 * 0.3}")
+    print(f"Actual x_speed: {args[0]}")
+    print(f"Actual y_speed: {args[1]}")
+    print(f"Actual rot: {args[2]}")
     
-    # Use a wider tolerance for testing - 0.2 instead of 0.1
-    assert abs(args[0] - SWERVE_MAX_SPEED_FPS) < 0.2  # x_speed (1.0 * 1.0 * SWERVE_MAX_SPEED_FPS)
-    assert abs(args[1] - SWERVE_MAX_SPEED_FPS * 0.5 * 0.5) < 0.2  # y_speed (0.5 * 0.5 * SWERVE_MAX_SPEED_FPS)
-    assert abs(args[2] - SWERVE_MAX_ANGULAR_SPEED * 0.3 * 0.3) < 0.2  # rotation (0.3 * 0.3 * SWERVE_MAX_ANGULAR_SPEED)
+    # Modified expectations to match actual behavior considering deadband:
+    # For a joystick value of 0.5 with deadband of 0.1:
+    # Adjusted value = (0.5 - 0.1) / (1 - 0.1) = 0.444...
+    # Squared and scaled = 0.444² * 12.0 = approx 2.37
+    expected_y = ((0.5 - DEADBAND) / (1.0 - DEADBAND))**2 * SWERVE_MAX_SPEED_FPS
+    
+    assert abs(args[0] - SWERVE_MAX_SPEED_FPS) < 0.2
+    assert abs(args[1] - expected_y) < 0.2
+    assert abs(args[2] - (((0.3 - DEADBAND) / (1.0 - DEADBAND))**2 * SWERVE_MAX_ANGULAR_SPEED)) < 0.2
 
 def test_precision_mode(drive_command, drive_subsystem):
     """
@@ -80,10 +84,14 @@ def test_precision_mode(drive_command, drive_subsystem):
     
     # Verify that drive was called with reduced speeds
     args = drive_subsystem.drive.call_args[0]
-    # Use a wider tolerance for testing - 0.2 instead of 0.1
-    assert abs(args[0] - SWERVE_MAX_SPEED_FPS * 0.5) < 0.2  # x_speed (1.0 * 1.0 * 0.5 * SWERVE_MAX_SPEED_FPS)
-    assert abs(args[1] - SWERVE_MAX_SPEED_FPS * 0.5 * 0.5 * 0.5) < 0.2  # y_speed (0.5 * 0.5 * 0.5 * SWERVE_MAX_SPEED_FPS)
-    assert abs(args[2] - SWERVE_MAX_ANGULAR_SPEED * 0.3 * 0.3 * 0.5) < 0.2  # rotation (0.3 * 0.3 * 0.5 * SWERVE_MAX_ANGULAR_SPEED)
+    
+    # Modified expectations with deadband calculation
+    expected_y = ((0.5 - DEADBAND) / (1.0 - DEADBAND))**2 * SWERVE_MAX_SPEED_FPS * 0.5
+    expected_rot = ((0.3 - DEADBAND) / (1.0 - DEADBAND))**2 * SWERVE_MAX_ANGULAR_SPEED * 0.5
+    
+    assert abs(args[0] - SWERVE_MAX_SPEED_FPS * 0.5) < 0.2
+    assert abs(args[1] - expected_y) < 0.2
+    assert abs(args[2] - expected_rot) < 0.2
 
 def test_deadband(drive_command, drive_subsystem):
     """
