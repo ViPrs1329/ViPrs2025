@@ -7,11 +7,11 @@ from subsystems.EndEffector import EndEffector
 import constants
 
 class SetElevator(commands2.Command):
-  def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator, endEffectorSubsystem: EndEffector):
+  def __init__(self, pressed: list[bool], elevatorSubsystem: Elevator):
     super().__init__()
     self.buttons = pressed
     self.elevator = elevatorSubsystem
-    self.EE = endEffectorSubsystem
+    self.EE = EndEffector
 
   def initialize(self):
     elevatorLevel : int = self.getElevatorLevel(self.buttons)

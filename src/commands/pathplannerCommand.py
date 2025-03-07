@@ -1,7 +1,6 @@
 import wpilib
 import pathplannerlib
 import commands2
-from constants import autonomousCommand
 from subsystems.SwerveDriveSubsystem import DriveTrain
 
 class FollowPathCommand(commands2.Command):
@@ -9,7 +8,7 @@ class FollowPathCommand(commands2.Command):
     A command to follow a PathPlanner path.
     """
 
-    def __init__(self, pathName: autonomousCommand):
+    def __init__(self, pathName):
         """
         Initializes the FollowPathCommand.
 

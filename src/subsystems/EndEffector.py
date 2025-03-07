@@ -20,48 +20,48 @@ class EndEffector(commands2.Subsystem):
         self.canRange1 = CANrange(CANIDs.canRange1)
 
         # 1. Algae Intake Rotation Motor
-        self.algaeRotationMotor = rev.SparkFlex(
-            CANIDs.AlgaeArm, rev.SparkFlex.MotorType.kBrushless
+        self.algaeRotationMotor = rev.SparkMax(
+            CANIDs.AlgaeArm, rev.SparkMax.MotorType.kBrushless
         )
         self.algaeRotationMotor.setInverted(False)  # Adjust if needed
-        self.algaeRotationMotorConfig = rev.SparkFlexConfig()
-        self.algaeRotationMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kBrake)
+        self.algaeRotationMotorConfig = rev.SparkMaxConfig()
+        self.algaeRotationMotorConfig.setIdleMode(rev.SparkMaxConfig.IdleMode.kBrake)
         self.algaeRotationMotorConfig.smartCurrentLimit(10) #limit current
-        self.algaeRotationMotor.configure(self.algaeRotationMotorConfig)
+        self.algaeRotationMotor.configure(self.algaeRotationMotorConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 2. Algae Intake Motor
-        self.algaeIntakeMotor = rev.SparkFlex(
-            CANIDs.AlgaeIntake, rev.SparkFlex.MotorType.kBrushless
+        self.algaeIntakeMotor = rev.SparkMax(
+            CANIDs.AlgaeIntake, rev.SparkMax.MotorType.kBrushless
         )
         self.algaeIntakeMotor.setInverted(False)  # Adjust if needed
-        self.algaeIntakeMotorConfig = rev.SparkFlexConfig()
-        self.algaeIntakeMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.algaeIntakeMotorConfig = rev.SparkMaxConfig()
+        self.algaeIntakeMotorConfig.setIdleMode(rev.SparkMaxConfig.IdleMode.kCoast) #can change to brake if needed
         self.algaeIntakeMotorConfig.smartCurrentLimit(10) #limit current
-        self.algaeIntakeMotor.configure(self.algaeIntakeMotorConfig)
+        self.algaeIntakeMotor.configure(self.algaeIntakeMotorConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 3. Coral Intake Left Motor
-        self.coralIntakeLeftMotor = rev.SparkFlex(
-            CANIDs.CoralLeft, rev.SparkFlex.MotorType.kBrushless
+        self.coralIntakeLeftMotor = rev.SparkMax(
+            CANIDs.CoralLeft, rev.SparkMax.MotorType.kBrushless
         )
         self.coralIntakeLeftMotor.setInverted(False)  # Adjust if needed
-        self.coralIntakeLeftMotorConfig = rev.SparkFlexConfig()
-        self.coralIntakeLeftMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.coralIntakeLeftMotorConfig = rev.SparkMaxConfig()
+        self.coralIntakeLeftMotorConfig.setIdleMode(rev.SparkMaxConfig.IdleMode.kCoast) #can change to brake if needed
         self.coralIntakeLeftMotorConfig.smartCurrentLimit(10) #limit current
-        self.coralIntakeLeftMotor.configure(self.coralIntakeLeftMotorConfig)
+        self.coralIntakeLeftMotor.configure(self.coralIntakeLeftMotorConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 4. Coral Intake Right Motor
-        self.coralIntakeRightMotor = rev.SparkFlex(
-            CANIDs.CoralRight, rev.SparkFlex.MotorType.kBrushless
+        self.coralIntakeRightMotor = rev.SparkMax(
+            CANIDs.CoralRight, rev.SparkMax.MotorType.kBrushless
         )
         self.coralIntakeRightMotor.setInverted(True)  # Adjust if needed, may need to be inverted
-        self.coralIntakeRightMotorConfig = rev.SparkFlexConfig()
-        self.coralIntakeRightMotorConfig.setIdleMode(rev.SparkFlexConfig.IdleMode.kCoast) #can change to brake if needed
+        self.coralIntakeRightMotorConfig = rev.SparkMaxConfig()
+        self.coralIntakeRightMotorConfig.setIdleMode(rev.SparkMaxConfig.IdleMode.kCoast) #can change to brake if needed
         self.coralIntakeRightMotorConfig.smartCurrentLimit(10) #limit current
-        self.coralIntakeRightMotor.configure(self.coralIntakeRightMotorConfig)
+        self.coralIntakeRightMotor.configure(self.coralIntakeRightMotorConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         self.coralIntakeMotor = MotorControllerGroup(self.coralIntakeLeftMotor, self.coralIntakeRightMotor)
 
-        Kp = 1
+        Kp = 0
         Ki = 0
         Kd = 0
         self.algaePID = PIDController(Kp, Ki, Kd)
@@ -102,6 +102,7 @@ class EndEffector(commands2.Subsystem):
 
     def startCoralMotors(self):
         self.coralIntakeMotor.set(intakeConsts.intakeSpeed)
+        print('startCoralMotors()')
 
     def setAlgaeArmAngle(self, angle):
         self.algaePID.setSetpoint(angle)

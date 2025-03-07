@@ -172,7 +172,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain.resetHarder()
     self.systemTempCheck()
     self.configureButtonBindings()
-    self.endEffector.startCoralMotors()
+    #self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):
     return (input ** 3)
@@ -198,8 +198,8 @@ class MyRobot(commands2.TimedCommandRobot):
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
-    print('X Speed - ' + str(xSpeed))
-    print('Y Speed - ' + str(ySpeed))
+    #print('X Speed - ' + str(xSpeed))
+    #print('Y Speed - ' + str(ySpeed))
     self.controllerXPub.set(xSpeed * self.slowScaler)
     self.controllerYPub.set(ySpeed * self.slowScaler)
 

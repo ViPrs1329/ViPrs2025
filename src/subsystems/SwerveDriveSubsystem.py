@@ -109,9 +109,9 @@ class DriveTrain(commands2.Subsystem):
 
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
-    Kp = 4
-    Ki = 0
-    Kd = 0
+    Kp = 1  # Was set to 4. Perhaps too high???  - WARDEN
+    Ki = 0.0
+    Kd = 0.0
     self.BleftPID = controller.PIDController(Kp,Ki,Kd)
     self.BleftPID.enableContinuousInput(-.5,.5)
     self.BleftPID.setSetpoint(0.0)
@@ -245,13 +245,13 @@ class DriveTrain(commands2.Subsystem):
     rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
 
 
-    for i in range(len(dSpeedList)):
-       if abs(dSpeedList[i])<0.5: #drive deadzone
-          dSpeedList[i]=0
+    #for i in range(len(dSpeedList)):
+    #   if abs(dSpeedList[i])<0.5: #drive deadzone
+    #      dSpeedList[i]=0
 
-    for i in range(len(rSpeedList)):
-       if abs(rSpeedList[i])<0.5: #rotation deadzone
-          rSpeedList[i]=0
+    #for i in range(len(rSpeedList)):
+    #   if abs(rSpeedList[i])<0.5: #rotation deadzone
+    #      rSpeedList[i]=0
 
     self.backLeftRotation.set(rSpeedList[0])
     self.frontLeftRotation.set(rSpeedList[1])
@@ -263,9 +263,10 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
 
-    #print(dSpeedList)
-    #print(rSpeedList)
-    #print('\n')
+    print([self.BleftPID.getSetpoint(), self.BrightPID.getSetpoint(), self.FleftPID.getSetpoint(), self.FrightPID.getSetpoint()])
+    print(dSpeedList)
+    print(rSpeedList)
+    print('\n')
 
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
