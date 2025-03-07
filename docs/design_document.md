@@ -50,6 +50,9 @@ This document outlines the design specifications and requirements for Team VIPRS
 - **Control**: 
   - Button-based level selection
   - Manual CORAL ejection control
+  - **Button Mappings**:
+    - Left Trigger: Intake CORAL (80% speed)
+    - Right Trigger: Eject CORAL (-80% speed)
 
 #### ALGAE Handling
 - **Mechanism**: Rotating arm intake
@@ -75,6 +78,13 @@ This document outlines the design specifications and requirements for Team VIPRS
   - Software-based soft limits using current monitoring
   - Preset heights for scoring positions
   - PID control for precise positioning
+- **Button Mappings**:
+  - A Button: Set to BASE height
+  - B Button: Set to L1 height
+  - X Button: Set to L2 height
+  - Y Button: Set to L3 height
+  - Left Bumper: Manual up (50% speed)
+  - Right Bumper: Manual down (-50% speed)
 
 ## 3. Vision and Sensing
 - **Hardware**: 2x Limelight 2 (front-mounted)

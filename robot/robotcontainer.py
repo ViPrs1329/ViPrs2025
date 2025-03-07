@@ -8,7 +8,11 @@ from typing import Optional
 
 from constants import *
 from subsystems.drivesubsystem import DriveSubsystem
-from commands.defaultdrivecommand import DefaultDriveCommand
+from subsystems.elevatorsubsystem import ElevatorSubsystem
+from subsystems.coralsubsystem import CoralSubsystem
+from commands.drivecommands import DefaultDriveCommand
+from commands.elevatorcommands import SetElevatorHeight, ManualElevatorControl
+from commands.coralcommands import IntakeCoral, EjectCoral
 
 class RobotContainer:
     """
@@ -28,23 +32,16 @@ class RobotContainer:
 
         # Create subsystems
         self.drive = DriveSubsystem()
+        self.elevator = ElevatorSubsystem()
+        self.coral = CoralSubsystem()
         # TODO: Initialize other subsystems
-        # self.elevator = ElevatorSubsystem()
         # self.end_effector = EndEffectorSubsystem()
 
         # Configure button bindings
         self.configureButtonBindings()
 
         # Configure default commands
-        self.drive.setDefaultCommand(
-            DefaultDriveCommand(
-                self.drive,
-                lambda: -self.driver_controller.getLeftY(),  # Forward/Backward
-                lambda: -self.driver_controller.getLeftX(),  # Left/Right
-                lambda: -self.driver_controller.getRightX(),  # Rotation
-                lambda: self.driver_controller.getLeftBumper()  # Precision mode
-            )
-        )
+        self.drive.setDefaultCommand(DefaultDriveCommand(self.drive))
 
     def configureButtonBindings(self) -> None:
         """
@@ -66,8 +63,24 @@ class RobotContainer:
             [self.drive]
         ))
 
+        # Get the operator controller
+        operator = wpilib.XboxController(OPERATOR_CONTROLLER_PORT)
+        
+        # Elevator height controls
+        operator.a().onTrue(SetElevatorHeight(self.elevator, "BASE"))
+        operator.b().onTrue(SetElevatorHeight(self.elevator, "L1"))
+        operator.x().onTrue(SetElevatorHeight(self.elevator, "L2"))
+        operator.y().onTrue(SetElevatorHeight(self.elevator, "L3"))
+        
+        # Manual elevator control
+        operator.leftBumper().whileTrue(ManualElevatorControl(self.elevator, 0.5))
+        operator.rightBumper().whileTrue(ManualElevatorControl(self.elevator, -0.5))
+        
+        # CORAL controls
+        operator.leftTrigger().whileTrue(IntakeCoral(self.coral))
+        operator.rightTrigger().whileTrue(EjectCoral(self.coral))
+
         # TODO: Add other button bindings for:
-        # - Elevator control
         # - End effector control
         # - Autonomous routines
 
@@ -80,6 +93,5 @@ class RobotContainer:
         Optional[commands2.Command]
             the command to run in autonomous
         """
-        # TODO: Return the command to run in autonomous
-        # For now, return None which means no autonomous
+        # TODO: Implement autonomous command
         return None 
