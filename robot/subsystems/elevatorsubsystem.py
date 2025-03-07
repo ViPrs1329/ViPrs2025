@@ -54,8 +54,12 @@ class ElevatorSubsystem(commands2.Subsystem):
         self.motor1.setSmartCurrentLimit(NEO_VORTEX_CURRENT_LIMIT)
         self.motor2.setSmartCurrentLimit(NEO_VORTEX_CURRENT_LIMIT)
         
-        # Create encoder
-        self.encoder = self.motor1.getEncoder()
+        # Create absolute encoder
+        self.encoder = self.motor1.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
+        
+        # Configure encoder
+        self.encoder.setPositionConversionFactor(1.0)  # Convert to inches
+        self.encoder.setVelocityConversionFactor(1.0)  # Convert to inches per second
         
         # Create PID controller
         self.pid = PIDController(
