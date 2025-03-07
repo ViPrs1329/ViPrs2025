@@ -236,6 +236,8 @@ class DriveTrain(commands2.Subsystem):
     fldSpeed = frontLeft.speed
     frdSpeed = frontRight.speed
 
+    print('Positions - ' + str([self.BleftEnc.get_absolute_position()._value, self.FleftEnc.get_absolute_position()._value, self.BrightEnc.get_absolute_position()._value, self.FrightEnc.get_absolute_position()._value]))
+
     blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
     flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
     brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
@@ -263,9 +265,9 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
 
-    print([self.BleftPID.getSetpoint(), self.BrightPID.getSetpoint(), self.FleftPID.getSetpoint(), self.FrightPID.getSetpoint()])
-    print(dSpeedList)
-    print(rSpeedList)
+    print('Setpoints - ' + str([self.BleftPID.getSetpoint(), self.BrightPID.getSetpoint(), self.FleftPID.getSetpoint(), self.FrightPID.getSetpoint()]))
+    print('Drive Speeds - ' + str(dSpeedList))
+    print('Rotation Speeds - ' + str(rSpeedList))
     print('\n')
 
 
