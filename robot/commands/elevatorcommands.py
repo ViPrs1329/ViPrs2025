@@ -2,7 +2,11 @@
 Commands for the elevator subsystem.
 """
 import commands2
+<<<<<<< HEAD
 from subsystems.elevatorsubsystem import ElevatorSubsystem
+=======
+from robot.subsystems.elevatorsubsystem import ElevatorSubsystem
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
 class SetElevatorHeight(commands2.Command):
     """

@@ -2,7 +2,11 @@
 Commands for the CORAL subsystem.
 """
 import commands2
+<<<<<<< HEAD
 from subsystems.coralsubsystem import CoralSubsystem
+=======
+from robot.subsystems.coralsubsystem import CoralSubsystem
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
 class IntakeCoral(commands2.Command):
     """

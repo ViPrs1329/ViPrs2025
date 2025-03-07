@@ -2,8 +2,13 @@
 Commands for the ALGAE subsystem.
 """
 import commands2
+<<<<<<< HEAD
 from subsystems.algaesubsystem import AlgaeSubsystem
 from constants import ALGAE_ARM_WORKING_ANGLE
+=======
+from robot.subsystems.algaesubsystem import AlgaeSubsystem
+from robot.constants import ALGAE_ARM_WORKING_ANGLE
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
 class SetArmPosition(commands2.Command):
     """

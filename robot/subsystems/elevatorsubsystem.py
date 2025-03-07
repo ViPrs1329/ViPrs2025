@@ -7,7 +7,11 @@ import rev
 from wpimath.controller import PIDController
 from wpimath.units import inchesToMeters
 
+<<<<<<< HEAD
 from constants import (
+=======
+from robot.constants import (
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
     LEFT_ELEVATOR_MOTOR_ID,
     RIGHT_ELEVATOR_MOTOR_ID,
     ELEVATOR_MIN_HEIGHT,
@@ -42,16 +46,20 @@ class ElevatorSubsystem(commands2.Subsystem):
         """
         super().__init__()
         
+<<<<<<< HEAD
         # Constants for reset and persist modes
         reset_mode = rev.SparkBase.ResetMode.kNoResetSafeParameters
         persist_mode = rev.SparkBase.PersistMode.kNoPersistParameters
 
 
+=======
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         # Create motors
         self.motor1 = rev.SparkFlex(LEFT_ELEVATOR_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushless)
         self.motor2 = rev.SparkFlex(RIGHT_ELEVATOR_MOTOR_ID, rev.SparkLowLevel.MotorType.kBrushless)
         
         # Configure motors
+<<<<<<< HEAD
         # self.motor1.setIdleMode(rev.SparkFlex.IdleMode.kBrake)
         # self.motor2.setIdleMode(rev.SparkFlex.IdleMode.kBrake)
         motor1_conf = rev.SparkBaseConfig()
@@ -80,6 +88,21 @@ class ElevatorSubsystem(commands2.Subsystem):
         # encoder_conf.velocityConversionFactor(1.0)
 
         
+=======
+        self.motor1.setIdleMode(rev.SparkFlex.IdleMode.kBrake)
+        self.motor2.setIdleMode(rev.SparkFlex.IdleMode.kBrake)
+        
+        # Set current limits
+        self.motor1.setSmartCurrentLimit(NEO_VORTEX_CURRENT_LIMIT)
+        self.motor2.setSmartCurrentLimit(NEO_VORTEX_CURRENT_LIMIT)
+        
+        # Create absolute encoder
+        self.encoder = self.motor1.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
+        
+        # Configure encoder
+        self.encoder.setPositionConversionFactor(1.0)  # Convert to inches
+        self.encoder.setVelocityConversionFactor(1.0)  # Convert to inches per second
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         
         # Create PID controller
         self.pid = PIDController(

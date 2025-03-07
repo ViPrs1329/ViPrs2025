@@ -48,8 +48,13 @@ class Robot(commands2.TimedCommandRobot):
         """
         # This ensures that the autonomous stops running when
         # teleop starts running.
+<<<<<<< HEAD
         # if self.autonomous_command is not None:
         #     self.autonomous_command.cancel()
+=======
+        if self.autonomous_command is not None:
+            self.autonomous_command.cancel()
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
     def teleopPeriodic(self) -> None:
         """

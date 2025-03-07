@@ -7,7 +7,11 @@ import commands2
 import rev
 from wpimath.controller import PIDController
 
+<<<<<<< HEAD
 from constants import (
+=======
+from robot.constants import (
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
     ALGAE_ARM_MOTOR_ID,
     ALGAE_INTAKE_MOTOR_ID,
     ALGAE_ARM_REST_ANGLE,
@@ -29,15 +33,19 @@ class AlgaeSubsystem(commands2.Subsystem):
         """
         super().__init__()
         
+<<<<<<< HEAD
         # Constants for reset and persist modes
         reset_mode = rev.SparkBase.ResetMode.kNoResetSafeParameters
         persist_mode = rev.SparkBase.PersistMode.kNoPersistParameters
 
+=======
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         # Create motors
         self.arm_motor = rev.SparkMax(ALGAE_ARM_MOTOR_ID, rev.SparkMax.MotorType.kBrushless)
         self.intake_motor = rev.SparkMax(ALGAE_INTAKE_MOTOR_ID, rev.SparkMax.MotorType.kBrushless)
         
         # Configure motors
+<<<<<<< HEAD
         # self.arm_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
         # self.intake_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
         arm_conf = rev.SparkBaseConfig()
@@ -60,6 +68,21 @@ class AlgaeSubsystem(commands2.Subsystem):
         # Configure encoder
         # self.arm_encoder.setPositionConversionFactor(1.0)  # Convert to degrees
         # self.arm_encoder.setVelocityConversionFactor(1.0)  # Convert to degrees per second
+=======
+        self.arm_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+        self.intake_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+        
+        # Set current limits
+        self.arm_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
+        self.intake_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
+        
+        # Create absolute encoder for arm
+        self.arm_encoder = self.arm_motor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
+        
+        # Configure encoder
+        self.arm_encoder.setPositionConversionFactor(1.0)  # Convert to degrees
+        self.arm_encoder.setVelocityConversionFactor(1.0)  # Convert to degrees per second
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         
         # Create PID controller for arm position
         self.pid = PIDController(

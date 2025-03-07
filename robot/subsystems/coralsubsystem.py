@@ -7,7 +7,11 @@ import commands2
 import rev
 from wpimath.controller import PIDController
 
+<<<<<<< HEAD
 from constants import (
+=======
+from robot.constants import (
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
     CORAL_LEFT_MOTOR_ID,
     CORAL_RIGHT_MOTOR_ID,
     CORAL_P,
@@ -27,15 +31,19 @@ class CoralSubsystem(commands2.Subsystem):
         """
         super().__init__()
         
+<<<<<<< HEAD
         # Constants for reset and persist modes
         reset_mode = rev.SparkBase.ResetMode.kNoResetSafeParameters
         persist_mode = rev.SparkBase.PersistMode.kNoPersistParameters
 
+=======
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         # Create motors
         self.left_motor = rev.SparkMax(CORAL_LEFT_MOTOR_ID, rev.SparkMax.MotorType.kBrushless)
         self.right_motor = rev.SparkMax(CORAL_RIGHT_MOTOR_ID, rev.SparkMax.MotorType.kBrushless)
         
         # Configure motors
+<<<<<<< HEAD
         # self.left_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
         # self.right_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
         left_conf = rev.SparkBaseConfig()
@@ -51,6 +59,14 @@ class CoralSubsystem(commands2.Subsystem):
         # Set current limits
         # self.left_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
         # self.right_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
+=======
+        self.left_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+        self.right_motor.setIdleMode(rev.SparkMax.IdleMode.kBrake)
+        
+        # Set current limits
+        self.left_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
+        self.right_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
+>>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         
         # Create encoders
         self.left_encoder = self.left_motor.getEncoder()
