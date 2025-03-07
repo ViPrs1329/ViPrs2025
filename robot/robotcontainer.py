@@ -10,9 +10,11 @@ from constants import *
 from subsystems.drivesubsystem import DriveSubsystem
 from subsystems.elevatorsubsystem import ElevatorSubsystem
 from subsystems.coralsubsystem import CoralSubsystem
+from subsystems.algaesubsystem import AlgaeSubsystem
 from commands.drivecommands import DefaultDriveCommand
 from commands.elevatorcommands import SetElevatorHeight, ManualElevatorControl
 from commands.coralcommands import IntakeCoral, EjectCoral
+from commands.algaecommands import SetArmPosition, IntakeAlgae, EjectAlgae
 
 class RobotContainer:
     """
@@ -34,6 +36,7 @@ class RobotContainer:
         self.drive = DriveSubsystem()
         self.elevator = ElevatorSubsystem()
         self.coral = CoralSubsystem()
+        self.algae = AlgaeSubsystem()
         # TODO: Initialize other subsystems
         # self.end_effector = EndEffectorSubsystem()
 
@@ -62,23 +65,26 @@ class RobotContainer:
             lambda: self.drive.resetGyro(),
             [self.drive]
         ))
-
-        # Get the operator controller
-        operator = wpilib.XboxController(OPERATOR_CONTROLLER_PORT)
         
         # Elevator height controls
-        operator.a().onTrue(SetElevatorHeight(self.elevator, "BASE"))
-        operator.b().onTrue(SetElevatorHeight(self.elevator, "L1"))
-        operator.x().onTrue(SetElevatorHeight(self.elevator, "L2"))
-        operator.y().onTrue(SetElevatorHeight(self.elevator, "L3"))
+        self.operator_controller.a().onTrue(SetElevatorHeight(self.elevator, "BASE"))
+        self.operator_controller.b().onTrue(SetElevatorHeight(self.elevator, "L1"))
+        self.operator_controller.x().onTrue(SetElevatorHeight(self.elevator, "L2"))
+        self.operator_controller.y().onTrue(SetElevatorHeight(self.elevator, "L3"))
         
         # Manual elevator control
-        operator.leftBumper().whileTrue(ManualElevatorControl(self.elevator, 0.5))
-        operator.rightBumper().whileTrue(ManualElevatorControl(self.elevator, -0.5))
+        self.operator_controller.leftBumper().whileTrue(ManualElevatorControl(self.elevator, 0.5))
+        self.operator_controller.rightBumper().whileTrue(ManualElevatorControl(self.elevator, -0.5))
         
         # CORAL controls
-        operator.leftTrigger().whileTrue(IntakeCoral(self.coral))
-        operator.rightTrigger().whileTrue(EjectCoral(self.coral))
+        self.operator_controller.leftTrigger().whileTrue(IntakeCoral(self.coral))
+        self.operator_controller.rightTrigger().whileTrue(EjectCoral(self.coral))
+        
+        # ALGAE controls
+        self.operator_controller.dpadUp().onTrue(SetArmPosition(self.algae, ALGAE_ARM_WORKING_ANGLE))
+        self.operator_controller.dpadDown().onTrue(SetArmPosition(self.algae, ALGAE_ARM_REST_ANGLE))
+        self.operator_controller.dpadLeft().whileTrue(IntakeAlgae(self.algae))
+        self.operator_controller.dpadRight().whileTrue(EjectAlgae(self.algae))
 
         # TODO: Add other button bindings for:
         # - End effector control

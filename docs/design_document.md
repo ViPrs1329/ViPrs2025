@@ -66,6 +66,11 @@ This document outlines the design specifications and requirements for Team VIPRS
   - Continuous intake until manual expel
   - Only operates at elevator bottom position
   - No automated sequences
+- **Button Mappings**:
+  - D-pad Up: Set arm to working position (40°)
+  - D-pad Down: Set arm to rest position (0°)
+  - D-pad Left: Intake ALGAE (80% speed)
+  - D-pad Right: Eject ALGAE (-80% speed)
 
 ### C. Elevator System
 - **Type**: Cascading

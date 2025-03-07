@@ -15,52 +15,49 @@ class TestCoralSubsystem(commands2.Subsystem):
         super().__init__()
         
         # Track method calls
-        self.set_speed_calls = []
-        self.current_speed = 0.0
+        self.set_left_speed_calls = []
+        self.set_right_speed_calls = []
+        self.current_left_speed = 0.0
+        self.current_right_speed = 0.0
         
         # Track motor currents
         self.left_motor_current = 0.0
         self.right_motor_current = 0.0
         
-    def setSpeed(self, speed: float) -> None:
+    def setLeftSpeed(self, speed: float) -> None:
         """
-        Sets the speed of the CORAL wheels.
+        Sets the speed of the left CORAL wheel.
         
         Parameters
         ----------
         speed : float
             Speed value between -1 and 1
         """
-        self.current_speed = speed
-        self.set_speed_calls.append(speed)
+        # Clamp speed between -1 and 1
+        clamped_speed = max(min(speed, 1.0), -1.0)
+        self.current_left_speed = clamped_speed
+        self.set_left_speed_calls.append(clamped_speed)
         
-    def getCurrent(self) -> float:
+    def setRightSpeed(self, speed: float) -> None:
         """
-        Gets the current draw of the CORAL motors.
+        Sets the speed of the right CORAL wheel.
         
-        Returns
-        -------
-        float
-            Current draw in amps
+        Parameters
+        ----------
+        speed : float
+            Speed value between -1 and 1
         """
-        return (self.left_motor_current + self.right_motor_current) / 2
+        # Clamp speed between -1 and 1
+        clamped_speed = max(min(speed, 1.0), -1.0)
+        self.current_right_speed = clamped_speed
+        self.set_right_speed_calls.append(clamped_speed)
         
     def stop(self) -> None:
         """
-        Stops the CORAL wheels.
+        Stops all motors.
         """
-        self.setSpeed(0)
-        
-    def isStalled(self) -> bool:
-        """
-        Checks if the CORAL wheels are stalled based on current draw.
-        
-        Returns
-        -------
-        bool
-            True if stalled, False otherwise
-        """
-        return self.getCurrent() > 32  # 80% of 40A limit
+        self.setLeftSpeed(0)
+        self.setRightSpeed(0)
         
     def set_motor_currents(self, left_current: float, right_current: float) -> None:
         """
@@ -74,4 +71,26 @@ class TestCoralSubsystem(commands2.Subsystem):
             Current for right motor in amps
         """
         self.left_motor_current = left_current
-        self.right_motor_current = right_current 
+        self.right_motor_current = right_current
+        
+    def getCurrent(self) -> float:
+        """
+        Gets the average current of both motors.
+        
+        Returns
+        -------
+        float
+            Average current in amps
+        """
+        return (self.left_motor_current + self.right_motor_current) / 2.0
+        
+    def isStalled(self) -> bool:
+        """
+        Returns whether the motors are stalled based on current draw.
+        
+        Returns
+        -------
+        bool
+            True if stalled, False otherwise
+        """
+        return self.getCurrent() > 30.0  # Stall threshold of 30 amps 

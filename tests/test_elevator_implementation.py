@@ -1,46 +1,31 @@
 """
-Test-specific implementation of the ElevatorSubsystem.
+Test implementation of the Elevator subsystem for testing.
 """
 import commands2
-from typing import Optional
+from robot.constants import ELEVATOR_MIN_HEIGHT, ELEVATOR_MAX_HEIGHT
 
 class TestElevatorSubsystem(commands2.Subsystem):
     """
-    A test-specific implementation of the elevator subsystem that doesn't use any hardware.
+    A test implementation of the Elevator subsystem.
     """
-    
-    # Scoring heights in inches
-    SCORING_HEIGHTS = {
-        "BASE": 25.36,
-        "L1": 18.0,
-        "L2": 31.875,
-        "L3": 47.625,
-        "L4": 72.0
-    }
     
     def __init__(self):
         """
-        Creates a new test elevator subsystem with simulated components.
+        Creates a new test Elevator subsystem.
         """
         super().__init__()
         
-        # Simulated state
-        self.current_position = self.SCORING_HEIGHTS["BASE"]
-        self.target_position = self.SCORING_HEIGHTS["BASE"]
-        self.current_speed = 0.0
-        self.motor1_current = 10.0
-        self.motor2_current = 10.0
-        
-        # Track method calls for testing
+        # Track method calls
         self.set_position_calls = []
         self.set_speed_calls = []
-        self.at_setpoint_return_value = False
+        self.current_position = 0.0  # Start at 0.0 as expected by tests
+        self.current_speed = 0.0
         
-    def periodic(self):
-        """
-        This method is called periodically by the scheduler.
-        """
-        pass
+        # Track motor current
+        self.motor_current = 0.0
+        
+        # Track whether we should enforce height limits
+        self.enforce_height_limits = False
         
     def setPosition(self, target_inches: float) -> None:
         """
@@ -51,8 +36,15 @@ class TestElevatorSubsystem(commands2.Subsystem):
         target_inches : float
             Target position in inches
         """
-        self.target_position = target_inches
-        self.set_position_calls.append(target_inches)
+        if self.enforce_height_limits:
+            # Clamp position between min and max heights
+            clamped_position = max(min(target_inches, ELEVATOR_MAX_HEIGHT), ELEVATOR_MIN_HEIGHT)
+            self.current_position = clamped_position
+            self.set_position_calls.append(clamped_position)
+        else:
+            # Don't clamp position in test implementation
+            self.current_position = target_inches
+            self.set_position_calls.append(target_inches)
         
     def getPosition(self) -> float:
         """
@@ -64,18 +56,27 @@ class TestElevatorSubsystem(commands2.Subsystem):
             Current position in inches
         """
         return self.current_position
-    
-    def getCurrent(self) -> float:
-        """
-        Gets the current draw of the elevator motors.
         
-        Returns
-        -------
-        float
-            Current draw in amps
+    def setSpeed(self, speed: float) -> None:
         """
-        return (self.motor1_current + self.motor2_current) / 2
-    
+        Sets the speed of the elevator.
+        
+        Parameters
+        ----------
+        speed : float
+            Speed value between -1 and 1
+        """
+        # Clamp speed between -1 and 1
+        clamped_speed = max(min(speed, 1.0), -1.0)
+        self.current_speed = clamped_speed
+        self.set_speed_calls.append(clamped_speed)
+        
+    def stop(self) -> None:
+        """
+        Stops all motors.
+        """
+        self.setSpeed(0)
+        
     def atSetpoint(self) -> bool:
         """
         Returns whether the elevator has reached its target position.
@@ -85,43 +86,28 @@ class TestElevatorSubsystem(commands2.Subsystem):
         bool
             True if at setpoint, False otherwise
         """
-        return self.at_setpoint_return_value
-    
-    def stop(self) -> None:
-        """
-        Stops the elevator.
-        """
-        self.current_speed = 0.0
-        self.set_speed_calls.append(0.0)
+        if not self.set_position_calls:
+            return False
+        return abs(self.current_position - self.set_position_calls[-1]) < 0.1
         
-    def setSpeed(self, speed: float) -> None:
+    def set_motor_currents(self, current: float) -> None:
         """
-        Sets the speed of the elevator motors directly.
+        Sets the current value for the motors.
         
         Parameters
         ----------
-        speed : float
-            Speed value between -1 and 1
+        current : float
+            Current for motors in amps
         """
-        self.current_speed = speed
-        self.set_speed_calls.append(speed)
+        self.motor_current = current
         
-    # Test-specific methods
-    def set_motor_currents(self, motor1_current: float, motor2_current: float) -> None:
+    def set_enforce_height_limits(self, enforce: bool) -> None:
         """
-        Sets the simulated motor currents for testing.
-        """
-        self.motor1_current = motor1_current
-        self.motor2_current = motor2_current
+        Sets whether height limits should be enforced.
         
-    def set_current_position(self, position: float) -> None:
+        Parameters
+        ----------
+        enforce : bool
+            True to enforce height limits, False otherwise
         """
-        Sets the simulated current position for testing.
-        """
-        self.current_position = position
-        
-    def set_at_setpoint(self, at_setpoint: bool) -> None:
-        """
-        Sets the return value for atSetpoint() for testing.
-        """
-        self.at_setpoint_return_value = at_setpoint
+        self.enforce_height_limits = enforce
