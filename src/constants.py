@@ -46,12 +46,12 @@ class CANIDs:
     EncoderModuleRotation4 = 18
 
     #end effector ids
-    CoralLeft = 100
-    CoralRight = 100
-    AlgaeArm = 100
-    AlgaeIntake = 100
-    canRange0 = 100
-    canRange1 = 100
+    CoralLeft = 6
+    CoralRight = 2
+    AlgaeArm = 3
+    AlgaeIntake = 7
+    canRange0 = 22
+    canRange1 = 23
 
 class inputConsts:
     inputScale = 0.8
