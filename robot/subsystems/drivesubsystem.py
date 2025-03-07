@@ -185,6 +185,11 @@ class DriveSubsystem(commands2.Subsystem):
         current_angle = Rotation2d.fromDegrees(turn_encoder.getAbsolutePosition().value)
         optimized_state = SwerveModuleState.optimize(state, current_angle)
         
+        # Check if optimized_state or its angle is None and handle accordingly
+        if optimized_state is None or optimized_state.angle is None:
+            # Use the original state if optimization fails
+            optimized_state = state
+        
         # Set the turn motor position
         turn_pid.setReference(optimized_state.angle.degrees(), rev.SparkMax.ControlType.kPosition)
         
@@ -208,4 +213,4 @@ class DriveSubsystem(commands2.Subsystem):
         wpilib.SmartDashboard.putNumber("Robot Heading", self.getHeading())
         wpilib.SmartDashboard.putBoolean("Field Relative", self.field_relative)
         # TODO: Add any necessary periodic updates
-        pass 
+        pass

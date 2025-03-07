@@ -103,4 +103,4 @@ class DefaultDriveCommand(commands2.Command):
         """
         Called when the command ends.
         """
-        self.drive_subsystem.drive(0, 0, 0) 
+        self.drive_subsystem.drive(0, 0, 0)
