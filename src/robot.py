@@ -29,6 +29,7 @@ from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.algaeIntake import AlgaeIntake
 from commands.pathplannerCommand import FollowPathCommand
+from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -66,8 +67,13 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kRightRumble,0)
     self.drivingXboxController.setRumble(self.drivingXboxController.RumbleType.kLeftRumble,0)
 
-  def coralIsInRange(canrange: CANrange):
-    return canrange.get_distance() < constants.intakeConsts.coralDetectionThreshold
+  def coralIsInRangeEE(self):
+    "returns true when coral is detected"
+    return self.canRangeEE.get_distance() < constants.intakeConsts.coralDetectionThreshold
+
+  def coralIsOutOfRangeFunnel(self):
+    "returns true when coral is not detected"
+    return self.canRangeFunnel.get_distance() > constants.intakeConsts.coralDetectionThreshold
 
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
@@ -81,18 +87,28 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
-    self.coralIntakeCommand = commands2.ConditionalCommand(
-      commands2.ConditionalCommand(
-        commands2.ConditionalCommand(
-          commands2.InstantCommand(), 
-          Intake(self.endEffector), 
-          self.coralIsInRange(self.canRangeFunnel)
-        ), 
-        commands2.InstantCommand(), 
-        self.coralIsInRange(self.canRangeEE)
-      ), 
-      commands2.InstantCommand(), 
-      self.coralIsInRange(self.canRangeFunnel)
+
+    # self.coralIntakeCommand = commands2.ConditionalCommand(
+    #   commands2.ConditionalCommand(
+    #     commands2.ConditionalCommand(
+    #       commands2.InstantCommand(), 
+    #       Intake(self.endEffector), 
+    #       self.coralIsInRange(self.canRangeFunnel)
+    #     ), 
+    #     commands2.InstantCommand(), 
+    #     self.coralIsInRange(self.canRangeEE)
+    #   ), 
+    #   commands2.InstantCommand(), 
+    #   self.coralIsInRange(self.canRangeFunnel)
+    # )
+
+    # wait until coral is detected by the EE canrange 
+    # then wait until coral is undetected by the funnel canrange 
+    # then stop the intake motors
+    self.coralIntakeCommand = commands2.SequentialCommandGroup(
+      WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+      WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+      Intake(self.endEffector)
     )
 
   def robotInit(self):
