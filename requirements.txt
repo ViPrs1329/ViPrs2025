@@ -1,0 +1,11 @@
+robotpy==2024.3.1.0
+robotpy-commands-v2==2024.3.1.0
+robotpy-hal==2024.3.1.0
+robotpy-halsim-gui==2024.3.1.0
+robotpy-installer==2024.3.1.0
+robotpy-wpilib-utilities==2024.3.1.0
+robotpy-wpimath==2024.3.1.0
+robotpy-wpinet==2024.3.1.0
+robotpy-wpiutil==2024.3.1.0
+robotpy-rev==2024.3.1.0
+robotpy-ctre==2024.3.1.0 
