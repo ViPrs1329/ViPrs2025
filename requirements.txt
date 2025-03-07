@@ -1,0 +1,13 @@
+robotpy
+robotpy-commands-v2
+robotpy-hal
+robotpy-halsim-gui
+robotpy-installer
+robotpy-wpilib-utilities
+robotpy-wpimath
+robotpy-wpinet
+robotpy-wpiutil
+robotpy-rev
+phoenix6
+pytest
+pytest-cov 
