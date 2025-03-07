@@ -3,6 +3,7 @@ Commands for the ALGAE subsystem.
 """
 import commands2
 from robot.subsystems.algaesubsystem import AlgaeSubsystem
+from robot.constants import ALGAE_ARM_WORKING_ANGLE
 
 class SetArmPosition(commands2.Command):
     """
@@ -78,8 +79,9 @@ class IntakeAlgae(commands2.Command):
         
     def execute(self) -> None:
         """
-        Sets the intake wheels to intake speed.
+        Sets the arm to working position and intake wheels to intake speed.
         """
+        self.subsystem.setArmPosition(ALGAE_ARM_WORKING_ANGLE)
         self.subsystem.setIntakeSpeed(0.8)  # 80% speed for intake
         
     def end(self, interrupted: bool) -> None:

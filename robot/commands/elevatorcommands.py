@@ -9,7 +9,7 @@ class SetElevatorHeight(commands2.Command):
     Command to set the elevator to a specific height.
     """
     
-    def __init__(self, subsystem: ElevatorSubsystem, height: str):
+    def __init__(self, subsystem: ElevatorSubsystem, height: float | str):
         """
         Creates a new SetElevatorHeight command.
         
@@ -17,8 +17,8 @@ class SetElevatorHeight(commands2.Command):
         ----------
         subsystem : ElevatorSubsystem
             The elevator subsystem to use
-        height : str
-            The height to set ("BASE", "L1", "L2", "L3", "L4")
+        height : float | str
+            The height to set (either a direct height value in inches or a preset key like "L1", "L2", etc.)
         """
         super().__init__()
         
@@ -31,7 +31,10 @@ class SetElevatorHeight(commands2.Command):
         """
         Sets the elevator to the specified height.
         """
-        self.subsystem.setPosition(self.subsystem.SCORING_HEIGHTS[self.height])
+        if isinstance(self.height, str):
+            self.subsystem.setPosition(self.subsystem.SCORING_HEIGHTS[self.height])
+        else:
+            self.subsystem.setPosition(self.height)
         
     def isFinished(self) -> bool:
         """
@@ -53,8 +56,7 @@ class SetElevatorHeight(commands2.Command):
         interrupted : bool
             Whether the command was interrupted
         """
-        if interrupted:
-            self.subsystem.stop()
+        self.subsystem.stop()
 
 class ManualElevatorControl(commands2.Command):
     """
