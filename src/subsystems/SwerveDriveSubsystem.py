@@ -231,12 +231,14 @@ class DriveTrain(commands2.Subsystem):
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
     frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
 
+    print('Drive Positions - ' + str(speeds))
+
     bldSpeed = -backLeft.speed
     brdSpeed = backRight.speed
     fldSpeed = frontLeft.speed
     frdSpeed = frontRight.speed
 
-    print('Positions - ' + str([self.BleftEnc.get_absolute_position()._value, self.FleftEnc.get_absolute_position()._value, self.BrightEnc.get_absolute_position()._value, self.FrightEnc.get_absolute_position()._value]))
+    print('Rotation Positions - ' + str([self.BleftEnc.get_absolute_position()._value, self.FleftEnc.get_absolute_position()._value, self.BrightEnc.get_absolute_position()._value, self.FrightEnc.get_absolute_position()._value]))
 
     blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
     flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
@@ -244,20 +246,20 @@ class DriveTrain(commands2.Subsystem):
     frrSpeed = self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
 
     dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
-    rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
+    rSpeedList = [blrSpeed, brrSpeed, flrSpeed, frrSpeed]
 
 
-    #for i in range(len(dSpeedList)):
-    #   if abs(dSpeedList[i])<0.5: #drive deadzone
-    #      dSpeedList[i]=0
+    for i in range(len(dSpeedList)):
+       if abs(dSpeedList[i])<0.2: #drive deadzone
+          dSpeedList[i]=0
 
-    #for i in range(len(rSpeedList)):
-    #   if abs(rSpeedList[i])<0.5: #rotation deadzone
-    #      rSpeedList[i]=0
+    for i in range(len(rSpeedList)):
+       if abs(rSpeedList[i])<0.1: #rotation deadzone
+          rSpeedList[i]=0
 
     self.backLeftRotation.set(rSpeedList[0])
-    self.frontLeftRotation.set(rSpeedList[1])
-    self.backRightRotation.set(rSpeedList[2])
+    self.backRightRotation.set(rSpeedList[1])
+    self.frontLeftRotation.set(rSpeedList[2])
     self.frontRightRotation.set(rSpeedList[3])
 
     self.backLeftDrive.set(dSpeedList[0])
