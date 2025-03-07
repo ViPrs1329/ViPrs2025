@@ -6,8 +6,8 @@ import commands2
 import wpilib
 from typing import Callable
 
-from subsystems.drivesubsystem import DriveSubsystem
-from constants import *
+from robot.subsystems.drivesubsystem import DriveSubsystem
+from robot.constants import *
 
 class DefaultDriveCommand(commands2.Command):
     """
@@ -40,13 +40,13 @@ class DefaultDriveCommand(commands2.Command):
         """
         super().__init__()
         
-        self.drive = drive_subsystem
+        self.drive_subsystem = drive_subsystem
         self.x_speed_supplier = x_speed_supplier
         self.y_speed_supplier = y_speed_supplier
         self.rot_supplier = rot_supplier
         self.precision_mode_supplier = precision_mode_supplier
         
-        self.addRequirements([drive_subsystem])
+        self.addRequirements(drive_subsystem)
         
     def execute(self) -> None:
         """
@@ -79,7 +79,7 @@ class DefaultDriveCommand(commands2.Command):
         rot *= SWERVE_MAX_ANGULAR_SPEED
         
         # Drive
-        self.drive.drive(x_speed, y_speed, rot)
+        self.drive_subsystem.drive(x_speed, y_speed, rot)
         
     def _apply_deadband(self, value: float) -> float:
         """
@@ -103,4 +103,4 @@ class DefaultDriveCommand(commands2.Command):
         """
         Called when the command ends.
         """
-        self.drive.drive(0, 0, 0) 
+        self.drive_subsystem.drive(0, 0, 0) 

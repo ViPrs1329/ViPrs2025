@@ -5,12 +5,12 @@ import math
 import wpilib
 import commands2
 import rev
-import ctre
+import phoenix6
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds
 from wpimath.geometry import Translation2d, Rotation2d
-import wpimath.units
+from wpimath.units import inchesToMeters
 
-from constants import *
+from robot.constants import *
 
 class DriveSubsystem(commands2.Subsystem):
     """
@@ -21,30 +21,30 @@ class DriveSubsystem(commands2.Subsystem):
         super().__init__()
 
         # Initialize the gyro
-        self.gyro = ctre.Pigeon2(PIGEON_ID)
+        self.gyro = phoenix6.hardware.Pigeon2(PIGEON_ID)
         self.gyro.reset()  # Reset to 0 degrees
 
         # Create the kinematics object
         self.kinematics = SwerveDrive4Kinematics(
             # Front left
             Translation2d(
-                ROBOT_LENGTH_INCHES / 2 * wpimath.units.inches,
-                ROBOT_WIDTH_INCHES / 2 * wpimath.units.inches
+                inchesToMeters(ROBOT_LENGTH_INCHES / 2),
+                inchesToMeters(ROBOT_WIDTH_INCHES / 2)
             ),
             # Front right
             Translation2d(
-                ROBOT_LENGTH_INCHES / 2 * wpimath.units.inches,
-                -ROBOT_WIDTH_INCHES / 2 * wpimath.units.inches
+                inchesToMeters(ROBOT_LENGTH_INCHES / 2),
+                inchesToMeters(-ROBOT_WIDTH_INCHES / 2)
             ),
             # Back left
             Translation2d(
-                -ROBOT_LENGTH_INCHES / 2 * wpimath.units.inches,
-                ROBOT_WIDTH_INCHES / 2 * wpimath.units.inches
+                inchesToMeters(-ROBOT_LENGTH_INCHES / 2),
+                inchesToMeters(ROBOT_WIDTH_INCHES / 2)
             ),
             # Back right
             Translation2d(
-                -ROBOT_LENGTH_INCHES / 2 * wpimath.units.inches,
-                -ROBOT_WIDTH_INCHES / 2 * wpimath.units.inches
+                inchesToMeters(-ROBOT_LENGTH_INCHES / 2),
+                inchesToMeters(-ROBOT_WIDTH_INCHES / 2)
             )
         )
 
@@ -81,22 +81,20 @@ class DriveSubsystem(commands2.Subsystem):
         """
         Creates a swerve module with the specified motor and encoder IDs.
         
-        Returns a tuple of (drive_motor, turn_motor, turn_encoder)
+        Returns a tuple of (drive_motor, turn_motor, turn_encoder, drive_pid, turn_pid)
         """
         # Create the drive motor
-        drive_motor = rev.CANSparkMax(drive_id, rev.CANSparkMax.MotorType.kBrushless)
-        drive_motor.restoreFactoryDefaults()
-        drive_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        drive_motor = rev.SparkMax(drive_id, rev.SparkLowLevel.MotorType.kBrushless)
+        drive_motor.setIdleMode(rev.SparkBase.IdleMode.kBrake)
         drive_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
         
         # Create the turn motor
-        turn_motor = rev.CANSparkMax(turn_id, rev.CANSparkMax.MotorType.kBrushless)
-        turn_motor.restoreFactoryDefaults()
-        turn_motor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        turn_motor = rev.SparkMax(turn_id, rev.SparkLowLevel.MotorType.kBrushless)
+        turn_motor.setIdleMode(rev.SparkBase.IdleMode.kBrake)
         turn_motor.setSmartCurrentLimit(NEO_CURRENT_LIMIT)
         
         # Create the turn encoder
-        turn_encoder = ctre.CANCoder(encoder_id)
+        turn_encoder = phoenix6.hardware.CANcoder(encoder_id)
         
         # Create PID controllers
         drive_pid = drive_motor.getPIDController()
@@ -115,7 +113,7 @@ class DriveSubsystem(commands2.Subsystem):
         """
         Returns the robot's heading in degrees, from -180 to 180.
         """
-        return math.remainder(self.gyro.getYaw(), 360)
+        return math.remainder(self.gyro.getYaw().value, 360)
 
     def getRotation2d(self) -> Rotation2d:
         """
@@ -184,16 +182,16 @@ class DriveSubsystem(commands2.Subsystem):
         drive_motor, turn_motor, turn_encoder, drive_pid, turn_pid = module
         
         # Optimize the state to avoid spinning more than 90 degrees
-        current_angle = turn_encoder.getAbsolutePosition()
+        current_angle = Rotation2d.fromDegrees(turn_encoder.getAbsolutePosition().value)
         optimized_state = SwerveModuleState.optimize(state, current_angle)
         
         # Set the turn motor position
-        turn_pid.setReference(optimized_state.angle.degrees(), rev.CANSparkMax.ControlType.kPosition)
+        turn_pid.setReference(optimized_state.angle.degrees(), rev.SparkMax.ControlType.kPosition)
         
         # Set the drive motor velocity
         drive_pid.setReference(
             optimized_state.speed,
-            rev.CANSparkMax.ControlType.kVelocity
+            rev.SparkMax.ControlType.kVelocity
         )
 
     def toggleFieldRelative(self) -> None:
