@@ -9,9 +9,12 @@ import rev
 import commands2
 from constants import CANIDs, intakeConsts  # Assuming CANIDs are defined in constants.py
 from wpimath.controller import PIDController
+import ntcore
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
         super().__init__()
+        inst = ntcore.NetworkTableInstance.getDefault()
+        self.table = inst.getTable("EE Table")
 
         # 1. Algae Intake Rotation Motor
         self.algae_rotation_motor = rev.SparkMax(
@@ -19,9 +22,9 @@ class EndEffector(commands2.Subsystem):
         )
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_rotation_motor_config = rev.SparkBaseConfig()
-        self.algae_rotation_motor_config.setIdleMode(rev.SparkBase.IdleMode.kBrake)
-        self.algae_rotation_motor_config.smart_current_limit_amps = 20 #limit current
-        self.algae_rotation_motor.apply(self.algae_rotation_motor_config)
+        self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+        self.algae_rotation_motor_config.smartCurrentLimit(20) #limit current
+        self.algae_rotation_motor.configure(self.algae_rotation_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 2. Algae Intake Motor
         self.algae_intake_motor = rev.SparkMax(
@@ -29,29 +32,29 @@ class EndEffector(commands2.Subsystem):
         )
         self.algae_intake_motor.setInverted(False)  # Adjust if needed
         self.algae_intake_motor_config = rev.SparkBaseConfig()
-        self.algae_intake_motor_config.setIdleMode(rev.SparkBase.IdleMode.kBrake) #can change to brake if needed
-        self.algae_intake_motor_config.smart_current_limit_amps = 20 #limit current
-        self.algae_intake_motor.apply(self.algae_intake_motor_config)
+        self.algae_intake_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
+        self.algae_intake_motor_config.smartCurrentLimit(20) #limit current
+        self.algae_intake_motor.configure(self.algae_intake_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 3. Coral Intake Left Motor
         self.coral_intake_left_motor = rev.SparkMax(
-            CANIDs.CoralIntakeLeft, rev.SparkMax.MotorType.kBrushless
+            CANIDs.CoralLeft, rev.SparkMax.MotorType.kBrushless
         )
-        self.coral_intake_left_motor.setInverted(False)  # Adjust if needed
         self.coral_intake_left_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_left_motor_config.idle_mode = rev.SparkMax.IdleMode.kCoast #can change to brake if needed
-        self.coral_intake_left_motor_config.smart_current_limit_amps = 20 #limit current
-        self.coral_intake_left_motor.apply(self.coral_intake_left_motor_config)
+        self.coral_intake_left_motor_config.inverted(True)  # Adjust if needed
+        self.coral_intake_left_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
+        self.coral_intake_left_motor_config.smartCurrentLimit(20) #limit current
+        self.coral_intake_left_motor.configure(self.coral_intake_left_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 4. Coral Intake Right Motor
         self.coral_intake_right_motor = rev.SparkMax(
-            CANIDs.CoralIntakeRight, rev.SparkMax.MotorType.kBrushless
+            CANIDs.CoralRight, rev.SparkMax.MotorType.kBrushless
         )
-        self.coral_intake_right_motor.setInverted(True)  # Adjust if needed, may need to be inverted
         self.coral_intake_right_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_right_motor_config.idle_mode = rev.SparkMax.IdleMode.kCoast #can change to brake if needed
-        self.coral_intake_right_motor_config.smart_current_limit_amps = 20 #limit current
-        self.coral_intake_right_motor.apply(self.coral_intake_right_motor_config)
+        self.coral_intake_right_motor_config.inverted(False)  # Adjust if needed, may need to be inverted
+        self.coral_intake_right_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
+        self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
+        self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         Kp = 1
         Ki = 0

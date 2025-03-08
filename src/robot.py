@@ -85,7 +85,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
     self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
     self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
-    self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController))
+    self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
@@ -134,6 +134,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.controllerXPub = table.getDoubleTopic("controller x").publish()
     self.controllerYPub = table.getDoubleTopic("controller y").publish()
     self.robotPosition = table.getStructTopic("robot pose", Pose2d).publish()
+    self.headingValue = table.getDoubleTopic("heading").publish()
     
     self.slowScaler = 1
 
@@ -173,7 +174,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain.resetHarder()
     self.systemTempCheck()
     self.configureButtonBindings()
-    self.endEffector.startCoralMotors()
+    # self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):
     return (input ** 3)
@@ -222,10 +223,13 @@ class MyRobot(commands2.TimedCommandRobot):
     h2 = h / 360
 
     heading = h2 * (math.pi * 2)
+    self.headingValue.set(heading)
     #print(xSpeed, ySpeed, tSpeed)
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     self.robotPosition.set(self.drivetrain.combinedPosition)
+
+    self.scheduler.run()
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""

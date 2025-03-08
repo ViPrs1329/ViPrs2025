@@ -12,6 +12,8 @@ from constants import CANIDs
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
+import ntcore
+
 
 def lratio(angle):
     """converts -pi, pi to -.5,.5"""
@@ -38,7 +40,13 @@ def getSwerveModPos(rotEnc : CANcoder, driveEnc: rev.SparkRelativeEncoder) -> Sw
 class DriveTrain(commands2.Subsystem):
   def __init__(self) -> None:
     super().__init__()
-    
+
+    # create network table
+    inst = ntcore.NetworkTableInstance.getDefault()
+    self.table = inst.getTable("Swerve Table")
+
+    self.FRlratio = self.table.getDoubleTopic("FR lratio").publish()
+
     self.robotOdometryPosition = Pose2d()
     self.combinedPosition = Pose2d()
 
@@ -109,7 +117,7 @@ class DriveTrain(commands2.Subsystem):
 
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
-    Kp = 4
+    Kp = 2
     Ki = 0
     Kd = 0
     self.BleftPID = controller.PIDController(Kp,Ki,Kd)
@@ -132,7 +140,7 @@ class DriveTrain(commands2.Subsystem):
 
     # Kinematics (need to get back from design on exact measurments)
 
-    lv = 0.381 #location value
+    lv = 0.3 #location value
 
     frontrightlocation = Translation2d(lv, lv) 
     frontleftlocation = Translation2d(lv, -lv) 
@@ -231,7 +239,7 @@ class DriveTrain(commands2.Subsystem):
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
     frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
 
-    bldSpeed = -backLeft.speed
+    bldSpeed = backLeft.speed
     brdSpeed = backRight.speed
     fldSpeed = frontLeft.speed
     frdSpeed = frontRight.speed
@@ -239,7 +247,8 @@ class DriveTrain(commands2.Subsystem):
     blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
     flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
     brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
-    frrSpeed = self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
+    frrSpeed = -self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
+    self.FRlratio.set(frrSpeed)
 
     dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
     rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
@@ -288,7 +297,7 @@ class DriveTrain(commands2.Subsystem):
     frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
     frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
     backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
-    frontRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
+    backRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
 
     self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
     self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
