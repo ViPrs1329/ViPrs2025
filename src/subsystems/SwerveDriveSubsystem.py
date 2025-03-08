@@ -415,7 +415,7 @@ class DriveTrain(commands2.Subsystem):
         self.frontLeftRotation.set(flrSpeed)
         self.frontRightRotation.set(frrSpeed)
 
-        self.backLeftDrive.set(-bldSpeed)  # Note: Negative based on motor orientation
+        self.backLeftDrive.set(bldSpeed)  # Note: Negative based on motor orientation
         self.backRightDrive.set(brdSpeed)
         self.frontLeftDrive.set(fldSpeed)
         self.frontRightDrive.set(frdSpeed)

@@ -206,7 +206,7 @@ class MyRobot(commands2.TimedCommandRobot):
     if abs(yInput) < constants.controller.XYdeadzone:
       yInput=0
 
-    xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(yInput, xInput)
+    xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(xInput, yInput) # These were swapped for some reason
     print('X Speed - ' + str(xSpeed))
     print('Y Speed - ' + str(ySpeed))
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
