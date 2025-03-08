@@ -69,6 +69,13 @@ class driveConsts:
     # Drive encoder conversion factors
     driveEncoderPositionFactor = wheelCircumference / driveGearRatio
     driveEncoderVelocityFactor = driveEncoderPositionFactor / 60.0  # per minute to per second
+
+    # Swerve drive CANcoder offset values
+    # TODO: Find the correct offsets for the CANcoders
+    frontLeftCANcoderOffset = 0.0
+    frontRightCANcoderOffset = 0.0
+    backLeftCANcoderOffset = 0.0
+    backRightCANcoderOffset = 0.0
     
     # Robot dimensions
     wheelBase = 0.762  # meters (distance between front and back wheels)
@@ -100,3 +107,6 @@ class driveConsts:
     
     # Autonomous settings
     autonomousTime = 5  # seconds
+
+    # Gyro
+    invertGyro = False

@@ -19,7 +19,7 @@ class FollowPathCommand(commands2.Command):
         super().__init__()
         print('initFollowPath()')
         self.pathName = pathName
-        self.driveFunction = DriveTrain.driveFromChassisSpeeds
+        self.driveFunction = DriveTrain.driveFromChassisSpeeds # THIS IS NOT A STATIC METHOD! THIS WON'T WORK!
         self.trajectory = None
         self.timer = wpilib.Timer()
 

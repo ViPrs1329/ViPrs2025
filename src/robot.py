@@ -145,8 +145,8 @@ class MyRobot(commands2.TimedCommandRobot):
     print("robotInit()")
 
   def robotPeriodic(self):
-    # print("robotPeriodic()")
-    pass
+    # This needs to be here otherwise any commands2.Subsystem.periodic() calls will not be called
+    commands2.CommandScheduler.getInstance().run() 
         
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
@@ -222,18 +222,30 @@ class MyRobot(commands2.TimedCommandRobot):
     if abs(tSpeed) < constants.controller.Tdeadzone:
       tSpeed=0
 
-    yaw = self.drivetrain.gyro.get_yaw().value_as_double
+    #################################
+    ## REEVALUTATION NEEDED! THERE IS AN 
+    ## INCONSISTENCY IN THE WAY WE ARE
+    ## USING THE GYRO. SEE THE updateOdometry()
+    ## METHOD IN SwerveDriveSubsystem.py
+    ## FOR COMPARISON.
+    # yaw = self.drivetrain.gyro.get_yaw().value_as_double
 
-    h = yaw % 360
-    if h < 0:
-      h += 360
+    # h = yaw % 360
+    # if h < 0:
+    #   h += 360
 
-    h2 = h / 360
+    # h2 = h / 360
 
-    heading = h2 * (math.pi * 2)
-    #print(xSpeed, ySpeed, tSpeed)
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
+    
+    # heading = h2 * (math.pi * 2)
+    # speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
+
+    # Much simpler and consistent Gyro and heading calculation
+    heading = self.drivetrain.getFieldRelativeHeading()
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, heading)
+    
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
+
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
   def testInit(self): 

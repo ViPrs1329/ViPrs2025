@@ -241,7 +241,8 @@ class DriveTrain(commands2.Subsystem):
   
     def updateOdometry(self) -> None:
         """Update odometry with current encoder values"""
-        yaw = deg2Rot2d(self.gyro.get_yaw().value_as_double)
+        # Use the standardized gyro reading method
+        yaw = self.getGyroRotation2d()
         
         # Get the current module positions
         modulePositions = (
@@ -305,8 +306,9 @@ class DriveTrain(commands2.Subsystem):
         
         # Convert speeds to module states
         # Note: Negate values based on coordinate system conventions
-        adjusted_speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
-        moduleStates = self.kinematics.toSwerveModuleStates(adjusted_speeds)
+        # Why are we recalculating the coordinates here?
+        # adjusted_speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
+        moduleStates = self.kinematics.toSwerveModuleStates(speeds)
         
         # Get individual module states
         frontLeft, frontRight, backLeft, backRight = moduleStates
@@ -438,3 +440,34 @@ class DriveTrain(commands2.Subsystem):
         self.frontRightRotation.set(0)
         self.backLeftRotation.set(0)
         self.backRightRotation.set(0)
+
+    def getGyroAngle(self):
+        """
+        Returns the gyro angle in degrees (0-360)
+        """
+        # Get raw gyro value
+        angle = self.gyro.get_yaw().value_as_double
+        
+        # Apply inversion if needed (based on robot orientation)
+        if driveConsts.invertGyro:
+            angle = -angle
+        
+        # Normalize to 0-360 range
+        angle = angle % 360
+        if angle < 0:
+            angle += 360
+        
+        return angle
+
+    def getGyroRotation2d(self):
+        """
+        Returns the gyro angle as a Rotation2d object
+        """
+        return Rotation2d.fromDegrees(self.getGyroAngle())
+
+    def getFieldRelativeHeading(self):
+        """
+        Returns the heading to use for field-relative control
+        """
+        return self.getGyroRotation2d()
+
