@@ -23,14 +23,14 @@ class convert:
     
 class CANIDs:
     # Swerve CAD IDs
-    SwerveModuleDrive1 = 10    # Front Left
-    SwerveModuleRotation1 = 11 # Front Left
-    SwerveModuleDrive2 = 12    # Back Left
-    SwerveModuleRotation2 = 13 # Back Left
-    SwerveModuleDrive3 = 4     # Back Right
-    SwerveModuleRotation3 = 5  # Back Right
-    SwerveModuleDrive4 = 8     # Front Right
-    SwerveModuleRotation4 = 9  # Front Right
+    SwerveModuleDrive1 = 10    # 
+    SwerveModuleRotation1 = 11 # 
+    SwerveModuleDrive2 = 12    # 
+    SwerveModuleRotation2 = 13 # 
+    SwerveModuleDrive3 = 4     # 
+    SwerveModuleRotation3 = 5  # 
+    SwerveModuleDrive4 = 8     # 
+    SwerveModuleRotation4 = 9  # 
     
     # Elevator motors
     ElevatorLeft = 15
@@ -110,3 +110,26 @@ class driveConsts:
 
     # Gyro
     invertGyro = False
+
+class intakeConsts:
+    intakeSpeed = 0.5
+    algaeIntakeSpeed = 0.5
+    algaeArmAngles = [0, 0, 0, 0, 0]
+    algaeThresholdCurrent = 1
+    coralDetectionThreshold = 0.05
+
+class elevatorConsts:
+    # heights for ground, L1, L2, L3, and L4
+    elevatorHeights = [0, 1, 2, 3, 4]
+    verticalOffset = 2 #inches of clearance above target branches
+
+
+class reefConsts:
+    #information about the reef for defining elevator levels
+    # [level index, maximum height in inches, pitch in degrees from horizontal, roll in degrees from upright]
+    L0 = [0, 0, 90, 0]
+    L1 = [1, 18, 0, 90]
+    L2 = [2, 31.875, 35, 0]
+    L3 = [3, 47.625, 35, 0]
+    L4 = [4, 72, 90, 0]
+    reefLevels = [L0, L1, L2, L3, L4]
