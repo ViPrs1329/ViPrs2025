@@ -22,14 +22,14 @@ class convert:
 
 class CANIDs:
     # Swerve CAD IDs
-    SwerveModuleDrive1 = 11
-    SwerveModuleRotation1 = 10
-    SwerveModuleDrive2 = 13
-    SwerveModuleRotation2 = 12
-    SwerveModuleDrive3 = 5
-    SwerveModuleRotation3 = 4
-    SwerveModuleDrive4 = 9
-    SwerveModuleRotation4 = 8
+    SwerveModuleDriveFL = 10
+    SwerveModuleRotationFL = 11
+    SwerveModuleDriveBL = 12
+    SwerveModuleRotationBL = 13
+    SwerveModuleDriveBR = 4
+    SwerveModuleRotationBR = 5
+    SwerveModuleDriveFR = 8
+    SwerveModuleRotationFR = 9
     
     # Elevator motors
     ElevatorLeft = 15
@@ -37,16 +37,22 @@ class CANIDs:
 
     # Encoders
 
-    EncoderModuleRotation1 = 20
-    EncoderModuleRotation2 = 17
-    EncoderModuleRotation3 = 19
-    EncoderModuleRotation4 = 18
+    EncoderModuleRotationFL = 19
+    EncoderModuleRotationBL = 20
+    EncoderModuleRotationBR = 17
+    EncoderModuleRotationFR = 18
+
+    # pigeon
+    pigeonID = 21
 
     #end effector ids
-    CoralLeft = 100
-    CoralRight = 100
-    AlgaeArm = 100
-    AlgaeIntake = 100
+    CoralLeft = 6
+    CoralRight = 2
+    AlgaeArm = 3
+    AlgaeIntake = 7
+    CanRangeFunnel = 22
+    CanRangeEE = 23
+
 
 class inputConsts:
     inputScale = 0.8
@@ -62,6 +68,8 @@ class intakeConsts:
     algaeIntakeSpeed = 0.5
     algaeArmAngles = [0, 0, 0, 0, 0]
     algaeThresholdCurrent = 1
+
+    # 5cm for the canrange
     coralDetectionThreshold = 0.05
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4

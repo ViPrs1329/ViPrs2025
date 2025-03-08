@@ -46,15 +46,15 @@ class DriveTrain(commands2.Subsystem):
     # Need to replace CAN ids with their respective
     # ids from constants.CANIDs
 
-    self.backLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotation2, rev.SparkMax.MotorType.kBrushless)
-    self.backRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotation3, rev.SparkMax.MotorType.kBrushless)
-    self.frontLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotation1, rev.SparkMax.MotorType.kBrushless)
-    self.frontRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotation4, rev.SparkMax.MotorType.kBrushless)
+    self.backLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotationBL, rev.SparkMax.MotorType.kBrushless)
+    self.backRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotationBR, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftRotation = rev.SparkMax(CANIDs.SwerveModuleRotationFL, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightRotation = rev.SparkMax(CANIDs.SwerveModuleRotationFR, rev.SparkMax.MotorType.kBrushless)
 
-    self.backLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDrive2, rev.SparkMax.MotorType.kBrushless)
-    self.backRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive3, rev.SparkMax.MotorType.kBrushless)
-    self.frontLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDrive1, rev.SparkMax.MotorType.kBrushless)
-    self.frontRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive4, rev.SparkMax.MotorType.kBrushless)
+    self.backLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDriveBL, rev.SparkMax.MotorType.kBrushless)
+    self.backRightDrive = rev.SparkMax(CANIDs.SwerveModuleDriveBR, rev.SparkMax.MotorType.kBrushless)
+    self.frontLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDriveFL, rev.SparkMax.MotorType.kBrushless)
+    self.frontRightDrive = rev.SparkMax(CANIDs.SwerveModuleDriveFR, rev.SparkMax.MotorType.kBrushless)
 
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
@@ -102,10 +102,10 @@ class DriveTrain(commands2.Subsystem):
 
     # Need to add correct CANcoder ids in constants.py
 
-    self.FrightEnc = CANcoder(CANIDs.EncoderModuleRotation4)
-    self.FleftEnc = CANcoder(CANIDs.EncoderModuleRotation3)
-    self.BrightEnc = CANcoder(CANIDs.EncoderModuleRotation2)
-    self.BleftEnc = CANcoder(CANIDs.EncoderModuleRotation1)
+    self.FrightEnc = CANcoder(CANIDs.EncoderModuleRotationFR)
+    self.FleftEnc = CANcoder(CANIDs.EncoderModuleRotationFL)
+    self.BrightEnc = CANcoder(CANIDs.EncoderModuleRotationBR)
+    self.BleftEnc = CANcoder(CANIDs.EncoderModuleRotationBL)
 
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
@@ -127,7 +127,7 @@ class DriveTrain(commands2.Subsystem):
 
     # Gyro init
 
-    self.gyro = Pigeon2(21)
+    self.gyro = Pigeon2(CANIDs.pigeonID)
     self.gyro.set_yaw(0)
 
     # Kinematics (need to get back from design on exact measurments)

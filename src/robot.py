@@ -29,7 +29,7 @@ from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
-from commands.pathplannerCommand import FollowPathCommand
+# from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
 class MyRobot(commands2.TimedCommandRobot):
@@ -141,8 +141,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.scheduler = commands2.CommandScheduler.getInstance()
 
-    self.canRangeFunnel = CANrange(21)
-    self.canRangeEE = CANrange(22)
+    self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
+    self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
     print("robotInit()")
 

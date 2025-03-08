@@ -15,11 +15,11 @@ class EndEffector(commands2.Subsystem):
 
         # 1. Algae Intake Rotation Motor
         self.algae_rotation_motor = rev.SparkMax(
-            CANIDs.AlgaeIntakeRotation, rev.SparkMax.MotorType.kBrushless
+            CANIDs.AlgaeArm, rev.SparkMax.MotorType.kBrushless
         )
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
-        self.algae_rotation_motor_config = rev.SparkMaxConfig()
-        self.algae_rotation_motor_config.idle_mode = rev.SparkMax.IdleMode.kBrake
+        self.algae_rotation_motor_config = rev.SparkBaseConfig()
+        self.algae_rotation_motor_config.setIdleMode(rev.SparkBase.IdleMode.kBrake)
         self.algae_rotation_motor_config.smart_current_limit_amps = 20 #limit current
         self.algae_rotation_motor.apply(self.algae_rotation_motor_config)
 
@@ -28,8 +28,8 @@ class EndEffector(commands2.Subsystem):
             CANIDs.AlgaeIntake, rev.SparkMax.MotorType.kBrushless
         )
         self.algae_intake_motor.setInverted(False)  # Adjust if needed
-        self.algae_intake_motor_config = rev.SparkMaxConfig()
-        self.algae_intake_motor_config.idle_mode = rev.SparkMax.IdleMode.kBrake #can change to brake if needed
+        self.algae_intake_motor_config = rev.SparkBaseConfig()
+        self.algae_intake_motor_config.setIdleMode(rev.SparkBase.IdleMode.kBrake) #can change to brake if needed
         self.algae_intake_motor_config.smart_current_limit_amps = 20 #limit current
         self.algae_intake_motor.apply(self.algae_intake_motor_config)
 
