@@ -11,11 +11,7 @@ from subsystems.drivesubsystem import DriveSubsystem
 from subsystems.elevatorsubsystem import ElevatorSubsystem
 from subsystems.coralsubsystem import CoralSubsystem
 from subsystems.algaesubsystem import AlgaeSubsystem
-<<<<<<< HEAD
 from commands.defaultdrivecommand import DefaultDriveCommand
-=======
-from commands.drivecommands import DefaultDriveCommand
->>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 from commands.elevatorcommands import SetElevatorHeight, ManualElevatorControl
 from commands.coralcommands import IntakeCoral, EjectCoral
 from commands.algaecommands import SetArmPosition, IntakeAlgae, EjectAlgae
@@ -48,7 +44,6 @@ class RobotContainer:
         self.configureButtonBindings()
 
         # Configure default commands
-<<<<<<< HEAD
         self.drive.setDefaultCommand(DefaultDriveCommand(
             self.drive,
             self.driver_controller.getLeftX,
@@ -56,30 +51,20 @@ class RobotContainer:
             self.driver_controller.getRightX,
             self.driver_controller.getYButton
         ))
-=======
-        self.drive.setDefaultCommand(DefaultDriveCommand(self.drive))
->>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
     def configureButtonBindings(self) -> None:
         """
         Use this method to define button->command mappings.
         """
-<<<<<<< HEAD
         # Create an EventLoop
         event_loop = wpilib.event.EventLoop()
 
-=======
->>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         # Field-relative drive toggle (Y button)
         commands2.button.JoystickButton(
             self.driver_controller, wpilib.XboxController.Button.kY
         ).onTrue(commands2.RunCommand(
             lambda: self.drive.toggleFieldRelative(),
-<<<<<<< HEAD
             self.drive
-=======
-            [self.drive]
->>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
         ))
 
         # Reset gyro (X button)
@@ -87,7 +72,6 @@ class RobotContainer:
             self.driver_controller, wpilib.XboxController.Button.kX
         ).onTrue(commands2.RunCommand(
             lambda: self.drive.resetGyro(),
-<<<<<<< HEAD
             self.drive
         ))
         
@@ -110,30 +94,6 @@ class RobotContainer:
         # self.operator_controller.dpadDown().onTrue(SetArmPosition(self.algae, ALGAE_ARM_REST_ANGLE))
         # self.operator_controller.dpadLeft().whileTrue(IntakeAlgae(self.algae))
         # self.operator_controller.dpadRight().whileTrue(EjectAlgae(self.algae))
-=======
-            [self.drive]
-        ))
-        
-        # Elevator height controls
-        self.operator_controller.a().onTrue(SetElevatorHeight(self.elevator, "BASE"))
-        self.operator_controller.b().onTrue(SetElevatorHeight(self.elevator, "L1"))
-        self.operator_controller.x().onTrue(SetElevatorHeight(self.elevator, "L2"))
-        self.operator_controller.y().onTrue(SetElevatorHeight(self.elevator, "L3"))
-        
-        # Manual elevator control
-        self.operator_controller.leftBumper().whileTrue(ManualElevatorControl(self.elevator, 0.5))
-        self.operator_controller.rightBumper().whileTrue(ManualElevatorControl(self.elevator, -0.5))
-        
-        # CORAL controls
-        self.operator_controller.leftTrigger().whileTrue(IntakeCoral(self.coral))
-        self.operator_controller.rightTrigger().whileTrue(EjectCoral(self.coral))
-        
-        # ALGAE controls
-        self.operator_controller.dpadUp().onTrue(SetArmPosition(self.algae, ALGAE_ARM_WORKING_ANGLE))
-        self.operator_controller.dpadDown().onTrue(SetArmPosition(self.algae, ALGAE_ARM_REST_ANGLE))
-        self.operator_controller.dpadLeft().whileTrue(IntakeAlgae(self.algae))
-        self.operator_controller.dpadRight().whileTrue(EjectAlgae(self.algae))
->>>>>>> 0f35bd26675a1644dc9f6f438f5c9e4297dc0f25
 
         # TODO: Add other button bindings for:
         # - End effector control
