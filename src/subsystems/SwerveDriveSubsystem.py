@@ -5,6 +5,7 @@ import commands2
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds, SwerveDrive4Odometry, SwerveModulePosition
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
+import wpilib
 from wpilib import DriverStation
 from wpimath import controller
 
@@ -55,6 +56,8 @@ class DriveTrain(commands2.Subsystem):
     self.backRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive3, rev.SparkMax.MotorType.kBrushless)
     self.frontLeftDrive = rev.SparkMax(CANIDs.SwerveModuleDrive1, rev.SparkMax.MotorType.kBrushless)
     self.frontRightDrive = rev.SparkMax(CANIDs.SwerveModuleDrive4, rev.SparkMax.MotorType.kBrushless)
+
+    self.drivingXboxController = wpilib.XboxController(0)
 
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
@@ -239,11 +242,24 @@ class DriveTrain(commands2.Subsystem):
     frdSpeed = frontRight.speed
 
     print('Rotation Positions - ' + str([self.BleftEnc.get_absolute_position()._value, self.FleftEnc.get_absolute_position()._value, self.BrightEnc.get_absolute_position()._value, self.FrightEnc.get_absolute_position()._value]))
+    print('Rotation Setpoints - ' + str([lratio(backLeft.angle.radians()), lratio(frontLeft.angle.radians()), lratio(backRight.angle.radians()), lratio(frontRight.angle.radians())]))
+
 
     blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
     flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
     brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
     frrSpeed = self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
+
+    lxInput = self.drivingXboxController.getLeftX()
+    lyInput = self.drivingXboxController.getLeftY()
+    rxInput = self.drivingXboxController.getRightX()
+    ryInput = self.drivingXboxController.getRightY()
+
+
+    '''blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, self.BleftPID.getSetpoint())
+    flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, self.FleftPID.getSetpoint())
+    brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, self.BrightPID.getSetpoint())
+    frrSpeed = self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, self.FrightPID.getSetpoint())'''
 
     dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
     rSpeedList = [blrSpeed, brrSpeed, flrSpeed, frrSpeed]
@@ -257,7 +273,7 @@ class DriveTrain(commands2.Subsystem):
        if abs(rSpeedList[i])<0.1: #rotation deadzone
           rSpeedList[i]=0
 
-    self.backLeftRotation.set(rSpeedList[0])
+    '''self.backLeftRotation.set(rSpeedList[0])
     self.backRightRotation.set(rSpeedList[1])
     self.frontLeftRotation.set(rSpeedList[2])
     self.frontRightRotation.set(rSpeedList[3])
@@ -265,7 +281,17 @@ class DriveTrain(commands2.Subsystem):
     self.backLeftDrive.set(dSpeedList[0])
     self.backRightDrive.set(dSpeedList[1])
     self.frontLeftDrive.set(dSpeedList[2])
-    self.frontRightDrive.set(dSpeedList[3])
+    self.frontRightDrive.set(dSpeedList[3])'''
+
+    self.backLeftRotation.set(rxInput)
+    self.backRightRotation.set(rxInput)
+    self.frontLeftRotation.set(rxInput)
+    self.frontRightRotation.set(rxInput)
+
+    self.backLeftDrive.set(lyInput)
+    self.backRightDrive.set(lyInput)
+    self.frontLeftDrive.set(lyInput)
+    self.frontRightDrive.set(lyInput)
 
     print('Setpoints - ' + str([self.BleftPID.getSetpoint(), self.BrightPID.getSetpoint(), self.FleftPID.getSetpoint(), self.FrightPID.getSetpoint()]))
     print('Drive Speeds - ' + str(dSpeedList))

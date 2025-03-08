@@ -151,7 +151,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
-    FollowPathCommand(self.autonomousCommand)
+    FollowPathCommand('testAuto')
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
@@ -180,7 +180,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def tinputCurve(input: float):
     return (input ** 3) * constants.controller.tscale
 
-  def distanceCorrectedInputCurve(x: float, y: float):
+  '''def distanceCorrectedInputCurve(x: float, y: float):
     d = math.sqrt(x * x + y * y)
     s = MyRobot.inputCurve(d)
     sx = x * s
@@ -189,13 +189,26 @@ class MyRobot(commands2.TimedCommandRobot):
       scale = 1 / math.sqrt(sx * sx + sy * sy)
       sx *= scale
       sy *= scale
-    return sx * constants.controller.scale, sy * constants.controller.scale
+    return sx * constants.controller.scale, sy * constants.controller.scale'''
+  
+  def distanceCorrectedInputCurve(x: float, y: float):
+    return x * constants.controller.scale, y * constants.controller.scale
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
     # self.drivetrain.stopMotors()
     # print("teleopPeriodic()")
-    xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
+    xInput = self.drivingXboxController.getLeftX()
+    yInput = self.drivingXboxController.getLeftY()
+
+    if abs(xInput) < constants.controller.XYdeadzone:
+      xInput=0
+    if abs(yInput) < constants.controller.XYdeadzone:
+      yInput=0
+
+    xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(yInput, xInput)
+    print('X Speed - ' + str(xSpeed))
+    print('Y Speed - ' + str(ySpeed))
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
     #print('X Speed - ' + str(xSpeed))
@@ -205,10 +218,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
-    if abs(xSpeed) < constants.controller.XYdeadzone:
-      xSpeed=0
-    if abs(ySpeed) < constants.controller.XYdeadzone:
-      ySpeed=0
+    
     if abs(tSpeed) < constants.controller.Tdeadzone:
       tSpeed=0
 

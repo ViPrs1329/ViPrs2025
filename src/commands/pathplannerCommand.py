@@ -17,12 +17,14 @@ class FollowPathCommand(commands2.Command):
             driveFunction (function): A function that takes x, y, and heading outputs and drives the robot.
         """
         super().__init__()
+        print('initFollowPath()')
         self.pathName = pathName
         self.driveFunction = DriveTrain.driveFromChassisSpeeds
         self.trajectory = None
         self.timer = wpilib.Timer()
 
     def initialize(self):
+        print('initializeFollowPath()')
         """
         Called when the command is started.
         """
@@ -32,6 +34,7 @@ class FollowPathCommand(commands2.Command):
         self.timer.restart()
 
     def execute(self):
+        print('executeFollowPath()')
         """
         Called repeatedly while the command is running.
         """
@@ -48,12 +51,14 @@ class FollowPathCommand(commands2.Command):
         self.driveFunction(desiredX, desiredY, desiredHeading)
 
     def isFinished(self):
+        print('isFinishedFollowPath()')
         """
         Returns True when the command should stop.
         """
         return self.timer.get() >= self.trajectory.getTotalTime()
 
     def end(self):
+        print('endFollowPath()')
         """
         Called when the command ends.
         """
