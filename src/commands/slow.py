@@ -19,4 +19,4 @@ class Slow(commands2.Command):
         self.s = 1
         
     def isFinished(self) -> bool:
-        return True
+        return False

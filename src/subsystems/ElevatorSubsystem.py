@@ -45,22 +45,24 @@ class Elevator(commands2.Subsystem):
     self.REM.configure(self.REMConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
     # set up the pid controllers
-    Kp = 4
+    Kp = 1
     Ki = 0
     Kd = 0
     self.elevatorPID = controller.PIDController(Kp, Ki, Kd)
     self.elevatorPID.enableContinuousInput(-.5,.5)
     self.elevatorPID.setSetpoint(0.0)
 
+    self.destination = 0
+
   def getElevatorPosition(self):
     return self.REE.getPosition()
   
   def periodic(self):
-    elevatorVelocity = self.elevatorPID.calculate(self.getElevatorPosition())
+    elevatorVelocity = self.elevatorPID.calculate(self.getElevatorPosition(), self.destination)
     self.motorGroup.set(elevatorVelocity)
 
   def gotoPosition(self, position):
-    self.elevatorPID.setSetpoint(position)
+    self.destination = position
 
   def stopMotors(self):
     self.motorGroup.set(0)

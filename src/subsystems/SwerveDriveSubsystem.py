@@ -67,29 +67,29 @@ class DriveTrain(commands2.Subsystem):
     # Set the configs
     self.backLeftRotationConfig = rev.SparkBaseConfig()
     self.backLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backLeftRotationConfig.smartCurrentLimit(10)
+    self.backLeftRotationConfig.smartCurrentLimit(20)
     self.backRightRotationConfig = rev.SparkBaseConfig()
     self.backRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backRightRotationConfig.smartCurrentLimit(10)
+    self.backRightRotationConfig.smartCurrentLimit(20)
     self.frontLeftRotationConfig = rev.SparkBaseConfig()
     self.frontLeftRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontLeftRotationConfig.smartCurrentLimit(10)
+    self.frontLeftRotationConfig.smartCurrentLimit(20)
     self.frontRightRotationConfig = rev.SparkBaseConfig()
     self.frontRightRotationConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontRightRotationConfig.smartCurrentLimit(10)
+    self.frontRightRotationConfig.smartCurrentLimit(20)
 
     self.backLeftDriveConfig = rev.SparkBaseConfig()
     self.backLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backLeftDriveConfig.smartCurrentLimit(10)
+    self.backLeftDriveConfig.smartCurrentLimit(20)
     self.backRightDriveConfig = rev.SparkBaseConfig()
     self.backRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.backRightDriveConfig.smartCurrentLimit(10)
+    self.backRightDriveConfig.smartCurrentLimit(20)
     self.frontLeftDriveConfig = rev.SparkBaseConfig()
     self.frontLeftDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontLeftDriveConfig.smartCurrentLimit(10)
+    self.frontLeftDriveConfig.smartCurrentLimit(20)
     self.frontRightDriveConfig = rev.SparkBaseConfig()
     self.frontRightDriveConfig.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
-    self.frontRightDriveConfig.smartCurrentLimit(10)
+    self.frontRightDriveConfig.smartCurrentLimit(20)
     
     self.backLeftRotation.configure(self.backLeftRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
     self.backRightRotation.configure(self.backRightRotationConfig, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -239,42 +239,65 @@ class DriveTrain(commands2.Subsystem):
     speeds = ChassisSpeeds(speeds.vx, -speeds.vy, -speeds.omega)
     frontLeft, frontRight, backLeft, backRight = self.kinematics.toSwerveModuleStates(speeds)
 
-    bldSpeed = backLeft.speed
-    brdSpeed = backRight.speed
-    fldSpeed = frontLeft.speed
-    frdSpeed = frontRight.speed
+    # bldSpeed = backLeft.speed
+    # brdSpeed = backRight.speed
+    # fldSpeed = frontLeft.speed
+    # frdSpeed = frontRight.speed
 
-    blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
-    flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
-    brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
-    frrSpeed = -self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
-    self.FRlratio.set(frrSpeed)
+    # frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
+    # Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
+    # frontRightOptimized = SwerveModuleState.optimize(frontRight,
+    # Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
+    # backLeftOptimized = SwerveModuleState.optimize(backLeft,
+    # Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
+    # backRightOptimized = SwerveModuleState.optimize(backRight,
+    # Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
 
-    dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
-    rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
+    frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
+    frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
+    backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
+    backRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
+
+    # blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
+    # flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
+    # brrSpeed = -self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians()))
+    # frrSpeed = -self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians()))
+    # self.FRlratio.set(frrSpeed)
+    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
+    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
+    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
+    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
+
+    self.backLeftDrive.set(backLeft.speed)
+    print(f"speedddddddd: {backLeft.speed}")
+    self.backRightDrive.set(backRight.speed)
+    self.frontLeftDrive.set(frontLeft.speed)
+    self.frontRightDrive.set(frontRight.speed)
+    # dSpeedList = [bldSpeed, brdSpeed, fldSpeed, frdSpeed]
+    # rSpeedList = [blrSpeed, flrSpeed, brrSpeed, frrSpeed]
 
 
-    for i in range(len(dSpeedList)):
-       if abs(dSpeedList[i])<0.5: #drive deadzone
-          dSpeedList[i]=0
+    # for i in range(len(dSpeedList)):
+    #    if abs(dSpeedList[i])<0.5: #drive deadzone
+    #       dSpeedList[i]=0
 
-    for i in range(len(rSpeedList)):
-       if abs(rSpeedList[i])<0.5: #rotation deadzone
-          rSpeedList[i]=0
+    # for i in range(len(rSpeedList)):
+    #    if abs(rSpeedList[i])<0.5: #rotation deadzone
+    #       rSpeedList[i]=0
 
-    self.backLeftRotation.set(rSpeedList[0])
-    self.frontLeftRotation.set(rSpeedList[1])
-    self.backRightRotation.set(rSpeedList[2])
-    self.frontRightRotation.set(rSpeedList[3])
+    # self.backLeftRotation.set(rSpeedList[0])
+    # self.frontLeftRotation.set(rSpeedList[1])
+    # self.backRightRotation.set(rSpeedList[2])
+    # self.frontRightRotation.set(rSpeedList[3])
 
-    self.backLeftDrive.set(dSpeedList[0])
-    self.backRightDrive.set(dSpeedList[1])
-    self.frontLeftDrive.set(dSpeedList[2])
-    self.frontRightDrive.set(dSpeedList[3])
+    # self.backLeftDrive.set(dSpeedList[0])
+    # self.backRightDrive.set(dSpeedList[1])
+    # self.frontLeftDrive.set(dSpeedList[2])
+    # self.frontRightDrive.set(dSpeedList[3])
 
-    print(dSpeedList)
-    print(rSpeedList)
-    print('\n')
+    # print(dSpeedList)
+    # print(rSpeedList)
+    # print('\n')
 
 
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
