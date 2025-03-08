@@ -109,7 +109,7 @@ class DriveTrain(commands2.Subsystem):
 
     # PID Setup (needs tuning) (Ideally we don't need to zero our encoders, Yay!)
 
-    Kp = 1  # Was set to 4. Perhaps too high???  - WARDEN
+    Kp = 0.1  # Was set to 4. Perhaps too high??? Even 1.0 was too high. Starting at a low value. --OVERLORD
     Ki = 0.0
     Kd = 0.0
     self.BleftPID = controller.PIDController(Kp,Ki,Kd)
@@ -238,7 +238,10 @@ class DriveTrain(commands2.Subsystem):
     fldSpeed = frontLeft.speed
     frdSpeed = frontRight.speed
 
-    print('Rotation Positions - ' + str([self.BleftEnc.get_absolute_position()._value, self.FleftEnc.get_absolute_position()._value, self.BrightEnc.get_absolute_position()._value, self.FrightEnc.get_absolute_position()._value]))
+    print('Rotation Positions - ' + str([round(self.BleftEnc.get_absolute_position()._value, 2), 
+                                         round(self.FleftEnc.get_absolute_position()._value, 2), 
+                                         round(self.BrightEnc.get_absolute_position()._value, 2), 
+                                         round(self.FrightEnc.get_absolute_position()._value, 2)]))
 
     blrSpeed = -self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians()))
     flrSpeed = -self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians()))
@@ -267,7 +270,10 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
 
-    print('Setpoints - ' + str([self.BleftPID.getSetpoint(), self.BrightPID.getSetpoint(), self.FleftPID.getSetpoint(), self.FrightPID.getSetpoint()]))
+    print('Setpoints - ' + str([round(self.BleftPID.getSetpoint(), 2), 
+                                round(self.BrightPID.getSetpoint(), 2), 
+                                round(self.FleftPID.getSetpoint(), 2), 
+                                round(self.FrightPID.getSetpoint(), 2)]))
     print('Drive Speeds - ' + str(dSpeedList))
     print('Rotation Speeds - ' + str(rSpeedList))
     print('\n')
