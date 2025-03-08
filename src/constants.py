@@ -25,14 +25,15 @@ class convert:
 
 class CANIDs:
     # Swerve CAD IDs
-    SwerveModuleDrive1 = 11
-    SwerveModuleRotation1 = 10
-    SwerveModuleDrive2 = 13
-    SwerveModuleRotation2 = 12
-    SwerveModuleDrive3 = 5
-    SwerveModuleRotation3 = 4
-    SwerveModuleDrive4 = 9
-    SwerveModuleRotation4 = 8
+    # The drive and rotation IDs were switched
+    SwerveModuleDrive1 = 10
+    SwerveModuleRotation1 = 11
+    SwerveModuleDrive2 = 12
+    SwerveModuleRotation2 = 13
+    SwerveModuleDrive3 = 4
+    SwerveModuleRotation3 = 5
+    SwerveModuleDrive4 = 8
+    SwerveModuleRotation4 = 9
     
     # Elevator motors
     ElevatorLeft = 15

@@ -233,10 +233,15 @@ class DriveTrain(commands2.Subsystem):
 
     print('Drive Positions - ' + str(speeds))
 
-    bldSpeed = -backLeft.speed
+    bldSpeed = backLeft.speed
     brdSpeed = backRight.speed
     fldSpeed = frontLeft.speed
     frdSpeed = frontRight.speed
+
+    print("bldSpeed = " + str(bldSpeed),
+          "brdSpeed = " + str(brdSpeed),
+          "fldSpeed = " + str(fldSpeed),
+          "frdSpeed = " + str(frdSpeed))
 
     print('Rotation Positions - ' + str([round(self.BleftEnc.get_absolute_position()._value, 2), 
                                          round(self.FleftEnc.get_absolute_position()._value, 2), 
@@ -265,10 +270,12 @@ class DriveTrain(commands2.Subsystem):
     self.frontLeftRotation.set(rSpeedList[2])
     self.frontRightRotation.set(rSpeedList[3])
 
+    
     self.backLeftDrive.set(dSpeedList[0])
     self.backRightDrive.set(dSpeedList[1])
     self.frontLeftDrive.set(dSpeedList[2])
     self.frontRightDrive.set(dSpeedList[3])
+    
 
     print('Setpoints - ' + str([round(self.BleftPID.getSetpoint(), 2), 
                                 round(self.BrightPID.getSetpoint(), 2), 
