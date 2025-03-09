@@ -81,11 +81,12 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.rightTrigger().whileTrue(Slow(self.slowScaler))
 
     # elevator positions
-    self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
-    self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
-    self.EEECommandXboxController.leftBumper().whileTrue(LB(self.EEEPressedButtons))
-    self.EEECommandXboxController.rightBumper().whileTrue(RB(self.EEEPressedButtons))
-    self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
+
+    # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
+    # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
+    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
+    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
