@@ -174,6 +174,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain.resetHarder()
     self.systemTempCheck()
     self.configureButtonBindings()
+    self.elevatorController.zeroElevator()
     # self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):
@@ -200,8 +201,8 @@ class MyRobot(commands2.TimedCommandRobot):
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
     # xSpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftY())
     # ySpeed = MyRobot.inputCurve(self.drivingXboxController.getLeftX())
-    print('X Speed - ' + str(xSpeed))
-    print('Y Speed - ' + str(ySpeed))
+    # print('X Speed - ' + str(xSpeed))
+    # print('Y Speed - ' + str(ySpeed))
     self.controllerXPub.set(xSpeed * self.slowScaler)
     self.controllerYPub.set(ySpeed * self.slowScaler)
 
@@ -230,6 +231,11 @@ class MyRobot(commands2.TimedCommandRobot):
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
     self.scheduler.run()
+    print(f"""
+in: {2 * constants.convert.rot2in(self.elevatorController.currentLevel)}
+target rot: {self.elevatorController.destination}
+current rot: {self.elevatorController.getElevatorPosition()}
+current: {self.elevatorController.REM.getOutputCurrent()}""")
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""

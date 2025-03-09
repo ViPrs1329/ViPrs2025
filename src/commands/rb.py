@@ -19,4 +19,4 @@ class RB(commands2.Command):
         self.buttons[3] = False
         
     def isFinished(self) -> bool:
-        return True
+        return False

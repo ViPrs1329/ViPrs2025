@@ -18,6 +18,12 @@ class convert:
     def rad2rev(radians):
         return radians / (2 * numpy.pi)
     
+    def rot2in(rot):
+        return rot * 0.34375
+    
+    def in2rot(inches):
+        return inches / 0.34375
+    
     
 
 class CANIDs:
@@ -74,7 +80,7 @@ class intakeConsts:
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [0, 1, 2, 3, 4]
-    verticalOffset = 2 #inches of clearance above target branches
+    verticalOffset = -16 #inches of clearance above target branches
 
 class reefConsts:
     #information about the reef for defining elevator levels
@@ -85,8 +91,6 @@ class reefConsts:
     L3 = [3, 47.625, 35, 0]
     L4 = [4, 72, 90, 0]
     reefLevels = [L0, L1, L2, L3, L4]
-
-
 
 class sensorConsts:
     pass

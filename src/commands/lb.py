@@ -19,4 +19,4 @@ class LB(commands2.Command):
         self.buttons[2] = False
         
     def isFinished(self) -> bool:
-        return True
+        return False

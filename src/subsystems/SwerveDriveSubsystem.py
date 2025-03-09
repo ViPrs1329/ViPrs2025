@@ -269,7 +269,7 @@ class DriveTrain(commands2.Subsystem):
     self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
 
     self.backLeftDrive.set(backLeft.speed)
-    print(f"speedddddddd: {backLeft.speed}")
+    # print(f"speedddddddd: {backLeft.speed}")
     self.backRightDrive.set(backRight.speed)
     self.frontLeftDrive.set(frontLeft.speed)
     self.frontRightDrive.set(frontRight.speed)
