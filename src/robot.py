@@ -32,6 +32,7 @@ from commands.algaeIntake import AlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
+
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
     motorControllers = [
@@ -233,7 +234,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.scheduler.run()
     print(f"""
-in: {2 * constants.convert.rot2in(self.elevatorController.currentLevel)}
+target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
+current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
 target rot: {self.elevatorController.destination}
 current rot: {self.elevatorController.getElevatorPosition()}
 current: {self.elevatorController.REM.getOutputCurrent()}""")
