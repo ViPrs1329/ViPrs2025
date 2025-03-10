@@ -76,7 +76,7 @@ class intakeConsts:
     algaeThresholdCurrent = 1
 
     # 5cm for the canrange
-    coralDetectionThreshold = 0.05
+    coralDetectionThreshold = 0.1
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [0, 1, 2, 3, 4]

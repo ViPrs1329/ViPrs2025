@@ -71,11 +71,11 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def coralIsInRangeEE(self):
     "returns true when coral is detected"
-    return self.canRangeEE.get_distance() < constants.intakeConsts.coralDetectionThreshold
+    return self.canRangeEE.get_distance().value_as_double < constants.intakeConsts.coralDetectionThreshold
 
   def coralIsOutOfRangeFunnel(self):
     "returns true when coral is not detected"
-    return self.canRangeFunnel.get_distance() > constants.intakeConsts.coralDetectionThreshold
+    return self.canRangeFunnel.get_distance().value_as_double > constants.intakeConsts.coralDetectionThreshold
 
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
@@ -108,11 +108,20 @@ class MyRobot(commands2.TimedCommandRobot):
     # wait until coral is detected by the EE canrange 
     # then wait until coral is undetected by the funnel canrange 
     # then stop the intake motors
-    self.coralIntakeCommand = commands2.SequentialCommandGroup(
-      WaitUntilCoralIsDetected(self.coralIsInRangeEE),
-      WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
-      Intake(self.endEffector)
+    self.EEECommandXboxController.x().onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(lambda: print("in")),
+        commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
+        WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+        WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+        commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
+      )
     )
+    # self.coralIntakeCommand = commands2.SequentialCommandGroup(
+    #   WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+    #   WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+    #   Intake(self.endEffector)
+    # )
   autonomousCommand = driveForward
 
   def robotInit(self):
@@ -233,12 +242,15 @@ class MyRobot(commands2.TimedCommandRobot):
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
     self.scheduler.run()
-    print(f"""
-target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
-current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
-target rot: {self.elevatorController.destination}
-current rot: {self.elevatorController.getElevatorPosition()}
-current: {self.elevatorController.REM.getOutputCurrent()}""")
+
+    # important print statement
+    # print(self.canRangeEE.get_distance().value_as_double)
+#     print(f"""
+# target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
+# current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
+# target rot: {self.elevatorController.destination}
+# current rot: {self.elevatorController.getElevatorPosition()}
+# current: {self.elevatorController.REM.getOutputCurrent()}""")
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""
