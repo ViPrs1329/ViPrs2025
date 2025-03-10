@@ -150,6 +150,8 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    self.is_debug_mode = [False]
+
     self.drivingXboxController = wpilib.XboxController(0)
     self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
     self.EEEXboxController = wpilib.XboxController(1)
