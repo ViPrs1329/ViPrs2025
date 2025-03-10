@@ -30,8 +30,8 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor = rev.SparkMax(
             CANIDs.AlgaeIntake, rev.SparkMax.MotorType.kBrushless
         )
-        self.algae_intake_motor.setInverted(False)  # Adjust if needed
         self.algae_intake_motor_config = rev.SparkBaseConfig()
+        self.algae_intake_motor_config.inverted(True)  # Adjust if needed
         self.algae_intake_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.algae_intake_motor_config.smartCurrentLimit(20) #limit current
         self.algae_intake_motor.configure(self.algae_intake_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -41,7 +41,7 @@ class EndEffector(commands2.Subsystem):
             CANIDs.CoralLeft, rev.SparkMax.MotorType.kBrushless
         )
         self.coral_intake_left_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_left_motor_config.inverted(True)  # Adjust if needed
+        self.coral_intake_left_motor_config.inverted(False)  # Adjust if needed
         self.coral_intake_left_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.coral_intake_left_motor_config.smartCurrentLimit(20) #limit current
         self.coral_intake_left_motor.configure(self.coral_intake_left_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -51,7 +51,7 @@ class EndEffector(commands2.Subsystem):
             CANIDs.CoralRight, rev.SparkMax.MotorType.kBrushless
         )
         self.coral_intake_right_motor_config = rev.SparkMaxConfig()
-        self.coral_intake_right_motor_config.inverted(False)  # Adjust if needed, may need to be inverted
+        self.coral_intake_right_motor_config.inverted(True)  # Adjust if needed, may need to be inverted
         self.coral_intake_right_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
         self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
@@ -108,6 +108,7 @@ class EndEffector(commands2.Subsystem):
     def startCoralMotors(self):
         self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
         self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)
+    
     def setAlgaeArmAngle(self, angle):
         self.algaePID.setSetpoint(angle)
 
