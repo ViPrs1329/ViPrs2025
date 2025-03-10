@@ -105,6 +105,25 @@ class MyRobot(commands2.TimedCommandRobot):
     #   self.coralIsInRange(self.canRangeFunnel)
     # )
 
+    # Create the command inline when binding to the button
+    self.EEECommandXboxController.a().toggleOnTrue(
+        commands2.ConditionalCommand(
+            # Create a new instance each time
+            lambda: JoystickElevatorControl(
+                self.elevatorController, 
+                self.EEEXboxController, 
+                scale_factor=0.1
+            ),
+            commands2.InstantCommand(),
+            lambda: self.is_debug_mode[0]
+        )
+    )
+
+    # Add debug mode toggle on Back/Select button
+    self.drivingCommandXboxController.back().onTrue(
+        ToggleDebugMode(self.is_debug_mode)
+    )
+
     # wait until coral is detected by the EE canrange 
     # then wait until coral is undetected by the funnel canrange 
     # then stop the intake motors
