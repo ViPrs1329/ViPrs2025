@@ -32,6 +32,7 @@ from commands.algaeIntake import AlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from commands.JoystickElevatorControl import JoystickElevatorControl
+from commands.ElevatorLimitFinder import ElevatorLimitFinder
 from commands.ToggleDebugMode import ToggleDebugMode
 from phoenix6.hardware import CANrange
 
@@ -118,6 +119,20 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             commands2.InstantCommand(),
             lambda: self.is_debug_mode[0]
+        )
+    )
+
+    # Add elevator limit finder (only usable in debug mode)
+    self.EEECommandXboxController.b().onTrue(
+        commands2.ConditionalCommand(
+            ElevatorLimitFinder(
+                self.elevatorController,
+                self.EEEXboxController,
+                current_threshold=30.0,
+                max_position=40.0
+            ),
+            commands2.InstantCommand(),  # Do nothing if not in debug mode
+            lambda: self.is_debug_mode[0]  # Check if debug mode is active
         )
     )
 
