@@ -31,6 +31,8 @@ from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
+from commands.JoystickElevatorControl import JoystickElevatorControl
+from commands.ToggleDebugMode import ToggleDebugMode
 from phoenix6.hardware import CANrange
 
 class MyRobot(commands2.TimedCommandRobot):
