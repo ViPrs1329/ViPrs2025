@@ -104,15 +104,17 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
-    # self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
-    # self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
+    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
     
+    '''
     self.EEECommandXboxController.leftBumper().onTrue(
         SetElevatorWithDebugCheck("down", self.elevatorController, self.endEffector, self.is_debug_mode)
     )
     self.EEECommandXboxController.rightBumper().onTrue(
         SetElevatorWithDebugCheck("up", self.elevatorController, self.endEffector, self.is_debug_mode)
     )
+    '''
     
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
@@ -145,6 +147,7 @@ class MyRobot(commands2.TimedCommandRobot):
     #   self.coralIsInRange(self.canRangeFunnel)
     # )
 
+    '''
     self.EEECommandXboxController.y().toggleOnTrue(
         commands2.ConditionalCommand(
             lambda: JoystickElevatorControl(
@@ -156,6 +159,7 @@ class MyRobot(commands2.TimedCommandRobot):
             lambda: self.is_debug_mode[0]
         )
     )
+    '''
 
     # wait until coral is detected by the EE canrange 
     # then wait until coral is undetected by the funnel canrange 
