@@ -220,6 +220,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
+    
+
     print("robotInit()")
 
   def robotPeriodic(self):
@@ -251,6 +253,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
     self.configureButtonBindings()
     self.elevatorController.zeroElevator()
+    self.endEffector.destination = 1.57
     # self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):

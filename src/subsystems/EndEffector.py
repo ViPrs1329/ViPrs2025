@@ -27,8 +27,9 @@ class EndEffector(commands2.Subsystem):
         )
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_rotation_motor_config = rev.SparkBaseConfig()
-        self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake)
+        self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
         self.algae_rotation_motor_config.smartCurrentLimit(20) #limit current
+        self.algae_rotation_motor_config.inverted(True)
         self.algae_rotation_motor.configure(self.algae_rotation_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
         # 2. Algae Intake Motor
@@ -63,14 +64,14 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
         self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 0.5
-        Ki = 0
+        Kp = 0.2
+        Ki = 0.0
         Kd = 0.05
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.setSetpoint(0)
 
         kS = 0
-        kG = 0.2
+        kG = -0.2
         kV = 0
         kA = 0
 
@@ -118,7 +119,7 @@ class EndEffector(commands2.Subsystem):
 
         motor_output = max(-0.4, min(0.4, motor_output))
 
-        # self.algae_rotation_motor.set(motor_output)
+        self.algae_rotation_motor.set(motor_output)
         
         # Debug output - convert back to degrees for easier reading
         print(f"Arm: caR={current_angle:.2f} dest={self.destination:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ")

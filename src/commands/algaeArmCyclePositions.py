@@ -16,11 +16,11 @@ class AlgaeArmCyclePositions(commands2.Command):
         # Define the preset positions in radians
         # Previous values: [0, 30, 45, 90, 120] degrees
         self.positions = [
-            0,                # 0° - straight down
-            math.radians(30), # 30°
-            math.radians(45), # 45°
-            math.pi/2,        # 90° - horizontal
-            math.radians(120) # 120° - max upward position
+            0,                # 0 deg - straight down
+            math.pi/4,        # 45 deg - down and forward
+            math.pi/2,        # 90 deg - horizontal
+            3*math.pi/4,      # 135 deg - up and forward
+            math.pi           # 180 deg -straight up
         ]
         
         # Initialize position index
