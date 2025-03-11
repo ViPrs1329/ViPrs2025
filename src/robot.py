@@ -33,6 +33,7 @@ from commands.algaeArmCyclePositions import AlgaeArmCyclePositions
 from commands.ToggleDebugMode import ToggleDebugMode
 from commands.JoystickElevatorControl import JoystickElevatorControl
 from commands.SetElevatorWithDebugCheck import SetElevatorWithDebugCheck
+from commands.MoveAlgaeArmToPosition import MoveAlgaeArmToPosition
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
@@ -129,8 +130,16 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     
     # self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
-    # self.EEECommandXboxController.a().onTrue(AlgaeArmCyclePositions(self.endEffector))
+    
+    # For left trigger - 45 degrees (π/4 radians)
+    self.EEECommandXboxController.leftTrigger().onTrue(
+        MoveAlgaeArmToPosition(self.endEffector, math.pi/4)  # 45 degrees in radians
+    )
 
+    # For right trigger - 135 degrees (3π/4 radians)
+    self.EEECommandXboxController.rightTrigger().onTrue(
+        MoveAlgaeArmToPosition(self.endEffector, 3*math.pi/4)  # 135 degrees in radians
+    )
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
     # self.coralIntakeCommand = commands2.ConditionalCommand(
