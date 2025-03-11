@@ -62,19 +62,19 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
         self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 2.5
-        Ki = 0
-        Kd = 0
+        Kp = 1.5
+        Ki = 0.1
+        Kd = 0.2
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.enableContinuousInput(-0.5, 0.5)
         self.algaePID.setSetpoint(0)
 
         kS = 0
         kG = 0.01
-        kV = 0.3
+        kV = 0.2
         kA = 0
 
-        self.destination = 0
+        self.destination = -0.3
 
         self.algaeFF = ArmFeedforward(kS, kG, kV, kA)
 
@@ -97,23 +97,13 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor.set(speed)
 
     def periodic(self):
-        if False:
+        if True:
             desiredVelocity = self.algaePID.calculate(self.getAlgaeArmAngle(), self.destination)
         else:
             desiredVelocity = -self.EEEXboxController.getRightY()
-        #print('\nDesired Velocity:')
-        #print(desiredVelocity)
-        print('\nAlgae Arm Angle:')
-        print(self.getAlgaeArmAngle())
-        print('\nAlgae Motor Rotations')
-        print(self.getAlgaeArmRotations())
-        print('\nSetpoint:')
-        print(self.algaePID.getSetpoint())
-        print('\nDesired Velocity:')
-        print(desiredVelocity)
         elevatorVelocity = self.algaeFF.calculate(self.getAlgaeArmAngle(), desiredVelocity)
         self.algae_rotation_motor.set(elevatorVelocity)
-
+        print(f"periodic() desiredVelocity={desiredVelocity} | elevatorVelocity={elevatorVelocity}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
@@ -157,9 +147,6 @@ class EndEffector(commands2.Subsystem):
 
     def getAlgaeArmAngle(self): # should return arm value in from standard position (0 is horizontally forward) 
         return convert.rot2angAlgae(self.getAlgaeArmRotations())
-    
-    def algaeGoToAngle(self, destination):
-        self.algaeDestination = max(destination, -0.3)
 
     def getAlgaeArmVelocity(self):
         return self.algaeEncoder.getVelocity()

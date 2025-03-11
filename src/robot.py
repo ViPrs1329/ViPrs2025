@@ -229,10 +229,13 @@ class MyRobot(commands2.TimedCommandRobot):
     self.controllerYPub.set(ySpeed * self.slowScaler)
     print('\nAlgae Arm Angle:')
     print(self.endEffector.getAlgaeArmAngle())
-    print('\nAlgae Motor Rotations')
-    print(self.endEffector.getAlgaeArmRotations())
+    #print('\nAlgae Motor Rotations')
+    #print(self.endEffector.getAlgaeArmRotations())
     print('\nSetpoint:')
     print(self.endEffector.algaePID.getSetpoint())
+    #print('\nDesired Velocity:')
+    #print(desiredVelocity)
+    
 
     tSpeed = MyRobot.tinputCurve(-self.drivingXboxController.getRightX())
 
