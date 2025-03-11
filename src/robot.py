@@ -29,6 +29,8 @@ from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
+from commands.algaeArmCyclePositions import AlgaeArmCyclePositions
+from commands.ToggleDebugMode import ToggleDebugMode
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
@@ -100,6 +102,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
     # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
+    self.EEECommandXboxController.a().onTrue(AlgaeArmCyclePositions(self.endEffector))
+
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
     # self.coralIntakeCommand = commands2.ConditionalCommand(
@@ -128,6 +132,12 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
       )
     )
+
+    # Add debug mode toggle on Back/Select button
+    self.drivingCommandXboxController.back().onTrue(
+        ToggleDebugMode(lambda: self.is_debug_mode)
+    )
+
     # self.coralIntakeCommand = commands2.SequentialCommandGroup(
     #   WaitUntilCoralIsDetected(self.coralIsInRangeEE),
     #   WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),

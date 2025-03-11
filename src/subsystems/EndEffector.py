@@ -11,6 +11,7 @@ from constants import CANIDs, intakeConsts, convert  # Assuming CANIDs are defin
 from wpimath.controller import PIDController, ArmFeedforward
 import ntcore
 import wpilib
+import math
 
 class EndEffector(commands2.Subsystem):
     def __init__(self) -> None:
@@ -69,8 +70,8 @@ class EndEffector(commands2.Subsystem):
         self.algaePID.enableContinuousInput(-0.5, 0.5)
         self.algaePID.setSetpoint(0)
 
-        kS = 0
-        kG = 0.01
+        kS = 0.02
+        kG = 0.1
         kV = 0.2
         kA = 0
 
@@ -97,6 +98,7 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor.set(speed)
 
     def periodic(self):
+        '''
         if True:
             desiredVelocity = self.algaePID.calculate(self.getAlgaeArmAngle(), self.destination)
         else:
@@ -104,6 +106,25 @@ class EndEffector(commands2.Subsystem):
         elevatorVelocity = self.algaeFF.calculate(self.getAlgaeArmAngle(), desiredVelocity)
         self.algae_rotation_motor.set(elevatorVelocity)
         print(f"periodic() desiredVelocity={desiredVelocity} | elevatorVelocity={elevatorVelocity}")
+        '''
+        # Get the current arm angle in degrees (0-120)
+        current_angle = self.getAlgaeArmAngle()
+        
+        # Calculate desired velocity using PID controller
+        desired_velocity = self.algaePID.calculate(current_angle, self.destination)
+        
+        # Apply feedforward with adjusted constants
+        # Note: ArmFeedforward expects angles in radians
+        gravity_compensation = self.algaeFF.calculate(
+            math.radians(current_angle),  # Convert to radians for feedforward
+            desired_velocity              # Velocity doesn't need conversion
+        )
+        
+        # Apply the calculated control output to the motor
+        self.algae_rotation_motor.set(gravity_compensation)
+        
+        # Debug output
+        print(f"Arm: {current_angle:.1f}° → {self.destination:.1f}° | Output: {gravity_compensation:.2f}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
@@ -145,8 +166,32 @@ class EndEffector(commands2.Subsystem):
     def getAlgaeArmRotations(self):
         return self.algaeEncoder.getPosition() - self.rotationOffset
 
+    '''
     def getAlgaeArmAngle(self): # should return arm value in from standard position (0 is horizontally forward) 
         return convert.rot2angAlgae(self.getAlgaeArmRotations())
+    '''
+
+    def getAlgaeArmAngle(self): 
+        """
+        Returns arm angle in degrees where:
+        0° = straight down
+        90° = horizontal
+        120° = max upward position
+        """
+        # Constants - calibrate these with your actual arm
+        # ZERO_POS = 0.1    # Encoder reading when arm is straight down (0°)
+        # MAX_POS = 0.433   # Encoder reading when arm is at max position (120°)
+        
+        # Get current encoder position
+        current_pos = self.getAlgaeArmRotations()
+        
+        # Safety - constrain to physical range
+        constrained_pos = max(intakeConsts.algaeZeroPosition, min(intakeConsts.algaeMaxPosition, current_pos))
+        
+        # Convert to degrees (0-120 range)
+        angle_degrees = (constrained_pos - intakeConsts.algaeZeroPosition) * (360)
+        
+        return angle_degrees
 
     def getAlgaeArmVelocity(self):
         return self.algaeEncoder.getVelocity()
