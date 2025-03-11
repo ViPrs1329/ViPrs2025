@@ -1,5 +1,6 @@
 
 import numpy
+import math
 
 class controller:
     scale = 0.5
@@ -75,7 +76,8 @@ class driveConsts:
 class intakeConsts:
     intakeSpeed = 0.2
     algaeIntakeSpeed = 0.5
-    algaeArmAngles = [0, 0, 0, 0, 0]
+    algaeArmFloorIntakeAngle = math.pi/4 # 45 deg
+    algaeArmReefIntakeAngle = 3*math.pi/4 # 135 deg
     algaeThresholdCurrent = 1
     algaeZeroPosition = 0.0  # Adjust this value based on your arm's actual zero position
     algaeMaxPosition = 41.0  # Adjust this value based on your arm's actual max position   
