@@ -101,8 +101,9 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
     # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
-    self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
-    self.EEECommandXboxController.a().onTrue(AlgaeArmCyclePositions(self.endEffector))
+    
+    # self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
+    # self.EEECommandXboxController.a().onTrue(AlgaeArmCyclePositions(self.endEffector))
 
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
@@ -134,7 +135,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Add debug mode toggle on Back/Select button
-    self.drivingCommandXboxController.back().onTrue(
+    self.EEECommandXboxController.back().onTrue(
         ToggleDebugMode(lambda: self.is_debug_mode)
     )
 
@@ -150,6 +151,8 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    self.is_debug_mode = False
+
     self.drivingXboxController = wpilib.XboxController(0)
     self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
     self.EEEXboxController = wpilib.XboxController(1)
@@ -237,12 +240,13 @@ class MyRobot(commands2.TimedCommandRobot):
     # print('Y Speed - ' + str(ySpeed))
     self.controllerXPub.set(xSpeed * self.slowScaler)
     self.controllerYPub.set(ySpeed * self.slowScaler)
-    print('\nAlgae Arm Angle:')
-    print(self.endEffector.getAlgaeArmAngle())
+    
+    # print('\nAlgae Arm Angle:')
+    # print(self.endEffector.getAlgaeArmAngle())
     #print('\nAlgae Motor Rotations')
     #print(self.endEffector.getAlgaeArmRotations())
-    print('\nSetpoint:')
-    print(self.endEffector.algaePID.getSetpoint())
+    # print('\nSetpoint:')
+    # print(self.endEffector.algaePID.getSetpoint())
     #print('\nDesired Velocity:')
     #print(desiredVelocity)
     

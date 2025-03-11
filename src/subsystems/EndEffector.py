@@ -75,7 +75,7 @@ class EndEffector(commands2.Subsystem):
         kV = 0.2
         kA = 0
 
-        # self.destination = -0.3
+        self.destination = 0.0
 
         self.algaeFF = ArmFeedforward(kS, kG, kV, kA)
 
@@ -120,10 +120,10 @@ class EndEffector(commands2.Subsystem):
         )
         
         # Apply the calculated control output to the motor
-        self.algae_rotation_motor.set(gravity_compensation)
+        # self.algae_rotation_motor.set(gravity_compensation)
         
         # Debug output - convert back to degrees for easier reading
-        print(f"Arm: {math.degrees(current_angle):.1f}° → {math.degrees(self.destination):.1f}° | Output: {gravity_compensation:.2f}")
+        print(f"Arm: {math.degrees(current_angle):.1f}deg -> {math.degrees(self.destination):.1f}deg | Output: {gravity_compensation:.2f}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
