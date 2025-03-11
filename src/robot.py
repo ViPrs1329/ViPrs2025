@@ -77,9 +77,20 @@ class MyRobot(commands2.TimedCommandRobot):
     "returns true when coral is not detected"
     return self.canRangeFunnel.get_distance().value_as_double > constants.intakeConsts.coralDetectionThreshold
 
+  def enableSlow(self):
+    self.slowScaler = 0.1
+
+  def disableSlow(self):
+    self.slowScaler = 1
+
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
-    self.drivingCommandXboxController.rightTrigger().whileTrue(Slow(self.slowScaler))
+    self.drivingCommandXboxController.rightTrigger().onTrue(
+      commands2.InstantCommand(self.enableSlow())
+    )
+    self.drivingCommandXboxController.rightTrigger().onFalse(
+      commands2.InstantCommand(self.disableSlow())
+    )
 
     # elevator positions
 
@@ -243,7 +254,7 @@ class MyRobot(commands2.TimedCommandRobot):
     heading = h2 * (math.pi * 2)
     self.headingValue.set(heading)
     #print(xSpeed, ySpeed, tSpeed)
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, -tSpeed, Rotation2d(heading))
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
