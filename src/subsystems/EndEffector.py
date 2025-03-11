@@ -75,7 +75,7 @@ class EndEffector(commands2.Subsystem):
         kV = 0.2
         kA = 0
 
-        self.destination = -0.3
+        # self.destination = -0.3
 
         self.algaeFF = ArmFeedforward(kS, kG, kV, kA)
 
@@ -107,24 +107,23 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor.set(elevatorVelocity)
         print(f"periodic() desiredVelocity={desiredVelocity} | elevatorVelocity={elevatorVelocity}")
         '''
-        # Get the current arm angle in degrees (0-120)
+        # Get the current arm angle in radians
         current_angle = self.getAlgaeArmAngle()
         
         # Calculate desired velocity using PID controller
         desired_velocity = self.algaePID.calculate(current_angle, self.destination)
         
-        # Apply feedforward with adjusted constants
-        # Note: ArmFeedforward expects angles in radians
+        # Apply feedforward
         gravity_compensation = self.algaeFF.calculate(
-            math.radians(current_angle),  # Convert to radians for feedforward
-            desired_velocity              # Velocity doesn't need conversion
+            current_angle,      # Already in radians, no conversion needed
+            desired_velocity
         )
         
         # Apply the calculated control output to the motor
         self.algae_rotation_motor.set(gravity_compensation)
         
-        # Debug output
-        print(f"Arm: {current_angle:.1f}° → {self.destination:.1f}° | Output: {gravity_compensation:.2f}")
+        # Debug output - convert back to degrees for easier reading
+        print(f"Arm: {math.degrees(current_angle):.1f}° → {math.degrees(self.destination):.1f}° | Output: {gravity_compensation:.2f}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
@@ -173,14 +172,13 @@ class EndEffector(commands2.Subsystem):
 
     def getAlgaeArmAngle(self): 
         """
-        Returns arm angle in degrees where:
-        0° = straight down
-        90° = horizontal
-        120° = max upward position
+        Returns arm angle in radians where:
+        0 rad = straight down
+        π/2 rad (≈1.57) = horizontal
+        2π/3 rad (≈2.09) = max upward position (120°)
         """
         # Constants - calibrate these with your actual arm
-        # ZERO_POS = 0.1    # Encoder reading when arm is straight down (0°)
-        # MAX_POS = 0.433   # Encoder reading when arm is at max position (120°)
+        # ZERO_POS and MAX_POS are defined in intakeConsts
         
         # Get current encoder position
         current_pos = self.getAlgaeArmRotations()
@@ -188,10 +186,13 @@ class EndEffector(commands2.Subsystem):
         # Safety - constrain to physical range
         constrained_pos = max(intakeConsts.algaeZeroPosition, min(intakeConsts.algaeMaxPosition, current_pos))
         
-        # Convert to degrees (0-120 range)
+        # Convert to degrees first (0-120 range)
         angle_degrees = (constrained_pos - intakeConsts.algaeZeroPosition) * (360)
         
-        return angle_degrees
+        # Convert degrees to radians
+        angle_radians = math.radians(angle_degrees)
+        
+        return angle_radians
 
     def getAlgaeArmVelocity(self):
         return self.algaeEncoder.getVelocity()

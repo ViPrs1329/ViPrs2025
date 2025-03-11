@@ -1,9 +1,11 @@
 import commands2
+import math
 from subsystems.EndEffector import EndEffector
 
 class AlgaeArmCyclePositions(commands2.Command):
     """
     Command that cycles through preset algae arm positions with each button press.
+    Positions are now defined in radians instead of degrees.
     """
     
     def __init__(self, endEffector: EndEffector):
@@ -11,8 +13,15 @@ class AlgaeArmCyclePositions(commands2.Command):
         self.EE = endEffector
         self.addRequirements(endEffector)
         
-        # Define the preset positions in degrees (0° = straight down)
-        self.positions = [0, 30, 45, 90, 120]
+        # Define the preset positions in radians
+        # Previous values: [0, 30, 45, 90, 120] degrees
+        self.positions = [
+            0,                # 0° - straight down
+            math.radians(30), # 30°
+            math.radians(45), # 45°
+            math.pi/2,        # 90° - horizontal
+            math.radians(120) # 120° - max upward position
+        ]
         
         # Initialize position index
         # Store this as a class variable so it persists between command instances
@@ -28,8 +37,8 @@ class AlgaeArmCyclePositions(commands2.Command):
         # Set the arm to the new target position
         self.EE.destination = target_position
         
-        # Print debug information
-        print(f"Moving algae arm to position: {target_position}° (index {AlgaeArmCyclePositions.current_index})")
+        # Print debug information - convert to degrees for more readable output
+        print(f"Moving algae arm to position: {math.degrees(target_position):.1f}° (index {AlgaeArmCyclePositions.current_index})")
     
     def execute(self):
         """Called repeatedly while the command is scheduled."""
