@@ -24,6 +24,9 @@ class convert:
     def in2rot(inches):
         return inches / 0.34375
     
+    def rot2angAlgae(rot):
+        return (rot-23.25)/46.5
+    
     
 
 class CANIDs:
