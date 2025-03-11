@@ -34,6 +34,8 @@ from commands.ToggleDebugMode import ToggleDebugMode
 from commands.JoystickElevatorControl import JoystickElevatorControl
 from commands.SetElevatorWithDebugCheck import SetElevatorWithDebugCheck
 from commands.MoveAlgaeArmToPosition import MoveAlgaeArmToPosition
+from commands.algaeIntake import AlgaeIntakeControl
+from commands.TestAlgaeIntake import TestAlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
@@ -127,10 +129,16 @@ class MyRobot(commands2.TimedCommandRobot):
         lambda: self.endEffector.stopCoralMotors()
       )
     )
-    # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     
-    # self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
-    
+    # Y button - Intake algae
+    self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
+
+    # B button - Eject algae
+    self.EEECommandXboxController.b().whileTrue(AlgaeIntakeControl(self.endEffector, "eject"))
+
+    # Start button to test algae intake
+    self.EEECommandXboxController.start().onTrue(TestAlgaeIntake(self.endEffector))
+
     # For left trigger - 45 degrees (π/4 radians)
     self.EEECommandXboxController.leftTrigger().onTrue(
         MoveAlgaeArmToPosition(self.endEffector, math.pi/4)  # 45 degrees in radians
