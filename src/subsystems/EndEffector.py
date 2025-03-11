@@ -41,7 +41,7 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor_config.smartCurrentLimit(20) #limit current
         self.algae_intake_motor.configure(self.algae_intake_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
-        self.algaeEncoder = self.algae_rotation_motor.getEncoder()
+        self.algaeEncoder = self.algae_rotation_motor.getAbsoluteEncoder()
 
         # 3. Coral Intake Left Motor
         self.coral_intake_left_motor = rev.SparkMax(
@@ -63,9 +63,9 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
         self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 0
+        Kp = 0.5
         Ki = 0
-        Kd = 0
+        Kd = 0.05
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.setSetpoint(0)
 
@@ -106,23 +106,22 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor.set(elevatorVelocity)
         print(f"periodic() desiredVelocity={desiredVelocity} | elevatorVelocity={elevatorVelocity}")
         '''
-        # Get the current arm angle in radians
         current_angle = self.getAlgaeArmAngle()
-        
-        # Calculate desired velocity using PID controller
-        desired_velocity = self.algaePID.calculate(current_angle, self.destination)
-        
-        # Apply feedforward
-        gravity_compensation = self.algaeFF.calculate(
-            current_angle,      # Already in radians, no conversion needed
-            desired_velocity
-        )
-        
-        # Apply the calculated control output to the motor
-        self.algae_rotation_motor.set(gravity_compensation)
+
+        error = self.destination - current_angle
+
+        pid_output = self.algaePID.calculate(current_angle, self.destination)
+
+        ff_output = self.algaeFF.calculate(current_angle, 0)
+
+        motor_output = pid_output + ff_output
+
+        motor_output = max(-0.4, min(0.4, motor_output))
+
+        # self.algae_rotation_motor.set(motor_output)
         
         # Debug output - convert back to degrees for easier reading
-        print(f"Arm: caR={current_angle:.1f} -> dest={math.degrees(self.destination):.1f}deg | Output: {gravity_compensation:.2f}")
+        print(f"Arm: caR={current_angle:.2f} dest={self.destination:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
@@ -183,15 +182,14 @@ class EndEffector(commands2.Subsystem):
         current_pos = self.getAlgaeArmRotations()
         
         # Safety - constrain to physical range
-        constrained_pos = max(intakeConsts.algaeZeroPosition, min(intakeConsts.algaeMaxPosition, current_pos))
+        # constrained_pos = max(intakeConsts.algaeZeroPosition, min(intakeConsts.algaeMaxPosition, current_pos))
         
-        # Convert to degrees first (0-120 range)
-        angle_degrees = (constrained_pos - intakeConsts.algaeZeroPosition) * (360)
-        
-        # Convert degrees to radians
-        angle_radians = math.radians(angle_degrees)
+        angle_radians = current_pos * (2 * math.pi) - 1.6
 
-        print(f"getAlgaeArmAngle() - cP={current_pos:.1f} consP={constrained_pos:.1f} aD={angle_degrees:.1f} aR={angle_radians:.1f}")
+        angle_radians = angle_radians % (2 * math.pi)
+        
+        print(f"getAlgaeArmAngle() - cP={current_pos:.1f} aR={angle_radians:.1f}")
+        # print(f"getAlgaeArmAngle() - cP={current_pos:.1f} consP={constrained_pos:.1f} aD={angle_degrees:.1f} aR={angle_radians:.1f}")
         
         return angle_radians
 
