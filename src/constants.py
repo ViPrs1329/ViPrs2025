@@ -73,7 +73,7 @@ class driveConsts:
 
 
 class intakeConsts:
-    intakeSpeed = 0.5
+    intakeSpeed = 0.2
     algaeIntakeSpeed = 0.5
     algaeArmAngles = [0, 0, 0, 0, 0]
     algaeThresholdCurrent = 1
@@ -93,7 +93,7 @@ class reefConsts:
     L0 = [0, 0, 90, 0]
     L1 = [1, 18, 0, 90]
     L2 = [2, 31.875, 35, 0]
-    L3 = [3, 47.625, 35, 0]
+    L3 = [3, 35, 35, 0]
     L4 = [4, 72, 90, 0]
     reefLevels = [L0, L1, L2, L3, L4]
 

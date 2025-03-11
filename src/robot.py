@@ -85,6 +85,10 @@ class MyRobot(commands2.TimedCommandRobot):
   def disableSlow(self):
     self.slowScaler = 1
 
+  def ejectCoral(self):
+    self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed)
+    self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed)
+
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
     self.drivingCommandXboxController.rightTrigger().onTrue(
@@ -100,6 +104,16 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
     self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    self.EEECommandXboxController.a().onTrue(
+      commands2.InstantCommand(
+        lambda: self.ejectCoral()
+      )
+    )
+    self.EEECommandXboxController.a().onFalse(
+      commands2.InstantCommand(
+        lambda: self.endEffector.stopCoralMotors()
+      )
+    )
     # self.EEECommandXboxController.b().onTrue(SetElevator(self.EEEPressedButtons, self.elevatorController, self.endEffector))
     
     # self.EEECommandXboxController.y().whileTrue(AlgaeIntake(self.endEffector))
@@ -279,12 +293,12 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # important print statement
     # print(self.canRangeEE.get_distance().value_as_double)
-#     print(f"""
-# target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
-# current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
-# target rot: {self.elevatorController.destination}
-# current rot: {self.elevatorController.getElevatorPosition()}
-# current: {self.elevatorController.REM.getOutputCurrent()}""")
+    print(f"""
+target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
+current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
+target rot: {self.elevatorController.destination}
+current rot: {self.elevatorController.getElevatorPosition()}
+current: {self.elevatorController.REM.getOutputCurrent()}""")
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""

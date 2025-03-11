@@ -123,7 +123,7 @@ class EndEffector(commands2.Subsystem):
         # self.algae_rotation_motor.set(gravity_compensation)
         
         # Debug output - convert back to degrees for easier reading
-        print(f"Arm: {math.degrees(current_angle):.1f}deg -> {math.degrees(self.destination):.1f}deg | Output: {gravity_compensation:.2f}")
+        # print(f"Arm: {math.degrees(current_angle):.1f}deg -> {math.degrees(self.destination):.1f}deg | Output: {gravity_compensation:.2f}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
