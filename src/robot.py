@@ -293,12 +293,14 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # important print statement
     # print(self.canRangeEE.get_distance().value_as_double)
+    '''
     print(f"""
 target in: {2 * constants.convert.rot2in(self.elevatorController.destination)}
 current in: {2 * constants.convert.rot2in(self.elevatorController.getElevatorPosition())}
 target rot: {self.elevatorController.destination}
 current rot: {self.elevatorController.getElevatorPosition()}
-current: {self.elevatorController.REM.getOutputCurrent()}""")
+current: {self.elevatorController.REM.getOutputCurrent()}""")'
+    '''
 
   def testInit(self): 
     """This function is called once each time the robot enters test mode."""

@@ -18,7 +18,7 @@ class Elevator(commands2.Subsystem):
   def __init__(self) -> None:
     super().__init__()
 
-    self.currentLevel = 0
+    self.currentLevel = 1
 
     # Motor initiation
 

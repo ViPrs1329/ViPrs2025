@@ -17,23 +17,23 @@ class SetElevator(commands2.Command):
   def initialize(self):
     print("in")
     elevatorLevel : int = self.getElevatorLevel()
-    self.elevator.gotoPosition(constants.convert.in2rot(constants.reefConsts.reefLevels[elevatorLevel][1] + constants.elevatorConsts.verticalOffset))
-    self.EE.setAlgaeArmAngle(constants.intakeConsts.algaeArmAngles[elevatorLevel])
+    self.elevator.gotoPosition(constants.convert.in2rot(constants.reefConsts.reefLevels[elevatorLevel-1][1] + constants.elevatorConsts.verticalOffset))
+    self.EE.setAlgaeArmAngle(constants.intakeConsts.algaeArmAngles[elevatorLevel-1])
   
   def decreaseLevel(self):
-    print("down")
-    if self.elevator.currentLevel <= 0:
-      self.elevator.currentLevel = 0
+    if self.elevator.currentLevel <= 1:
+      self.elevator.currentLevel = 1
     else:
       self.elevator.currentLevel -= 1
+    print(f"down - currentLevel={self.elevator.currentLevel}")
     return self.elevator.currentLevel
 
   def increaseLevel(self):
-    print("up")
     if self.elevator.currentLevel >= 4:
       self.elevator.currentLevel = 4
     else:
       self.elevator.currentLevel += 1
+    print(f"up - currentLevel={self.elevator.currentLevel}")
     return self.elevator.currentLevel
 
   def getElevatorLevel(self):
@@ -56,7 +56,9 @@ class SetElevator(commands2.Command):
   def gotoLevel(self):
     #constants.reefConsts.reefLevels[level][0] is the maximum height of a branch
     level = self.elevator.currentLevel
-    self.elevator.gotoPosition(constants.convert.in2rot(constants.reefConsts.reefLevels[level][1] + constants.elevatorConsts.verticalOffset) / 2)
+    self.elevator.gotoPosition(constants.convert.in2rot(
+      constants.reefConsts.reefLevels[level-1][1] +     # Changed the index from ...reefLevels[level][1] to ...reefLevels[level-1][1] since Lists start at 0
+      constants.elevatorConsts.verticalOffset) / 2)
 
   def execute(self):
     pass

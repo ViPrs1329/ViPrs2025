@@ -84,18 +84,18 @@ class intakeConsts:
     coralDetectionThreshold = 0.1
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
-    elevatorHeights = [0, 1, 2, 3, 4]
+    elevatorHeights = [1, 2, 3, 4]
     verticalOffset = -16 #inches of clearance above target branches
 
 class reefConsts:
     #information about the reef for defining elevator levels
     # [level index, maximum height in inches, pitch in degrees from horizontal, roll in degrees from upright]
-    L0 = [0, 0, 90, 0]
-    L1 = [1, 18, 0, 90]
-    L2 = [2, 31.875, 35, 0]
-    L3 = [3, 35, 35, 0]
-    L4 = [4, 72, 90, 0]
-    reefLevels = [L0, L1, L2, L3, L4]
+    L1 = [1, 0, 90, 0]
+    L2 = [2, 18, 0, 90]
+    L3 = [3, 25, 0, 0] # [2, 31.875, 35, 0]
+    L4 = [4, 30, 0, 0] # [3, 35, 35, 0]
+    # L4 = [4, 72, 90, 0]
+    reefLevels = [L1, L2, L3, L4]
 
 class sensorConsts:
     pass
