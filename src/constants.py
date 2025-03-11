@@ -77,8 +77,8 @@ class intakeConsts:
     algaeIntakeSpeed = 0.5
     algaeArmAngles = [0, 0, 0, 0, 0]
     algaeThresholdCurrent = 1
-    algaeZeroPosition = 0.1  # Adjust this value based on your arm's actual zero position
-    algaeMaxPosition = 0.433  # Adjust this value based on your arm's actual max position   
+    algaeZeroPosition = 0.0  # Adjust this value based on your arm's actual zero position
+    algaeMaxPosition = 41.0  # Adjust this value based on your arm's actual max position   
 
     # 5cm for the canrange
     coralDetectionThreshold = 0.1
