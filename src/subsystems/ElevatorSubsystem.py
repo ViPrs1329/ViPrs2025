@@ -79,6 +79,6 @@ class Elevator(commands2.Subsystem):
     self.motorGroup.set(0)
 
   def zeroElevator(self):
-    self.currentLevel = 0
+    self.currentLevel = 1
     self.destination = 0
     self.gotoPosition(0)
