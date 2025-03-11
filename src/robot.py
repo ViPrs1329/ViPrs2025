@@ -133,12 +133,12 @@ class MyRobot(commands2.TimedCommandRobot):
     
     # For left trigger - 45 degrees (π/4 radians)
     self.EEECommandXboxController.leftTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, math.pi/4)  # 45 degrees in radians
+        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
     )
 
     # For right trigger - 135 degrees (3π/4 radians)
     self.EEECommandXboxController.rightTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, 3*math.pi/4)  # 135 degrees in radians
+        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
@@ -263,7 +263,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
     self.configureButtonBindings()
     self.elevatorController.zeroElevator()
-    self.endEffector.algaeDestination = 1.57
+    # self.endEffector.algaeDestination = 1.57
     # self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):

@@ -72,14 +72,14 @@ class EndEffector(commands2.Subsystem):
                                                 rev.SparkBase.ResetMode.kNoResetSafeParameters, 
                                                 rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 0.15
-        Ki = 0.08
+        Kp = 0.25
+        Ki = 0.0
         Kd = 0.01
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.setSetpoint(0)
 
         kS = 0
-        kG = 0.2
+        kG = 0  # This is not necessary and actually causes issues even when at it's starting position
         kV = 0
         kA = 0
 
