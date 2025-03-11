@@ -31,6 +31,8 @@ from commands.driveForward import driveForward
 from commands.algaeIntake import AlgaeIntake
 from commands.algaeArmCyclePositions import AlgaeArmCyclePositions
 from commands.ToggleDebugMode import ToggleDebugMode
+from commands.JoystickElevatorControl import JoystickElevatorControl
+from commands.SetElevatorWithDebugCheck import SetElevatorWithDebugCheck
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from phoenix6.hardware import CANrange
@@ -102,8 +104,16 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
-    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
-    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    # self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
+    # self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    
+    self.EEECommandXboxController.leftBumper().onTrue(
+        SetElevatorWithDebugCheck("down", self.elevatorController, self.endEffector, self.is_debug_mode)
+    )
+    self.EEECommandXboxController.rightBumper().onTrue(
+        SetElevatorWithDebugCheck("up", self.elevatorController, self.endEffector, self.is_debug_mode)
+    )
+    
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
         lambda: self.ejectCoral()
@@ -135,6 +145,18 @@ class MyRobot(commands2.TimedCommandRobot):
     #   self.coralIsInRange(self.canRangeFunnel)
     # )
 
+    self.EEECommandXboxController.y().toggleOnTrue(
+        commands2.ConditionalCommand(
+            lambda: JoystickElevatorControl(
+                self.elevatorController, 
+                self.EEEXboxController, 
+                scale_factor=0.1
+            ),
+            commands2.InstantCommand(),
+            lambda: self.is_debug_mode[0]
+        )
+    )
+
     # wait until coral is detected by the EE canrange 
     # then wait until coral is undetected by the funnel canrange 
     # then stop the intake motors
@@ -150,7 +172,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # Add debug mode toggle on Back/Select button
     self.EEECommandXboxController.back().onTrue(
-        ToggleDebugMode(lambda: self.is_debug_mode)
+      ToggleDebugMode(self.is_debug_mode)
     )
 
     # self.coralIntakeCommand = commands2.SequentialCommandGroup(
@@ -165,7 +187,7 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
-    self.is_debug_mode = False
+    self.is_debug_mode = [False]
 
     self.drivingXboxController = wpilib.XboxController(0)
     self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
@@ -219,6 +241,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def teleopInit(self): 
     """This function is called once each time the robot enters teleoperated mode."""
     print("teleopInit()")
+    self.teleopCounter = 0
     self.stopRumble()
     self.drivetrain.resetHarder()
     self.systemTempCheck()
@@ -245,6 +268,7 @@ class MyRobot(commands2.TimedCommandRobot):
   
   def teleopPeriodic(self):
     """This function is called periodically during teleoperated mode."""
+    self.teleopCounter += 1
     # self.drivetrain.stopMotors()
     # print("teleopPeriodic()")
     xSpeed, ySpeed = MyRobot.distanceCorrectedInputCurve(self.drivingXboxController.getLeftY(), self.drivingXboxController.getLeftX())
@@ -254,6 +278,10 @@ class MyRobot(commands2.TimedCommandRobot):
     # print('Y Speed - ' + str(ySpeed))
     self.controllerXPub.set(xSpeed * self.slowScaler)
     self.controllerYPub.set(ySpeed * self.slowScaler)
+
+    if self.is_debug_mode[0]:
+      if (self.teleopCounter % 50) == 0:  # Only print every ~1 second (assuming 50Hz loop)
+          print("*** DEBUG MODE ACTIVE ***")
     
     # print('\nAlgae Arm Angle:')
     # print(self.endEffector.getAlgaeArmAngle())
