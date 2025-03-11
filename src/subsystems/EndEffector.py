@@ -29,8 +29,10 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor_config = rev.SparkBaseConfig()
         self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
         self.algae_rotation_motor_config.smartCurrentLimit(20) #limit current
-        self.algae_rotation_motor_config.inverted(True)
-        self.algae_rotation_motor.configure(self.algae_rotation_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+        self.algae_rotation_motor_config.inverted(False)
+        self.algae_rotation_motor.configure(self.algae_rotation_motor_config, 
+                                            rev.SparkBase.ResetMode.kNoResetSafeParameters,  # THIS PARAMETER COST ME 3 HOURS OF MY LIFE!!!
+                                            rev.SparkBase.PersistMode.kPersistParameters)
 
         # 2. Algae Intake Motor
         self.algae_intake_motor = rev.SparkMax(
@@ -40,7 +42,9 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor_config.inverted(True)  # Adjust if needed
         self.algae_intake_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.algae_intake_motor_config.smartCurrentLimit(20) #limit current
-        self.algae_intake_motor.configure(self.algae_intake_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+        self.algae_intake_motor.configure(self.algae_intake_motor_config, 
+                                          rev.SparkBase.ResetMode.kNoResetSafeParameters, 
+                                          rev.SparkBase.PersistMode.kPersistParameters)
 
         self.algaeEncoder = self.algae_rotation_motor.getAbsoluteEncoder()
 
@@ -52,7 +56,9 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor_config.inverted(False)  # Adjust if needed
         self.coral_intake_left_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.coral_intake_left_motor_config.smartCurrentLimit(20) #limit current
-        self.coral_intake_left_motor.configure(self.coral_intake_left_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+        self.coral_intake_left_motor.configure(self.coral_intake_left_motor_config, 
+                                               rev.SparkBase.ResetMode.kNoResetSafeParameters, 
+                                               rev.SparkBase.PersistMode.kPersistParameters)
 
         # 4. Coral Intake Right Motor
         self.coral_intake_right_motor = rev.SparkMax(
@@ -62,20 +68,22 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_right_motor_config.inverted(True)  # Adjust if needed, may need to be inverted
         self.coral_intake_right_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kBrake) #can change to brake if needed
         self.coral_intake_right_motor_config.smartCurrentLimit(20) #limit current
-        self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, rev.SparkBase.ResetMode.kResetSafeParameters, rev.SparkBase.PersistMode.kPersistParameters)
+        self.coral_intake_right_motor.configure(self.coral_intake_right_motor_config, 
+                                                rev.SparkBase.ResetMode.kNoResetSafeParameters, 
+                                                rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 0.2
-        Ki = 0.0
-        Kd = 0.05
+        Kp = 0.15
+        Ki = 0.08
+        Kd = 0.01
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.setSetpoint(0)
 
         kS = 0
-        kG = -0.2
+        kG = 0.2
         kV = 0
         kA = 0
 
-        self.destination = 0.0
+        self.algaeDestination = 0.0
 
         self.algaeFF = ArmFeedforward(kS, kG, kV, kA)
 
@@ -98,20 +106,11 @@ class EndEffector(commands2.Subsystem):
         self.algae_intake_motor.set(speed)
 
     def periodic(self):
-        '''
-        if True:
-            desiredVelocity = self.algaePID.calculate(self.getAlgaeArmAngle(), self.destination)
-        else:
-            desiredVelocity = -self.EEEXboxController.getRightY()
-        elevatorVelocity = self.algaeFF.calculate(self.getAlgaeArmAngle(), desiredVelocity)
-        self.algae_rotation_motor.set(elevatorVelocity)
-        print(f"periodic() desiredVelocity={desiredVelocity} | elevatorVelocity={elevatorVelocity}")
-        '''
         current_angle = self.getAlgaeArmAngle()
 
-        error = self.destination - current_angle
+        error = self.algaeDestination - current_angle
 
-        pid_output = self.algaePID.calculate(current_angle, self.destination)
+        pid_output = self.algaePID.calculate(current_angle, self.algaeDestination)
 
         ff_output = self.algaeFF.calculate(current_angle, 0)
 
@@ -122,7 +121,7 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor.set(motor_output)
         
         # Debug output - convert back to degrees for easier reading
-        print(f"Arm: caR={current_angle:.2f} dest={self.destination:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ")
+        print(f"Arm: caR={current_angle:.2f} dest={self.algaeDestination:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()
@@ -150,6 +149,8 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor.set(0)
         self.coral_intake_right_motor.set(0)
 
+        self.algaeDestination = 0
+
     def stopCoralMotors(self):
         self.coral_intake_left_motor.set(0)
         self.coral_intake_right_motor.set(0)
@@ -176,21 +177,14 @@ class EndEffector(commands2.Subsystem):
         π/2 rad (≈1.57) = horizontal
         2π/3 rad (≈2.09) = max upward position (120°)
         """
-        # Constants - calibrate these with your actual arm
-        # ZERO_POS and MAX_POS are defined in intakeConsts
         
-        # Get current encoder position
-        current_pos = self.getAlgaeArmRotations()
+        raw_position = self.algaeEncoder.getPosition()   
         
-        # Safety - constrain to physical range
-        # constrained_pos = max(intakeConsts.algaeZeroPosition, min(intakeConsts.algaeMaxPosition, current_pos))
-        
-        angle_radians = current_pos * (2 * math.pi) - 1.6
+        angle_radians = (raw_position - 0.45) * (2 * math.pi)
 
-        angle_radians = angle_radians % (2 * math.pi)
-        
-        print(f"getAlgaeArmAngle() - cP={current_pos:.1f} aR={angle_radians:.1f}")
-        # print(f"getAlgaeArmAngle() - cP={current_pos:.1f} consP={constrained_pos:.1f} aD={angle_degrees:.1f} aR={angle_radians:.1f}")
+        angle_radians = max(0, min(angle_radians, math.pi))
+
+        # print(f"getAlgaeArmAngle() - rP={raw_position:.3f} aR={angle_radians:.3f} dest={self.algaeDestination:.2f}")
         
         return angle_radians
 
@@ -198,7 +192,7 @@ class EndEffector(commands2.Subsystem):
         return self.algaeEncoder.getVelocity()
 
     def zeroAlgaeArm(self):
-        self.destination = 0
+        self.algaeDestination = 0
 
     def startAlgaeIntake(self):
         self.algae_intake_motor.set(intakeConsts.algaeIntakeSpeed)

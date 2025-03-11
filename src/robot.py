@@ -240,6 +240,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def disabledInit(self):
     """This function is called initially when disabledd"""
     print("disabledInit()")
+    self.endEffector.stopAllMotors()
 
   def disabledPeriodic(self):
     pass
@@ -253,7 +254,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
     self.configureButtonBindings()
     self.elevatorController.zeroElevator()
-    self.endEffector.destination = 1.57
+    self.endEffector.algaeDestination = 1.57
     # self.endEffector.startCoralMotors()
 
   def inputCurve(input: float):
