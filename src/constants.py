@@ -75,7 +75,7 @@ class driveConsts:
 
 class intakeConsts:
     intakeSpeed = 0.2
-    algaeIntakeSpeed = 0.5
+    algaeIntakeSpeed = 0.6
     algaeArmFloorIntakeAngle = math.pi/4 # 45 deg
     algaeArmReefIntakeAngle = 3*math.pi/4 # 135 deg
     algaeThresholdCurrent = 1
