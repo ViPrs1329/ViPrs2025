@@ -72,6 +72,9 @@ class inputConsts:
 class driveConsts:
     wheelDiameter = 4
 
+class autoConsts:
+    autoDriveDistance = 4.0 # feet
+
 
 class intakeConsts:
     intakeSpeed = 0.2

@@ -29,6 +29,7 @@ from commands.rt import RT
 from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.driveForward import driveForward
+from commands.DriveDistance import DriveDistance
 from commands.algaeArmCyclePositions import AlgaeArmCyclePositions
 from commands.ToggleDebugMode import ToggleDebugMode
 from commands.JoystickElevatorControl import JoystickElevatorControl
@@ -250,7 +251,6 @@ class MyRobot(commands2.TimedCommandRobot):
     #   Intake(self.endEffector)
     # )
 
-  autonomousCommand = driveForward
 
   def robotInit(self):
     """
@@ -260,6 +260,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
     camera = CameraServer.startAutomaticCapture()
     camera.setFPS(15)
+
+    self.autonomousCommand = None # Remove the default driveForward command
 
     self.is_debug_mode = [False]
 
@@ -301,6 +303,20 @@ class MyRobot(commands2.TimedCommandRobot):
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
+
+    # Create a command to drive forward 4 feet (converted to meters)
+    feet_to_meters = 0.3048  # 1 foot = 0.3048 meters
+    distance_feet = constants.autoConsts.autoDriveDistance
+    distance_meters = distance_feet * feet_to_meters
+    
+    # Reset the drivetrain odometry before starting auto
+    self.drivetrain.resetHarder()
+    
+    # Create and schedule the autonomous command
+    self.autonomousCommand = DriveDistance(self.drivetrain, distance_meters, 0.3)
+    self.scheduler.schedule(self.autonomousCommand)
+    
+    print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
