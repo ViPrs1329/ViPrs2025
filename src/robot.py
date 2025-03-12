@@ -120,10 +120,10 @@ class MyRobot(commands2.TimedCommandRobot):
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
     self.drivingCommandXboxController.rightTrigger().onTrue(
-      commands2.InstantCommand(self.enableSlow())
+      commands2.InstantCommand(lambda: self.enableSlow())
     )
     self.drivingCommandXboxController.rightTrigger().onFalse(
-      commands2.InstantCommand(self.disableSlow())
+      commands2.InstantCommand(lambda: self.disableSlow())
     )
 
     # elevator positions
