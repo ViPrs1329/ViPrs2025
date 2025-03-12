@@ -55,7 +55,7 @@ class DriveDistance(commands2.Command):
     def execute(self):
         """Called repeatedly during command execution."""
         # Drive forward at the specified speed
-        self.driveTrain.driveFromChassisSpeeds(ChassisSpeeds(self.speed, 0, 0))
+        self.driveTrain.manualDriveFromChassisSpeeds(ChassisSpeeds(self.speed, 0, 0))
         
         # Debug output
         current_pose = self.driveTrain.getPose()

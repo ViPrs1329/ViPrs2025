@@ -196,6 +196,11 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.rightTrigger().onTrue(
         MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
+
+    # stow the arm when down dpad is pressed
+    self.EEECommandXboxController.povDown().onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, 0)  # 135 degrees in radians
+    )
     # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
 
     # self.coralIntakeCommand = commands2.ConditionalCommand(
@@ -416,7 +421,7 @@ class MyRobot(commands2.TimedCommandRobot):
     heading = h2 * (math.pi * 2)
     self.headingValue.set(heading)
     #print(xSpeed, ySpeed, tSpeed)
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed, Rotation2d(heading))
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed * self.slowScaler, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
