@@ -18,7 +18,7 @@ from subsystems.EndEffector import EndEffector
 import constants
 import numpy as np
 import ntcore
-from wpilib.cameraserver import CameraServer
+from cscore import CameraServer
 
 from commands.slow import Slow
 
@@ -129,8 +129,12 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
-    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector, self.canRangeFunnel.get_distance().value_as_double))
-    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector, self.canRangeFunnel.get_distance().value_as_double))
+    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, 
+                                                                  self.endEffector, 
+                                                                  self.canRangeFunnel.get_distance().value_as_double))
+    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, 
+                                                                   self.endEffector, 
+                                                                   self.canRangeFunnel.get_distance().value_as_double))
     
     '''
     self.EEECommandXboxController.leftBumper().onTrue(
@@ -254,7 +258,8 @@ class MyRobot(commands2.TimedCommandRobot):
     should be used for any initialization code.
     """
 
-    CameraServer()
+    camera = CameraServer.startAutomaticCapture()
+    camera.setFPS(15)
 
     self.is_debug_mode = [False]
 
