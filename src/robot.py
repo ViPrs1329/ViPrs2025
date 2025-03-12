@@ -131,10 +131,10 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
     self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, 
                                                                   self.endEffector, 
-                                                                  self.canRangeFunnel.get_distance().value_as_double))
+                                                                  lambda: self.coralIsOutOfRangeFunnel()))
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, 
-                                                                   self.endEffector, 
-                                                                   self.canRangeFunnel.get_distance().value_as_double))
+                                                                  self.endEffector, 
+                                                                  lambda: self.coralIsOutOfRangeFunnel()))
     
     '''
     self.EEECommandXboxController.leftBumper().onTrue(
@@ -402,7 +402,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
     self.scheduler.run()
-    print(self.canRangeFunnel.get_distance().value_as_double)
+    # print(self.canRangeFunnel.get_distance().value_as_double)
     # important print statement
     # print(self.canRangeEE.get_distance().value_as_double)
     '''

@@ -5,7 +5,7 @@ from subsystems.EndEffector import EndEffector
 import constants
 
 class SetElevator(commands2.Command):
-    def __init__(self, direction: str, elevator: Elevator, endEffector: EndEffector, outOfRange):
+    def __init__(self, direction: str, elevator: Elevator, endEffector: EndEffector, outOfRange: callable):
         super().__init__()
         self.direction = direction  # "up" or "down"
         self.elevator = elevator
@@ -20,7 +20,7 @@ class SetElevator(commands2.Command):
         self.oor = outOfRange
 
     def initialize(self):
-        if self.oor > 0.1:
+        if self.oor():
             # Set the next elevator level based on direction
             if self.direction == "up":
                 self.elevator.currentLevel = min(self.elevator.currentLevel + 1, self.MAX_LEVEL)
@@ -41,7 +41,7 @@ class SetElevator(commands2.Command):
             # self.endEffector.setAlgaeArmAngle(constants.intakeConsts.algaeArmAngles[level_index])
             
             # Log the level change
-            print(f"Elevator moving to level {self.elevator.currentLevel}")
+            print(f"Elevator moving to level {self.elevator.currentLevel}, out of range={self.oor}")
 
     def execute(self):
         # No execution needed - all work done in initialize
