@@ -29,6 +29,9 @@ class DriveDistance(commands2.Command):
         
     def initialize(self):
         """Called when the command is initially scheduled."""
+        # First, align all swerve modules to face forward
+        self._align_modules_forward()
+        
         # Get the starting position
         self.start_pose = self.driveTrain.getPose()
         
@@ -98,3 +101,26 @@ class DriveDistance(commands2.Command):
         dx = current_pose.X() - self.start_pose.X()
         dy = current_pose.Y() - self.start_pose.Y()
         return math.sqrt(dx*dx + dy*dy)
+        
+    def _align_modules_forward(self):
+        """
+        Aligns all swerve modules to face forward before driving.
+        This ensures the robot moves in a straight line.
+        """
+        print("Aligning swerve modules to face forward...")
+        
+        # Set all modules to zero rotation angle but zero speed
+        # This uses the chassis speeds with zero velocity but ensures 
+        # the module states get set to the forward position
+        self.driveTrain.manualDriveFromChassisSpeeds(ChassisSpeeds(0.0001, 0, 0))
+        
+        # Small delay to allow modules to align
+        timer = wpilib.Timer()
+        timer.start()
+        
+        # Wait for alignment (500ms should be enough for the modules to rotate)
+        while timer.get() < 0.5:
+            # We could potentially check encoder values here to confirm alignment
+            wpilib.SmartDashboard.putNumber("Alignment Timer", timer.get())
+            
+        print("Swerve modules aligned forward, ready to drive")

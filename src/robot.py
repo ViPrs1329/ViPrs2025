@@ -311,6 +311,9 @@ class MyRobot(commands2.TimedCommandRobot):
     
     # Reset the drivetrain odometry before starting auto
     self.drivetrain.resetHarder()
+
+    # Make sure motors are not in motion
+    self.drivetrain.stopMotors()
     
     # Create and schedule the autonomous command
     self.autonomousCommand = DriveDistance(self.drivetrain, distance_meters, 0.3)
