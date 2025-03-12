@@ -10,7 +10,7 @@ from wpilib import DriverStation, MotorControllerGroup
 from wpimath import controller
 
 
-from constants import CANIDs
+from constants import CANIDs, convert, elevatorConsts
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
@@ -71,6 +71,7 @@ class Elevator(commands2.Subsystem):
     desiredVelocity = self.elevatorPID.calculate(self.getElevatorPosition(), self.destination)
     elevatorVelocity = self.elevatorFF.calculate(self.getElevatorVelocity(), desiredVelocity)
     self.motorGroup.set(elevatorVelocity)
+    # print((convert.rot2in(self.destination)) * 2 + elevatorConsts.verticalOffset)
 
   def gotoPosition(self, position):
     self.destination = max(position, 0)

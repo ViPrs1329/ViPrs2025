@@ -28,7 +28,7 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_rotation_motor_config = rev.SparkBaseConfig()
         self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
-        self.algae_rotation_motor_config.smartCurrentLimit(20) #limit current
+        self.algae_rotation_motor_config.smartCurrentLimit(2) #limit current
         self.algae_rotation_motor_config.inverted(False)
         self.algae_rotation_motor.configure(self.algae_rotation_motor_config, 
                                             rev.SparkBase.ResetMode.kNoResetSafeParameters,  # THIS PARAMETER COST ME 3 HOURS OF MY LIFE!!!
@@ -89,6 +89,7 @@ class EndEffector(commands2.Subsystem):
 
         self.rotationOffset = self.algaeEncoder.getPosition()
 
+        self.flopArm = False
     def setAlgaeRotationSpeed(self, speed: float) -> None:
         """Sets the speed of the algae intake rotation motor.
 
@@ -109,19 +110,22 @@ class EndEffector(commands2.Subsystem):
         current_angle = self.getAlgaeArmAngle()
 
         error = self.algaeDestination - current_angle
+        dest = self.algaeDestination
+        if self.flopArm:
+            dest = intakeConsts.algaeStoredSetpoint
 
-        pid_output = self.algaePID.calculate(current_angle, self.algaeDestination)
+        pid_output = self.algaePID.calculate(current_angle, dest)
 
         ff_output = self.algaeFF.calculate(current_angle, 0)
 
         motor_output = pid_output + ff_output
 
         motor_output = max(-0.4, min(0.4, motor_output))
-
+        
         self.algae_rotation_motor.set(motor_output)
         
         # Debug output - convert back to degrees for easier reading
-        print(f"Arm: caR={current_angle:.2f} dest={self.algaeDestination:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ")
+        # print(f"Arm: caR={current_angle:.2f} dest={dest:.2f} pidO={pid_output:.2f} ffO={ff_output:.2f} mO={motor_output:.2f} ic={self.algae_intake_motor.getOutputCurrent():.2f} flop={self.flopArm}")
 
     def getEEEControllerRightJoystick(self):
         return self.EEEXboxController.getRightX(), self.EEEXboxController.getRightY()

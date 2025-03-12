@@ -84,18 +84,20 @@ class intakeConsts:
 
     # 5cm for the canrange
     coralDetectionThreshold = 0.1
+    algaeCurrentThreshold = 15
+    algaeStoredSetpoint = 1.4
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [1, 2, 3, 4]
-    verticalOffset = -16 #inches of clearance above target branches
+    verticalOffset = -24.5 #inches of clearance above target branches
 
 class reefConsts:
     #information about the reef for defining elevator levels
     # [level index, maximum height in inches, pitch in degrees from horizontal, roll in degrees from upright]
     L1 = [1, 0, 90, 0]
-    L2 = [2, 18, 0, 90]
-    L3 = [3, 25, 0, 0] # [2, 31.875, 35, 0]
-    L4 = [4, 30, 0, 0] # [3, 35, 35, 0]
+    L2 = [2, 31, 0, 90]
+    L3 = [3, 47, 0, 0] # [2, 31.875, 35, 0]
+    L4 = [4, 66.5, 0, 0] # [3, 35, 35, 0]
     # L4 = [4, 72, 90, 0]
     reefLevels = [L1, L2, L3, L4]
 

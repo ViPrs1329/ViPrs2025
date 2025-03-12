@@ -18,6 +18,7 @@ from subsystems.EndEffector import EndEffector
 import constants
 import numpy as np
 import ntcore
+from wpilib.cameraserver import CameraServer
 
 from commands.slow import Slow
 
@@ -28,13 +29,12 @@ from commands.rt import RT
 from commands.setElevator import SetElevator
 from commands.intake import Intake
 from commands.driveForward import driveForward
-from commands.algaeIntake import AlgaeIntake
 from commands.algaeArmCyclePositions import AlgaeArmCyclePositions
 from commands.ToggleDebugMode import ToggleDebugMode
 from commands.JoystickElevatorControl import JoystickElevatorControl
 from commands.SetElevatorWithDebugCheck import SetElevatorWithDebugCheck
 from commands.MoveAlgaeArmToPosition import MoveAlgaeArmToPosition
-from commands.algaeIntake import AlgaeIntakeControl
+from commands.AlgaeIntakeControl import AlgaeIntakeControl
 from commands.TestAlgaeIntake import TestAlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
@@ -54,7 +54,7 @@ class MyRobot(commands2.TimedCommandRobot):
       #self.elevator.leftElevatorMotor,
       #self.elevator.rightElevatorMotor
     ]
-    
+
     burntFlag = False
     for motorController in motorControllers:
       temp = motorController.getMotorTemperature()
@@ -82,7 +82,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def coralIsOutOfRangeFunnel(self):
     "returns true when coral is not detected"
-    return self.canRangeFunnel.get_distance().value_as_double > constants.intakeConsts.coralDetectionThreshold
+    return self.canRangeFunnel.get_distance().value_as_double > 0.1 # constants don't work it was the same thing in coralisinrangeee
 
   def enableSlow(self):
     self.slowScaler = 0.1
@@ -91,8 +91,30 @@ class MyRobot(commands2.TimedCommandRobot):
     self.slowScaler = 1
 
   def ejectCoral(self):
-    self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed)
-    self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed)
+    if self.elevatorController.currentLevel != 1:
+      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed)
+    else:
+      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed / 2)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 4)
+
+  def flopArm(self):
+    # print("floppp")
+    self.endEffector.flopArm = True
+
+  def unFlopArm(self):
+    # print("unnn floppp")
+    self.endEffector.flopArm = False
+
+  def shouldFlopArm(self):
+    return self.endEffector.algae_intake_motor.getOutputCurrent() > 15 # can't put a constant here because python is dumb?????
+  
+  def goToBaseLevel(self):
+    target_height = constants.reefConsts.reefLevels[0][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.elevatorController.currentLevel = 1
+    # Move the elevator and arm to the appropriate positions
+    self.elevatorController.gotoPosition(target_position)
 
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
@@ -107,8 +129,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
     # self.EEECommandXboxController.rightTrigger().whileTrue(RT(self.EEEPressedButtons))
-    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector))
-    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector))
+    self.EEECommandXboxController.leftBumper().onTrue(SetElevator("down", self.elevatorController, self.endEffector, self.canRangeFunnel.get_distance().value_as_double))
+    self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector, self.canRangeFunnel.get_distance().value_as_double))
     
     '''
     self.EEECommandXboxController.leftBumper().onTrue(
@@ -131,10 +153,31 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     
     # Y button - Intake algae
-    self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
+    # self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
+    self.EEECommandXboxController.y().onTrue(
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
+      )
+    )
 
     # B button - Eject algae
-    self.EEECommandXboxController.b().whileTrue(AlgaeIntakeControl(self.endEffector, "eject"))
+    # self.EEECommandXboxController.b().whileTrue(AlgaeIntakeControl(self.endEffector, "eject"))
+    self.EEECommandXboxController.b().onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.endEffector.algae_intake_motor.set(constants.intakeConsts.algaeIntakeSpeed)
+        ),
+        commands2.InstantCommand(
+          lambda: print("eject")
+        )
+      )
+    )
+
+    self.EEECommandXboxController.b().onFalse(
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(0)
+      )
+    )
 
     # Start button to test algae intake
     self.EEECommandXboxController.start().onTrue(TestAlgaeIntake(self.endEffector))
@@ -184,6 +227,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.x().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(lambda: print("in")),
+        commands2.InstantCommand(lambda: self.goToBaseLevel()),
         commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
         WaitUntilCoralIsDetected(self.coralIsInRangeEE),
         WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
@@ -201,6 +245,7 @@ class MyRobot(commands2.TimedCommandRobot):
     #   WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
     #   Intake(self.endEffector)
     # )
+
   autonomousCommand = driveForward
 
   def robotInit(self):
@@ -208,6 +253,9 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+
+    CameraServer()
+
     self.is_debug_mode = [False]
 
     self.drivingXboxController = wpilib.XboxController(0)
@@ -307,7 +355,13 @@ class MyRobot(commands2.TimedCommandRobot):
     if self.is_debug_mode[0]:
       if (self.teleopCounter % 50) == 0:  # Only print every ~1 second (assuming 50Hz loop)
           print("*** DEBUG MODE ACTIVE ***")
-    
+
+    self.scheduler.schedule(commands2.ConditionalCommand(
+      commands2.InstantCommand(lambda: self.flopArm()),
+      commands2.InstantCommand(lambda: self.unFlopArm()),
+      lambda: self.shouldFlopArm()
+    ))
+    # print(self.shouldFlopArm(), self.endEffector.algae_intake_motor.getOutputCurrent() > 15)
     # print('\nAlgae Arm Angle:')
     # print(self.endEffector.getAlgaeArmAngle())
     #print('\nAlgae Motor Rotations')
@@ -343,7 +397,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.robotPosition.set(self.drivetrain.combinedPosition)
 
     self.scheduler.run()
-
+    print(self.canRangeFunnel.get_distance().value_as_double)
     # important print statement
     # print(self.canRangeEE.get_distance().value_as_double)
     '''

@@ -21,7 +21,7 @@ class AlgaeIntakeControl(commands2.Command):
             speed = -speed  # Reverse the motor for ejection
             
         self.EE.setAlgaeIntakeSpeed(speed)
-        print(f"Algae {self.direction} started at speed: {speed}")
+        # print(f"Algae {self.direction} started at speed: {speed}")
         
     def execute(self):
         """Called repeatedly when this Command is scheduled to run."""
