@@ -125,6 +125,9 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.rightTrigger().onFalse(
       commands2.InstantCommand(lambda: self.disableSlow())
     )
+    self.drivingCommandXboxController.x().onTrue(
+      commands2.InstantCommand(lambda: self.drivetrain.gyro.set_yaw(0))
+    )
 
     # elevator positions
 
