@@ -15,6 +15,7 @@ import commands2
 from subsystems.SwerveDriveSubsystem import DriveTrain
 from subsystems.ElevatorSubsystem import Elevator
 from subsystems.EndEffector import EndEffector
+from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
 import constants
 import numpy as np
 import ntcore
@@ -126,6 +127,30 @@ class MyRobot(commands2.TimedCommandRobot):
       commands2.InstantCommand(lambda: self.disableSlow())
     )
 
+    # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
+    self.drivingCommandXboxController.povUp().onTrue(
+        commands2.InstantCommand(
+            lambda: self.vision.toggleFrontLimelightMode()
+        )
+    )
+    
+    # Toggle rear Limelight driver mode on/off using POV Down (D-pad Down)
+    self.drivingCommandXboxController.povDown().onTrue(
+        commands2.InstantCommand(
+            lambda: self.vision.toggleRearLimelightMode()
+        )
+    )
+    
+    # Set both Limelights to driver mode using POV Left (D-pad Left)
+    self.drivingCommandXboxController.povLeft().onTrue(
+        commands2.InstantCommand(
+            lambda: [
+                self.vision.setDriverMode(self.vision.limelight_front, True),
+                self.vision.setDriverMode(self.vision.limelight_rear, True)
+            ]
+        )
+    )
+
     # elevator positions
 
     # self.EEECommandXboxController.leftTrigger().whileTrue(LT(self.EEEPressedButtons))
@@ -137,14 +162,7 @@ class MyRobot(commands2.TimedCommandRobot):
                                                                   self.endEffector, 
                                                                   lambda: self.coralIsOutOfRangeFunnel()))
     
-    '''
-    self.EEECommandXboxController.leftBumper().onTrue(
-        SetElevatorWithDebugCheck("down", self.elevatorController, self.endEffector, self.is_debug_mode)
-    )
-    self.EEECommandXboxController.rightBumper().onTrue(
-        SetElevatorWithDebugCheck("up", self.elevatorController, self.endEffector, self.is_debug_mode)
-    )
-    '''
+    
     
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
@@ -201,35 +219,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.povDown().onTrue(
       MoveAlgaeArmToPosition(self.endEffector, 0)  # 135 degrees in radians
     )
-    # self.coralIntakeCommand = commands2.ConditionalCommand(Intake(self.endEffector), commands2.InstantCommand(), self.canRangeFunnel.get_measurement)
-
-    # self.coralIntakeCommand = commands2.ConditionalCommand(
-    #   commands2.ConditionalCommand(
-    #     commands2.ConditionalCommand(
-    #       commands2.InstantCommand(), 
-    #       Intake(self.endEffector), 
-    #       self.coralIsInRange(self.canRangeFunnel)
-    #     ), 
-    #     commands2.InstantCommand(), 
-    #     self.coralIsInRange(self.canRangeEE)
-    #   ), 
-    #   commands2.InstantCommand(), 
-    #   self.coralIsInRange(self.canRangeFunnel)
-    # )
-
-    '''
-    self.EEECommandXboxController.y().toggleOnTrue(
-        commands2.ConditionalCommand(
-            lambda: JoystickElevatorControl(
-                self.elevatorController, 
-                self.EEEXboxController, 
-                scale_factor=0.1
-            ),
-            commands2.InstantCommand(),
-            lambda: self.is_debug_mode[0]
-        )
-    )
-    '''
+    
 
     # wait until coral is detected by the EE canrange 
     # then wait until coral is undetected by the funnel canrange 
@@ -278,6 +268,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain = DriveTrain()
     self.elevatorController = Elevator()
     self.endEffector = EndEffector()
+    self.vision = SimpleVisionSubsystem()
     #self.elevator = Elevator()
 
     # initialize network tables
