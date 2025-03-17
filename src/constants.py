@@ -92,7 +92,7 @@ class intakeConsts:
 class elevatorConsts:
     # heights for ground, L1, L2, L3, and L4
     elevatorHeights = [1, 2, 3, 4]
-    verticalOffset = -24.5 #inches of clearance above target branches
+    verticalOffset = -25.5 #inches of clearance above target branches
 
 class reefConsts:
     #information about the reef for defining elevator levels
