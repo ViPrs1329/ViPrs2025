@@ -28,7 +28,7 @@ class EndEffector(commands2.Subsystem):
         self.algae_rotation_motor.setInverted(False)  # Adjust if needed
         self.algae_rotation_motor_config = rev.SparkBaseConfig()
         self.algae_rotation_motor_config.setIdleMode(rev.SparkBaseConfig.IdleMode.kCoast)
-        self.algae_rotation_motor_config.smartCurrentLimit(2) #limit current
+        self.algae_rotation_motor_config.smartCurrentLimit(10) #limit current
         self.algae_rotation_motor_config.inverted(False)
         self.algae_rotation_motor.configure(self.algae_rotation_motor_config, 
                                             rev.SparkBase.ResetMode.kNoResetSafeParameters,  # THIS PARAMETER COST ME 3 HOURS OF MY LIFE!!!
@@ -72,9 +72,9 @@ class EndEffector(commands2.Subsystem):
                                                 rev.SparkBase.ResetMode.kNoResetSafeParameters, 
                                                 rev.SparkBase.PersistMode.kPersistParameters)
 
-        Kp = 0.25
+        Kp = 0.5
         Ki = 0.0
-        Kd = 0.01
+        Kd = 0.0
         self.algaePID = PIDController(Kp, Ki, Kd)
         self.algaePID.setSetpoint(0)
 
@@ -83,7 +83,7 @@ class EndEffector(commands2.Subsystem):
         kV = 0
         kA = 0
 
-        self.algaeDestination = 0.0
+        self.algaeDestination = 3.1
 
         self.algaeFF = ArmFeedforward(kS, kG, kV, kA)
 
@@ -120,7 +120,8 @@ class EndEffector(commands2.Subsystem):
 
         motor_output = pid_output + ff_output
 
-        motor_output = max(-0.4, min(0.4, motor_output))
+        motor_output = max(-1, min(1, motor_output))
+        print(motor_output)
         
         self.algae_rotation_motor.set(motor_output)
         
@@ -153,7 +154,7 @@ class EndEffector(commands2.Subsystem):
         self.coral_intake_left_motor.set(0)
         self.coral_intake_right_motor.set(0)
 
-        self.algaeDestination = 0
+        self.algaeDestination = 3.1
 
     def stopCoralMotors(self):
         self.coral_intake_left_motor.set(0)
@@ -196,7 +197,7 @@ class EndEffector(commands2.Subsystem):
         return self.algaeEncoder.getVelocity()
 
     def zeroAlgaeArm(self):
-        self.algaeDestination = 0
+        self.algaeDestination = 3.1
 
     def startAlgaeIntake(self):
         self.algae_intake_motor.set(intakeConsts.algaeIntakeSpeed)

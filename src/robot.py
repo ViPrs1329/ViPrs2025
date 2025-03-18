@@ -221,8 +221,8 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # stow the arm when down dpad is pressed
-    self.EEECommandXboxController.povDown().onTrue(
-      MoveAlgaeArmToPosition(self.endEffector, 0)  # 135 degrees in radians
+    self.EEECommandXboxController.povUp().onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, 3.1)  # about 180 degrees in radians
     )
     
 
