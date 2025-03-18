@@ -8,6 +8,22 @@ class LimelightSubsystem(commands2.Subsystem):
     super().__init__()
     inst: ntcore.NetworkTableInstance = ntcore.NetworkTableInstance.getDefault()
     self.limelightTable: ntcore.NetworkTable = inst.getTable("limelight")
+  
+  def limelightPose2AdvantageScopePose(self, pose: Pose3d):
+    translation = pose.translation()
+    tx = translation.X()
+    ty = translation.Y()
+    tz = translation.Z()
+
+    rotation = pose.rotation()
+    roll = rotation.X()
+    pitch = rotation.Y()
+    yaw = rotation.Z()
+    return Pose3d(
+      Translation3d(tx, tz, -ty),
+      Rotation3d(-yaw, roll, -pitch - 3.14159/2)
+    )
+
   def getTargetPoseInCameraSpace(self):
     botPoseArray = self.limelightTable.getEntry("targetpose_cameraspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     tx = botPoseArray[0]

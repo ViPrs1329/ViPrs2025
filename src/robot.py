@@ -8,7 +8,7 @@ import time
 import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
-from wpimath.geometry import Rotation2d, Pose2d, Pose3d
+from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Translation3d, Rotation3d
 import rev
 import math
 import commands2
@@ -285,7 +285,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.robotPosition = table.getStructTopic("robot pose", Pose2d).publish()
     self.headingValue = table.getDoubleTopic("heading").publish()
     self.llPredictionPosition = table.getStructTopic("April Tag Position", Pose3d).publish()
-    
+    self.origin = table.getStructTopic("origin", Pose3d).publish()
+    self.origin.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
     self.slowScaler = 1
 
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
@@ -301,7 +302,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def robotPeriodic(self):
     # print("robotPeriodic()")
-    self.llPredictionPosition.set(self.llController.getTargetPoseInCameraSpace())
+    self.llPredictionPosition.set(self.llController.limelightPose2AdvantageScopePose(self.llController.getTargetPoseInCameraSpace()))
         
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
