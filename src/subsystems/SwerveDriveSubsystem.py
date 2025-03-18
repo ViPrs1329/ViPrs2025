@@ -5,7 +5,7 @@ import commands2
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds, SwerveDrive4Odometry, SwerveModulePosition
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
-from wpilib import DriverStation
+from wpilib import DriverStation, Field2d
 from wpimath import controller
 
 from constants import CANIDs
@@ -49,6 +49,7 @@ class DriveTrain(commands2.Subsystem):
 
     self.robotOdometryPosition = Pose2d()
     self.combinedPosition = Pose2d()
+    self.currentPosition = Pose2d()
 
     # Drivetrain init 
     # Need to replace CAN ids with their respective
@@ -163,10 +164,53 @@ class DriveTrain(commands2.Subsystem):
         getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
 
       ),
-      Pose2d()
 
     ) 
+    self.odometryHeadingOffset = Rotation2d(0)
+    self.resetOdometry(Pose2d(0,0,0))
 
+    self.field = Field2d()
+
+  def resetOdometry(self, pose: Pose2d):
+    self.gyro.reset()
+    self.gyro.set_yaw(0)
+    self.lastGyroAngleTime = 0
+    self.lastGyroAngle = 0
+
+    self.odometry.resetPosition(
+      self.getGyroHeading(),
+      (
+        getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
+        getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
+        getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
+        getSwerveModPos(self.BrightEnc, self.backRightDriveEnc),
+      ),
+      pose
+    )
+    self.odometryHeadingOffset = self.odometry.getPose().rotation() - self.getGyroHeading()
+    self.field = Field2d()
+
+  def adjustOdometry(self, dTrans: Translation2d, dRot: Rotation2d):
+    pose = self.getPose()
+    newPose = Pose2d(pose.translation() + dTrans, pose.rotation() + dRot)
+    self.odometry.resetPosition(
+      pose.rotation() - self.odometryHeadingOffset,
+      (
+        getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
+        getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
+        getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
+        getSwerveModPos(self.BrightEnc, self.backRightDriveEnc),
+      ),
+      newPose
+    )
+    self.odometryHeadingOffset += dRot
+
+  def getGyroHeading(self) -> Rotation2d:
+    """Returns the heading of the robot, tries to be smart when gyro is disconnected
+
+    :returns: the robot's heading as Rotation2d
+    """
+    return Rotation2d.fromDegrees(self.gyro.get_yaw().value_as_double)
   def resetHarder(self, initialPose = Pose2d()):
     self.gyro.set_yaw(0)
 
@@ -221,7 +265,19 @@ class DriveTrain(commands2.Subsystem):
     self.combinedPosition = Pose2d(x = self.robotOdometryPosition.x, y = self.robotOdometryPosition.y, rotation = robotRotationPose.rotation())
 
   def periodic(self) -> None:
-    self.updateOdometry()
+    pose = self.odometry.update(
+      self.getGyroHeading(),
+      (
+        getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
+        getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
+        getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
+        getSwerveModPos(self.BrightEnc, self.backRightDriveEnc)
+      ),
+
+    )
+    self.currentPosition = pose
+    self.field.setRobotPose(pose)
+    # self.updateOdometry()
 #     print(
 # f"""
 

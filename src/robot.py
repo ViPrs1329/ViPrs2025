@@ -8,7 +8,7 @@ import time
 import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
-from wpimath.geometry import Rotation2d, Pose2d
+from wpimath.geometry import Rotation2d, Pose2d, Pose3d
 import rev
 import math
 import commands2
@@ -16,6 +16,7 @@ from subsystems.SwerveDriveSubsystem import DriveTrain
 from subsystems.ElevatorSubsystem import Elevator
 from subsystems.EndEffector import EndEffector
 from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
+from subsystems.LimelightSubsystem import LimelightSubsystem
 import constants
 import numpy as np
 import ntcore
@@ -270,6 +271,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.elevatorController = Elevator()
     self.endEffector = EndEffector()
     self.vision = SimpleVisionSubsystem()
+    self.llController = LimelightSubsystem()
     #self.elevator = Elevator()
 
     # initialize network tables
@@ -279,6 +281,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.controllerYPub = table.getDoubleTopic("controller y").publish()
     self.robotPosition = table.getStructTopic("robot pose", Pose2d).publish()
     self.headingValue = table.getDoubleTopic("heading").publish()
+    self.llPredictionPosition = table.getStructTopic("April Tag Position", Pose3d).publish()
     
     self.slowScaler = 1
 
@@ -295,7 +298,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def robotPeriodic(self):
     # print("robotPeriodic()")
-    pass
+    self.llPredictionPosition.set(self.llController.getTargetPoseInCameraSpace())
         
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
@@ -415,7 +418,7 @@ class MyRobot(commands2.TimedCommandRobot):
     #print(xSpeed, ySpeed, tSpeed)
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed * self.slowScaler, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
-    self.robotPosition.set(self.drivetrain.combinedPosition)
+    self.robotPosition.set(self.drivetrain.currentPosition)
 
     self.scheduler.run()
     # print(self.elevatorController.currentLevel, self.coralIsOutOfRangeFunnel())
