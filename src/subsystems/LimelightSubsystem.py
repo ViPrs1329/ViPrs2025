@@ -7,8 +7,8 @@ class LimelightSubsystem(commands2.Subsystem):
   def __init__(self):
     super().__init__()
     inst: ntcore.NetworkTableInstance = ntcore.NetworkTableInstance.getDefault()
-    self.limelightTableLeft: ntcore.NetworkTable = inst.getTable("limelight-left")
-    self.limelightTableRight: ntcore.NetworkTable = inst.getTable("limelight-right")
+    self.limelightTableLeft: ntcore.NetworkTable = inst.getTable("limelight-lside")
+    self.limelightTableRight: ntcore.NetworkTable = inst.getTable("limelight-lside") # change to rside when we get another limelight
   
   def limelightPose2AdvantageScopePose(self, pose: Pose3d):
     translation = pose.translation()
@@ -25,25 +25,17 @@ class LimelightSubsystem(commands2.Subsystem):
       Rotation3d(-yaw, roll, -pitch - 3.14159/2)
     )
 
-<<<<<<< HEAD
-  def getTargetPoseInCameraSpace(self):
-    botPoseArray = self.limelightTable.getEntry("targetpose_robotspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    tx = botPoseArray[0]
-    ty = botPoseArray[1]
-    tz = botPoseArray[2]
-=======
   def limelightLeftDetectsTag(self) -> bool :
-    tv = self.limelightTableLeft.getNumber("tv")
+    tv = self.limelightTableLeft.getNumber("tv", 0)
     if tv == 1:
       return True
     elif tv == 0:
       return False
     else:
       raise ValueError(f"(should be 0 or 1) limelight left detects apriltags: {tv}")
->>>>>>> da98f6bf4e19280facadd865352460dc3b3c1a30
 
   def limelightRightDetectsTag(self) -> bool :
-    tv = self.limelightTableRight.getNumber("tv")
+    tv = self.limelightTableRight.getNumber("tv", 0)
     if tv == 1:
       return True
     elif tv == 0:
