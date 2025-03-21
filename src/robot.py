@@ -302,7 +302,11 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def robotPeriodic(self):
     # print("robotPeriodic()")
-    self.llPredictionPosition.set(self.llController.limelightPose2AdvantageScopePose(self.llController.getTargetPoseInCameraSpace()))
+    targetPose = self.llController.getTargetPose()
+    if targetPose: # check if there are april tags detected
+      self.llPredictionPosition.set(self.llController.limelightPose2AdvantageScopePose(targetPose))
+    else:
+      self.llPredictionPosition.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
         
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
