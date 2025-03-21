@@ -44,7 +44,7 @@ class LimelightSubsystem(commands2.Subsystem):
       raise ValueError(f"(should be 0 or 1) limelight left detects apriltags: {tv}")
 
   def getTargetPose(self) -> Pose3d | bool:
-    botPoseArrayLeft = self.limelightTableLeft.getEntry("targetpose_botspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    botPoseArrayLeft = self.limelightTableLeft.getEntry("targetpose_robotspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     ltx = botPoseArrayLeft[0]
     lty = botPoseArrayLeft[1]
     ltz = botPoseArrayLeft[2]
@@ -53,7 +53,7 @@ class LimelightSubsystem(commands2.Subsystem):
     lpitch = botPoseArrayLeft[4]
     lyaw = botPoseArrayLeft[5]
 
-    botPoseArrayRight = self.limelightTableRight.getEntry("targetpose_botspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    botPoseArrayRight = self.limelightTableRight.getEntry("targetpose_robotspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     rtx = botPoseArrayRight[0]
     rty = botPoseArrayRight[1]
     rtz = botPoseArrayRight[2]
@@ -65,21 +65,14 @@ class LimelightSubsystem(commands2.Subsystem):
     if self.limelightLeftDetectsTag():
       if self.limelightRightDetectsTag():
         # both limelights detect april tags
-        return (Pose3d(
-          Translation3d(ltx, lty, ltz), 
+        return Pose3d(
+          Translation3d((ltx + rtx) / 2, (lty + rty) / 2, (ltz + rtz) / 2), 
           Rotation3d(
-            degreesToRadians(lroll), 
-            degreesToRadians(lpitch),
-            degreesToRadians(lyaw)
+            degreesToRadians((lroll + rroll) / 2), 
+            degreesToRadians((lpitch + rpitch) / 2),
+            degreesToRadians((lyaw + ryaw) / 2)
           )
-        ) + Pose3d(
-          Translation3d(rtx, rty, rtz),
-          Rotation3d(
-            degreesToRadians(rroll),
-            degreesToRadians(rpitch),
-            degreesToRadians(ryaw)
-          )
-        )) * 0.5
+        )
       else:
         # limelight left detects tag but right doesn't
         return Pose3d(
