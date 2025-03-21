@@ -8,7 +8,7 @@ import time
 import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
-from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Translation3d, Rotation3d
+from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Translation3d, Rotation3d, Translation2d
 import rev
 import math
 import commands2
@@ -251,7 +251,12 @@ class MyRobot(commands2.TimedCommandRobot):
     #   Intake(self.endEffector)
     # )
 
-
+  def negateOdometry(self, pose: Pose2d):
+    x = pose.X()
+    y = pose.Y()
+    r = pose.rotation()
+    return Pose2d(Translation2d(-x, -y), r)
+  
   def robotInit(self):
     """
     This function is called upon program startup and
@@ -287,6 +292,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.llPredictionPosition = table.getStructTopic("April Tag Position", Pose3d).publish()
     self.origin = table.getStructTopic("origin", Pose3d).publish()
     self.origin.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
+    self.negatedRobotPosition = table.getStructTopic("Negated Odometry", Pose2d).publish()
     self.slowScaler = 1
 
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
@@ -423,6 +429,7 @@ class MyRobot(commands2.TimedCommandRobot):
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed * self.slowScaler, Rotation2d(heading))
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     self.robotPosition.set(self.drivetrain.currentPosition)
+    self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
 
     self.scheduler.run()
     # print(self.elevatorController.currentLevel, self.coralIsOutOfRangeFunnel())

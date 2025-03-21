@@ -25,7 +25,7 @@ class LimelightSubsystem(commands2.Subsystem):
     )
 
   def getTargetPoseInCameraSpace(self):
-    botPoseArray = self.limelightTable.getEntry("targetpose_cameraspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    botPoseArray = self.limelightTable.getEntry("targetpose_robotspace").getDoubleArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     tx = botPoseArray[0]
     ty = botPoseArray[1]
     tz = botPoseArray[2]
