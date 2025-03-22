@@ -7,10 +7,17 @@ from wpimath.kinematics import ChassisSpeeds
 import constants
 
 class AutoAlign(commands2.Command):
-  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain):
+  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str):
     super().__init__()
     self.llSubsystem = llSubsystem
     self.drivetrain = drivetrain
+    self.alignPosition = 0
+    if alignLocation == "left":
+      self.alignPosition = -0.1
+    elif alignLocation == "right":
+      self.alignPosition = 0.1
+    else:
+      raise ValueError("robot can't align to " + alignLocation + ". must be left or right")
     kp = 0.5
     ki = 0
     kd = 0
