@@ -106,3 +106,6 @@ class reefConsts:
 
 class sensorConsts:
     pass
+
+class visionConsts:
+    alignOffset = 0.1

@@ -41,6 +41,7 @@ from commands.AlgaeIntakeControl import AlgaeIntakeControl
 from commands.TestAlgaeIntake import TestAlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
+from commands.autoAlign import AutoAlign
 from phoenix6.hardware import CANrange
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -131,29 +132,39 @@ class MyRobot(commands2.TimedCommandRobot):
       commands2.InstantCommand(lambda: self.drivetrain.gyro.set_yaw(0))
     )
 
-    # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
-    self.drivingCommandXboxController.povUp().onTrue(
-        commands2.InstantCommand(
-            lambda: self.vision.toggleFrontLimelightMode()
-        )
+    # Auto Align to an april tag
+    # TODO configure this command to a seperate game pad
+    self.drivingCommandXboxController.povLeft().onTrue(
+      AutoAlign(self.llController, self.drivetrain, "left")
     )
+
+    self.drivingCommandXboxController.povRight().onTrue(
+      AutoAlign(self.llController, self.drivetrain, "right")
+    )
+
+    # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
+    # self.drivingCommandXboxController.povUp().onTrue(
+    #     commands2.InstantCommand(
+    #         lambda: self.vision.toggleFrontLimelightMode()
+    #     )
+    # )
     
     # Toggle rear Limelight driver mode on/off using POV Down (D-pad Down)
-    self.drivingCommandXboxController.povDown().onTrue(
-        commands2.InstantCommand(
-            lambda: self.vision.toggleRearLimelightMode()
-        )
-    )
+    # self.drivingCommandXboxController.povDown().onTrue(
+    #     commands2.InstantCommand(
+    #         lambda: self.vision.toggleRearLimelightMode()
+    #     )
+    # )
     
     # Set both Limelights to driver mode using POV Left (D-pad Left)
-    self.drivingCommandXboxController.povLeft().onTrue(
-        commands2.InstantCommand(
-            lambda: [
-                self.vision.setDriverMode(self.vision.limelight_front, True),
-                self.vision.setDriverMode(self.vision.limelight_rear, True)
-            ]
-        )
-    )
+    # self.drivingCommandXboxController.povLeft().onTrue(
+    #     commands2.InstantCommand(
+    #         lambda: [
+    #             self.vision.setDriverMode(self.vision.limelight_front, True),
+    #             self.vision.setDriverMode(self.vision.limelight_rear, True)
+    #         ]
+    #     )
+    # )
 
     # elevator positions
 

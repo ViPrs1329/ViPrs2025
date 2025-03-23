@@ -13,16 +13,16 @@ class AutoAlign(commands2.Command):
     self.drivetrain = drivetrain
     self.alignPosition = 0
     if alignLocation == "left":
-      self.alignPosition = -0.1
+      self.alignPosition = -constants.visionConsts.alignOffset
     elif alignLocation == "right":
-      self.alignPosition = 0.1
+      self.alignPosition = constants.visionConsts.alignOffset
     else:
-      raise ValueError("robot can't align to " + alignLocation + ". must be left or right")
+      raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
     kp = 0.5
     ki = 0
     kd = 0
     self.xController = PIDController(kp, ki, kd)
-    self.xController.setSetpoint(0)
+    self.xController.setSetpoint(self.alignPosition)
     self.yController = PIDController(kp, ki, kd)
     self.yController.setSetpoint(0)
     
@@ -43,9 +43,9 @@ class AutoAlign(commands2.Command):
     self.dx = targetPose.X()
     self.dy = targetPose.Y()
     self.dt = targetPose.rotation().Z()
-    xSpeed = self.xController.calculate(self.dx, 0)
-    ySpeed = self.yController.calculate(self.dy, 0)
-    tSpeed = self.tController.calculate(self.dt, 0)
+    xSpeed = self.xController.calculate(self.dx)
+    ySpeed = self.yController.calculate(self.dy)
+    tSpeed = self.tController.calculate(self.dt)
     speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     
