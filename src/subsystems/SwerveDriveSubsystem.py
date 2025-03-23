@@ -7,6 +7,7 @@ from wpimath.geometry import Translation2d, Rotation2d, Pose2d
 
 from wpilib import DriverStation, Field2d
 from wpimath import controller
+from wpimath.units import degreesToRadians
 
 from constants import CANIDs
 
@@ -355,7 +356,13 @@ class DriveTrain(commands2.Subsystem):
     # print(rSpeedList)
     # print('\n')
 
-
+  def driveFromRelativeCoordinates(self, vx: float, vy: float, vt: float):
+    rotation = degreesToRadians(self.gyro.get_yaw().value_as_double)
+    deltax = vx * math.cos(rotation) - vy * math.sin(rotation)
+    deltay = vx * math.sin(rotation) - vy * math.cos(rotation)
+    speeds = ChassisSpeeds(deltax, deltay, vt)
+    self.manualDriveFromChassisSpeeds(speeds)
+    
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds
 
