@@ -119,6 +119,12 @@ class MyRobot(commands2.TimedCommandRobot):
     self.elevatorController.currentLevel = 1
     # Move the elevator and arm to the appropriate positions
     self.elevatorController.gotoPosition(target_position)
+  
+  def switchToAutoDrive(self):
+    self.manualDrive = False
+  
+  def switchToManualDrive(self):
+    self.manualDrive = True
 
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
@@ -135,11 +141,27 @@ class MyRobot(commands2.TimedCommandRobot):
     # Auto Align to an april tag
     # TODO configure this command to a seperate game pad
     self.drivingCommandXboxController.povLeft().onTrue(
-      AutoAlign(self.llController, self.drivetrain, "left")
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "left"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        )
+      )
     )
 
     self.drivingCommandXboxController.povRight().onTrue(
-      AutoAlign(self.llController, self.drivetrain, "right")
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "right"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        )
+      )
     )
 
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
@@ -273,7 +295,7 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
-
+    self.manualDrive = True
     camera = CameraServer.startAutomaticCapture()
     camera.setFPS(15)
 
@@ -344,7 +366,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.autonomousCommand = DriveDistance(self.drivetrain, distance_meters, 0.3)
     self.scheduler.schedule(self.autonomousCommand)
     
-    print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
+    # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
@@ -368,6 +390,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.systemTempCheck()
     self.configureButtonBindings()
     self.elevatorController.zeroElevator()
+    self.manualDrive = True
     # self.endEffector.algaeDestination = 1.57
     # self.endEffector.startCoralMotors()
 
@@ -442,7 +465,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.headingValue.set(heading)
     #print(xSpeed, ySpeed, tSpeed)
     speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed * self.slowScaler, ySpeed * self.slowScaler, -tSpeed * self.slowScaler, Rotation2d(heading))
-    self.drivetrain.manualDriveFromChassisSpeeds(speeds)
+    if self.manualDrive:
+      self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     self.robotPosition.set(self.drivetrain.currentPosition)
     self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
 

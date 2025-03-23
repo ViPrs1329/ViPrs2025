@@ -121,7 +121,7 @@ class EndEffector(commands2.Subsystem):
         motor_output = pid_output + ff_output
 
         motor_output = max(-1, min(1, motor_output))
-        print(motor_output)
+        # print(motor_output)
         
         self.algae_rotation_motor.set(motor_output)
         

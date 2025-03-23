@@ -18,7 +18,7 @@ class MoveAlgaeArmToPosition(commands2.Command):
         """Called when the command is initially scheduled."""
         self.EE.algaeDestination = self.position
         # Convert to degrees for more readable debug output
-        print(f"Moving algae arm to position: {math.degrees(self.position):.1f}°")
+        # print(f"Moving algae arm to position: {math.degrees(self.position):.1f}°")
     
     def execute(self):
         """Called repeatedly while the command is scheduled."""

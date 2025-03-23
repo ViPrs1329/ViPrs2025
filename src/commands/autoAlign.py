@@ -5,6 +5,7 @@ from subsystems.SwerveDriveSubsystem import DriveTrain
 from wpimath.controller import PIDController
 from wpimath.kinematics import ChassisSpeeds
 import constants
+import math
 
 class AutoAlign(commands2.Command):
   def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str):
@@ -13,12 +14,12 @@ class AutoAlign(commands2.Command):
     self.drivetrain = drivetrain
     self.alignPosition = 0
     if alignLocation == "left":
-      self.alignPosition = -constants.visionConsts.alignOffset
-    elif alignLocation == "right":
       self.alignPosition = constants.visionConsts.alignOffset
+    elif alignLocation == "right":
+      self.alignPosition = -constants.visionConsts.alignOffset
     else:
       raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
-    kp = 0.5
+    kp = 0.3
     ki = 0
     kd = 0
     self.xController = PIDController(kp, ki, kd)
@@ -26,7 +27,7 @@ class AutoAlign(commands2.Command):
     self.yController = PIDController(kp, ki, kd)
     self.yController.setSetpoint(0)
     
-    tkp = 0.5
+    tkp = 10
     tki = 0
     tkd = 0
     self.tController = PIDController(tkp, tki, tkd)
@@ -39,27 +40,37 @@ class AutoAlign(commands2.Command):
     pass
 
   def execute(self):
-    targetPose = self.llSubsystem.getTargetPose()
-    self.dx = targetPose.X()
-    self.dy = targetPose.Y()
-    self.dt = targetPose.rotation().Z()
-    xSpeed = self.xController.calculate(self.dx)
-    ySpeed = self.yController.calculate(self.dy)
-    tSpeed = self.tController.calculate(self.dt)
-    speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
-    self.drivetrain.manualDriveFromChassisSpeeds(speeds)
+    if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
+      targetPose = self.llSubsystem.getTargetPose()
+      self.dx = targetPose.X()
+      self.dy = targetPose.Y()
+      self.dz = targetPose.Z()
+      self.dt = targetPose.rotation().Z()
+
+      xSpeed = self.xController.calculate(self.dx)
+      ySpeed = self.yController.calculate(self.dy)
+      tSpeed = -self.tController.calculate(self.dt)
+      speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
+      print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
+      # self.drivetrain.driveFromRelativeCoordinates(-ySpeed, xSpeed, 0)
+      self.drivetrain.driveFromRelativeCoordinates(0, xSpeed, tSpeed)
+    else:
+      print("sum ting wong")
     
   def end(self, interrupted: bool):
     pass
 
   def inTollerance(self):
-    if self.dx < 0.02 and self.dy < 0.02 and self.dt < 0.1:
+    if abs(self.dx - self.alignPosition) < 0.02 and abs(self.dy) < 0.02 and abs(self.dt) < 0.1:
       return True
     else:
       return False
     
   def isFinished(self) -> bool:
     if (not self.llSubsystem.limelightLeftDetectsTag()) and (not self.llSubsystem.limelightRightDetectsTag()):
+      print("out no tag")
       return True
     if self.inTollerance():
+      print("out toller")
       return True
+    return False
