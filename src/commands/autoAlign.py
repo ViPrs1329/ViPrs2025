@@ -19,12 +19,16 @@ class AutoAlign(commands2.Command):
       self.alignPosition = -constants.visionConsts.alignOffset
     else:
       raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
-    kp = 0.3
-    ki = 0
-    kd = 0
-    self.xController = PIDController(kp, ki, kd)
+    xkp = 0.3
+    xki = 0
+    xkd = 0
+
+    ykp = 0.3
+    yki = 0
+    ykd = 0
+    self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
-    self.yController = PIDController(kp, ki, kd)
+    self.yController = PIDController(ykp, yki, ykd)
     self.yController.setSetpoint(0)
     
     tkp = 10
