@@ -79,7 +79,7 @@ class AutoAlign(commands2.Command):
       speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
       print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
       # self.drivetrain.driveFromRelativeCoordinates(-ySpeed, xSpeed, 0)
-      self.drivetrain.driveFromRelativeCoordinates(0, xSpeed, tSpeed)
+      self.drivetrain.driveFromRelativeCoordinates(0, 0, tSpeed)
     else:
       print("sum ting wong")
     

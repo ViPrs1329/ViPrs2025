@@ -8,7 +8,7 @@ class LimelightSubsystem(commands2.Subsystem):
     super().__init__()
     inst: ntcore.NetworkTableInstance = ntcore.NetworkTableInstance.getDefault()
     self.limelightTableLeft: ntcore.NetworkTable = inst.getTable("limelight-lside")
-    self.limelightTableRight: ntcore.NetworkTable = inst.getTable("limelight-lside") # change to rside when we get another limelight
+    self.limelightTableRight: ntcore.NetworkTable = inst.getTable("limelight-rside") # change to rside when we get another limelight
   
   def limelightPose2AdvantageScopePose(self, pose: Pose3d):
     translation = pose.translation()

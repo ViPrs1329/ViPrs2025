@@ -5,6 +5,7 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 import time
+import wpinet
 import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
@@ -296,8 +297,11 @@ class MyRobot(commands2.TimedCommandRobot):
     should be used for any initialization code.
     """
     self.manualDrive = True
-    camera = CameraServer.startAutomaticCapture()
-    camera.setFPS(15)
+    # camera = CameraServer.startAutomaticCapture()
+    # camera.setFPS(15)
+
+    # wpinet.PortForwarder.getInstance().add(5801, "172.29.2.21", 5801)
+    # wpinet.PortForwarder.getInstance().add(5802, "172.29.1.31", 5801)
 
     self.autonomousCommand = None # Remove the default driveForward command
 
