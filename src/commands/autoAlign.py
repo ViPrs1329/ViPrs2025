@@ -68,6 +68,8 @@ class AutoAlign(commands2.Command):
       self.dz = targetPose.Z()
 
       self.dt = targetPose.rotation().Z()
+      # self.dt = targetPose.rotation().Y()
+      # self.dt = targetPose.rotation().X()
 
       self.currentXPub.set(self.dx)
       self.currentYPub.set(self.dy)
