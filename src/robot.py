@@ -21,7 +21,7 @@ from subsystems.LimelightSubsystem import LimelightSubsystem
 import constants
 import numpy as np
 import ntcore
-from cscore import CameraServer
+# from cscore import CameraServer
 
 from commands.slow import Slow
 
@@ -303,6 +303,9 @@ class MyRobot(commands2.TimedCommandRobot):
     # wpinet.PortForwarder.getInstance().add(5801, "172.29.2.21", 5801)
     # wpinet.PortForwarder.getInstance().add(5802, "172.29.1.31", 5801)
 
+    wpinet.PortForwarder.getInstance().add(5801, "limelight-lside.local", 5802)
+    wpinet.PortForwarder.getInstance().add(5802, "limelight-rside.local", 5802)
+
     self.autonomousCommand = None # Remove the default driveForward command
 
     self.is_debug_mode = [False]
@@ -315,7 +318,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivetrain = DriveTrain()
     self.elevatorController = Elevator()
     self.endEffector = EndEffector()
-    self.vision = SimpleVisionSubsystem()
+    # self.vision = SimpleVisionSubsystem()
     self.llController = LimelightSubsystem()
     #self.elevator = Elevator()
 
