@@ -55,7 +55,7 @@ class Elevator(commands2.Subsystem):
 
     # feed forward 
     kS = 0.0
-    kG = 0.025
+    kG = 0.04
     kV = 0.1
     kA = 0.0
 

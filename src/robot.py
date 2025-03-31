@@ -18,6 +18,7 @@ from subsystems.ElevatorSubsystem import Elevator
 from subsystems.EndEffector import EndEffector
 from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
+from subsystems.LedSubsystem import LED
 import constants
 import numpy as np
 import ntcore
@@ -43,6 +44,7 @@ from commands.TestAlgaeIntake import TestAlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from commands.autoAlign import AutoAlign
+from commands.detectAprilTag import AprilTagMonitorCommand
 from phoenix6.hardware import CANrange
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -144,11 +146,17 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.povLeft().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
+          lambda: self.ledController.setColor("yellow")
+        ),
+        commands2.InstantCommand(
           self.switchToAutoDrive
         ),
         AutoAlign(self.llController, self.drivetrain, "left"),
         commands2.InstantCommand(
           self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.setColor("green")
         )
       )
     )
@@ -156,11 +164,17 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.povRight().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
+          lambda: self.ledController.setColor("yellow")
+        ),
+        commands2.InstantCommand(
           self.switchToAutoDrive
         ),
         AutoAlign(self.llController, self.drivetrain, "right"),
         commands2.InstantCommand(
           self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.setColor("green")
         )
       )
     )
@@ -296,6 +310,9 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    self.ledController = LED()
+    self.ledController.setColor("white")
+
     self.manualDrive = True
     # camera = CameraServer.startAutomaticCapture()
     # camera.setFPS(15)
@@ -337,7 +354,21 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
 
+    self.noAprilTagCommand = commands2.ConditionalCommand(
+      commands2.InstantCommand(
+        lambda: self.ledController.setColor("aqua")
+      ),
+      commands2.InstantCommand(
+        lambda: self.ledController.setColor("red")
+      ),
+      lambda: (self.llController.limelightLeftDetectsTag() or self.llController.limelightRightDetectsTag())
+    )
+
     self.scheduler = commands2.CommandScheduler.getInstance()
+    self.scheduler.schedule(AprilTagMonitorCommand(
+      self.llController, 
+      lambda: self.ledController.setColor("aqua"),
+      lambda: self.ledController.setColor("red")))
 
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)

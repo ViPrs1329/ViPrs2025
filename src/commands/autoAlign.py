@@ -32,24 +32,24 @@ class AutoAlign(commands2.Command):
     self.currentYPub = self.table.getDoubleTopic("Current Y").publish()
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
 
-    xkp = 0.3
-    xki = 0
-    xkd = 0
+    xkp = 0.6
+    xki = 0.045
+    xkd = 0.025
 
-    ykp = 0.3
-    yki = 0
-    ykd = 0
+    ykp = 0.5
+    yki = 0.02
+    ykd = 0.08
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
     self.alignLocationXPub.set(self.alignPosition)
 
     self.yController = PIDController(ykp, yki, ykd)
     self.yController.setSetpoint(0)
-    self.alignLocationYPub.set(0)
+    self.alignLocationYPub.set(0.2)
     
-    tkp = 10
+    tkp = 0.7
     tki = 0
-    tkd = 0
+    tkd = 0.1
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)
     self.alignLocationTPub.set(0)
@@ -67,38 +67,41 @@ class AutoAlign(commands2.Command):
       self.dy = targetPose.Y()
       self.dz = targetPose.Z()
 
-      self.dt = targetPose.rotation().Z()
-      # self.dt = targetPose.rotation().Y()
+
+      # self.dt = targetPose.rotation().Z()
+      self.dt = targetPose.rotation().Y()
       # self.dt = targetPose.rotation().X()
 
       self.currentXPub.set(self.dx)
-      self.currentYPub.set(self.dy)
+      self.currentYPub.set(self.dz)
       self.currentTPub.set(self.dt)
       
       xSpeed = self.xController.calculate(self.dx)
-      ySpeed = self.yController.calculate(self.dy)
+      ySpeed = self.yController.calculate(self.dz)
       tSpeed = -self.tController.calculate(self.dt)
       speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
-      print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
-      # self.drivetrain.driveFromRelativeCoordinates(-ySpeed, xSpeed, 0)
-      self.drivetrain.driveFromRelativeCoordinates(0, 0, tSpeed)
+      # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
+      print(type(self.alignPosition))
+      print(f"dx: {abs(self.dx - self.alignPosition)} dy; {abs(self.dz)} dt: {abs(self.dt)}")
+      # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
+      self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, tSpeed)
     else:
-      print("sum ting wong")
+      print("sum ting wong (no RIMEright deTECted)")
     
   def end(self, interrupted: bool):
     pass
 
   def inTollerance(self):
-    if abs(self.dx - self.alignPosition) < 0.02 and abs(self.dy) < 0.02 and abs(self.dt) < 0.1:
+    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz) < 0.02) and (abs(self.dt) < 0.05):
       return True
     else:
       return False
     
   def isFinished(self) -> bool:
     if (not self.llSubsystem.limelightLeftDetectsTag()) and (not self.llSubsystem.limelightRightDetectsTag()):
-      print("out no tag")
+      print("wi tu lo (out no tag)")
       return True
     if self.inTollerance():
-      print("out toller")
+      print("bang ding ow (out toller)")
       return True
     return False

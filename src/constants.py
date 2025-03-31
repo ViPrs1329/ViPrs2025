@@ -108,4 +108,4 @@ class sensorConsts:
     pass
 
 class visionConsts:
-    alignOffset = 0.1
+    alignOffset = 0.156

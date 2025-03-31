@@ -358,7 +358,7 @@ class DriveTrain(commands2.Subsystem):
 
   def driveFromRelativeCoordinates(self, vx: float, vy: float, vt: float):
     rotation = degreesToRadians(self.gyro.get_yaw().value_as_double)
-    deltax = vx * math.cos(rotation) - vy * math.sin(rotation)
+    deltax = vx * math.cos(rotation) + vy * math.sin(rotation)
     deltay = vx * math.sin(rotation) - vy * math.cos(rotation)
     speeds = ChassisSpeeds(deltax, deltay, vt)
     self.manualDriveFromChassisSpeeds(speeds)
