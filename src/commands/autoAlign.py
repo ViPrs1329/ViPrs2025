@@ -31,6 +31,7 @@ class AutoAlign(commands2.Command):
     self.currentXPub = self.table.getDoubleTopic("Current X").publish()
     self.currentYPub = self.table.getDoubleTopic("Current Y").publish()
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
+    self.speedYPub = self.table.getDoubleTopic("Speed Y").publish()
 
     xkp = 0.6
     xki = 0.048
@@ -79,6 +80,9 @@ class AutoAlign(commands2.Command):
       xSpeed = self.xController.calculate(self.dx)
       ySpeed = self.yController.calculate(self.dz)
       tSpeed = -self.tController.calculate(self.dt)
+
+      self.speedYPub.set(ySpeed)
+
       speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
       # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
       print(type(self.alignPosition))
