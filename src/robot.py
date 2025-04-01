@@ -146,7 +146,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.povLeft().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
-          lambda: self.ledController.setColor("yellow")
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
         ),
         commands2.InstantCommand(
           self.switchToAutoDrive
@@ -156,7 +156,7 @@ class MyRobot(commands2.TimedCommandRobot):
           self.switchToManualDrive
         ),
         commands2.InstantCommand(
-          lambda: self.ledController.setColor("green")
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
     )
@@ -164,7 +164,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController.povRight().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
-          lambda: self.ledController.setColor("yellow")
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
         ),
         commands2.InstantCommand(
           self.switchToAutoDrive
@@ -174,7 +174,7 @@ class MyRobot(commands2.TimedCommandRobot):
           self.switchToManualDrive
         ),
         commands2.InstantCommand(
-          lambda: self.ledController.setColor("green")
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
     )
@@ -311,7 +311,6 @@ class MyRobot(commands2.TimedCommandRobot):
     should be used for any initialization code.
     """
     self.ledController = LED()
-    self.ledController.setColor("white")
 
     self.manualDrive = True
     # camera = CameraServer.startAutomaticCapture()
@@ -354,21 +353,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.EEEPressedButtons = [False, False, False, False] # left trigger, right trigger, left bumper, right bumper
 
-    self.noAprilTagCommand = commands2.ConditionalCommand(
-      commands2.InstantCommand(
-        lambda: self.ledController.setColor("aqua")
-      ),
-      commands2.InstantCommand(
-        lambda: self.ledController.setColor("red")
-      ),
-      lambda: (self.llController.limelightLeftDetectsTag() or self.llController.limelightRightDetectsTag())
-    )
-
     self.scheduler = commands2.CommandScheduler.getInstance()
-    self.scheduler.schedule(AprilTagMonitorCommand(
-      self.llController, 
-      lambda: self.ledController.setColor("aqua"),
-      lambda: self.ledController.setColor("red")))
 
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
@@ -385,6 +370,10 @@ class MyRobot(commands2.TimedCommandRobot):
     else:
       self.llPredictionPosition.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
         
+    if self.llController.limelightLeftDetectsTag() or self.llController.limelightRightDetectsTag():
+      self.ledController.changeStates(constants.RobotStates.Tag)
+    else:
+      self.ledController.changeStates(constants.RobotStates.noTag)
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")

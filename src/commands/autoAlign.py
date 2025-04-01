@@ -33,11 +33,11 @@ class AutoAlign(commands2.Command):
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
 
     xkp = 0.6
-    xki = 0.045
-    xkd = 0.025
+    xki = 0.048
+    xkd = 0.03
 
     ykp = 0.5
-    yki = 0.02
+    yki = 0.06
     ykd = 0.08
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
@@ -45,10 +45,10 @@ class AutoAlign(commands2.Command):
 
     self.yController = PIDController(ykp, yki, ykd)
     self.yController.setSetpoint(0)
-    self.alignLocationYPub.set(0.2)
+    self.alignLocationYPub.set(0.5)
     
     tkp = 0.7
-    tki = 0
+    tki = 0.1
     tkd = 0.1
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)

@@ -109,3 +109,9 @@ class sensorConsts:
 
 class visionConsts:
     alignOffset = 0.156
+
+class RobotStates:
+    noTag = 1
+    Tag = 2
+    aligning = 3
+    aligned = 4
