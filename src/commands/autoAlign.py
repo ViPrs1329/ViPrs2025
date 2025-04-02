@@ -33,12 +33,14 @@ class AutoAlign(commands2.Command):
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
     self.speedYPub = self.table.getDoubleTopic("Speed Y").publish()
 
-    xkp = 0.5
-    xki = 0.052
-    xkd = 0.032
+  def initialize(self):
 
-    ykp = 0.5
-    yki = 0.06
+    xkp = 0.35
+    xki = 0.03
+    xkd = 0.03
+
+    ykp = 0.3
+    yki = 0.08
     ykd = 0.08
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
@@ -49,18 +51,14 @@ class AutoAlign(commands2.Command):
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
-    tki = 0.1
+    tki = 0.15
     tkd = 0.1
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)
     self.alignLocationTPub.set(0)
 
     self.dx = self.dy = self.dt = 1000
-
-
-  def initialize(self):
-    pass
-
+    
   def execute(self):
     if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
       try:
@@ -100,7 +98,7 @@ class AutoAlign(commands2.Command):
     pass
 
   def inTollerance(self):
-    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz) < 0.02) and (abs(self.dt) < 0.05):
+    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.01) and (abs(self.dt) < 0.05):
       return True
     else:
       return False
