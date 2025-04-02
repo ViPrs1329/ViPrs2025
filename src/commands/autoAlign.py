@@ -33,9 +33,9 @@ class AutoAlign(commands2.Command):
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
     self.speedYPub = self.table.getDoubleTopic("Speed Y").publish()
 
-    xkp = 0.6
-    xki = 0.048
-    xkd = 0.03
+    xkp = 0.5
+    xki = 0.052
+    xkd = 0.032
 
     ykp = 0.5
     yki = 0.06
@@ -45,7 +45,7 @@ class AutoAlign(commands2.Command):
     self.alignLocationXPub.set(self.alignPosition)
 
     self.yController = PIDController(ykp, yki, ykd)
-    self.yController.setSetpoint(0.1)
+    self.yController.setSetpoint(0.02)
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
@@ -63,32 +63,36 @@ class AutoAlign(commands2.Command):
 
   def execute(self):
     if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
-      targetPose = self.llSubsystem.getTargetPose()
-      self.dx = targetPose.X()
-      self.dy = targetPose.Y()
-      self.dz = targetPose.Z()
+      try:
+        targetPose = self.llSubsystem.getTargetPose()
+        self.dx = targetPose.X()
+        self.dy = targetPose.Y()
+        self.dz = targetPose.Z()
 
 
-      # self.dt = targetPose.rotation().Z()
-      self.dt = targetPose.rotation().Y()
-      # self.dt = targetPose.rotation().X()
+        # self.dt = targetPose.rotation().Z()
+        self.dt = targetPose.rotation().Y()
+        # self.dt = targetPose.rotation().X()
 
-      self.currentXPub.set(self.dx)
-      self.currentYPub.set(self.dz)
-      self.currentTPub.set(self.dt)
-      
-      xSpeed = self.xController.calculate(self.dx)
-      ySpeed = self.yController.calculate(self.dz)
-      tSpeed = -self.tController.calculate(self.dt)
+        self.currentXPub.set(self.dx)
+        self.currentYPub.set(self.dz)
+        self.currentTPub.set(self.dt)
+        
+        xSpeed = self.xController.calculate(self.dx)
+        ySpeed = self.yController.calculate(self.dz)
+        tSpeed = -self.tController.calculate(self.dt)
 
-      self.speedYPub.set(ySpeed)
+        self.speedYPub.set(ySpeed)
 
-      speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
-      # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
-      print(type(self.alignPosition))
-      print(f"dx: {abs(self.dx - self.alignPosition)} dy; {abs(self.dz)} dt: {abs(self.dt)}")
-      # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
-      self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, tSpeed)
+        speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
+        # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
+        print(type(self.alignPosition))
+        print(f"dx: {abs(self.dx - self.alignPosition)} dy; {abs(self.dz)} dt: {abs(self.dt)}")
+        # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
+        self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, tSpeed)
+      except:
+
+        self.cancel()
     else:
       print("sum ting wong (no RIMEright deTECted)")
     
