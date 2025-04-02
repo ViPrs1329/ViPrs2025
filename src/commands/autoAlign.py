@@ -32,7 +32,9 @@ class AutoAlign(commands2.Command):
     self.currentYPub = self.table.getDoubleTopic("Current Y").publish()
     self.currentTPub = self.table.getDoubleTopic("Current T").publish()
     self.speedYPub = self.table.getDoubleTopic("Speed Y").publish()
-
+    self.dXPub = self.table.getDoubleTopic("dx").publish()
+    self.dYPub = self.table.getDoubleTopic("dy").publish()
+    self.dTPub = self.table.getDoubleTopic("dt").publish()
   def initialize(self):
 
     xkp = 0.35
@@ -84,8 +86,9 @@ class AutoAlign(commands2.Command):
 
         speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
-        print(type(self.alignPosition))
-        print(f"dx: {abs(self.dx - self.alignPosition)} dy; {abs(self.dz)} dt: {abs(self.dt)}")
+        self.dXPub.set(abs(self.dx - self.alignPosition))
+        self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))
+        self.dTPub.set(abs(self.dt))
         # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
         self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, tSpeed)
       except:
