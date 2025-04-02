@@ -45,8 +45,8 @@ class AutoAlign(commands2.Command):
     self.alignLocationXPub.set(self.alignPosition)
 
     self.yController = PIDController(ykp, yki, ykd)
-    self.yController.setSetpoint(0)
-    self.alignLocationYPub.set(0.5)
+    self.yController.setSetpoint(0.1)
+    self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
     tki = 0.1
