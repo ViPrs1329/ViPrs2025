@@ -35,13 +35,13 @@ class AutoAlign(commands2.Command):
 
   def initialize(self):
 
-    xkp = 0.35
-    xki = 0.03
-    xkd = 0.03
+    xkp = 0.4
+    xki = 0.04
+    xkd = 0.06
 
-    ykp = 0.3
-    yki = 0.08
-    ykd = 0.08
+    ykp = 0.2
+    yki = 0.1
+    ykd = 0.1
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
     self.alignLocationXPub.set(self.alignPosition)
@@ -58,7 +58,7 @@ class AutoAlign(commands2.Command):
     self.alignLocationTPub.set(0)
 
     self.dx = self.dy = self.dt = 1000
-    
+
   def execute(self):
     if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
       try:
@@ -98,7 +98,7 @@ class AutoAlign(commands2.Command):
     pass
 
   def inTollerance(self):
-    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.01) and (abs(self.dt) < 0.05):
+    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.02) and (abs(self.dt) < 0.05):
       return True
     else:
       return False
