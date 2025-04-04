@@ -19,6 +19,7 @@ from subsystems.EndEffector import EndEffector
 from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
 from subsystems.LedSubsystem import LED
+from team1329.SimpleButtonBoardDebug import SimpleButtonBoardDebug
 import constants
 import numpy as np
 import ntcore
@@ -310,6 +311,8 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    print("=== robotInit()")
+
     self.ledController = LED()
 
     self.manualDrive = True
@@ -330,6 +333,16 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
     self.EEEXboxController = wpilib.XboxController(1)
     self.EEECommandXboxController = commands2.button.CommandXboxController(1)
+    self.buttonBoardController = wpilib.Joystick(2)
+    self.buttonBoardCommandController = commands2.button.CommandJoystick(2)
+
+    self.button_debugger = SimpleButtonBoardDebug()
+
+    print("=============== JOYSTIC INFO =====================")
+    print(f"Joystick 0 name: {wpilib.DriverStation.getJoystickName(0)}")
+    print(f"Joystick 1 name: {wpilib.DriverStation.getJoystickName(1)}")
+    print(f"Joystick 2 name: {wpilib.DriverStation.getJoystickName(2)}")
+          
     
     self.drivetrain = DriveTrain()
     self.elevatorController = Elevator()
@@ -374,6 +387,9 @@ class MyRobot(commands2.TimedCommandRobot):
       self.ledController.changeStates(constants.RobotStates.Tag)
     else:
       self.ledController.changeStates(constants.RobotStates.noTag)
+
+    self.button_debugger.update()
+    
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
@@ -498,6 +514,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
 
     self.scheduler.run()
+
     # print(self.elevatorController.currentLevel, self.coralIsOutOfRangeFunnel())
     # print(self.canRangeFunnel.get_distance().value_as_double)
     # important print statement
