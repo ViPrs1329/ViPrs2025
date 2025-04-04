@@ -223,11 +223,27 @@ class MyRobot(commands2.TimedCommandRobot):
         lambda: self.ejectCoral()
       )
     )
+
+    '''self.buttonBoardCommandController.button(3).onTrue(
+      commands2.InstantCommand(
+        lambda: self.ejectCoral(),
+        lambda: print('ejectCoral, button 3')
+      )
+    )'''
+    
     self.EEECommandXboxController.a().onFalse(
       commands2.InstantCommand(
         lambda: self.endEffector.stopCoralMotors()
       )
     )
+
+    '''self.buttonBoardCommandController.button(7).onFalse(
+      commands2.InstantCommand(
+        lambda: self.endEffector.stopCoralMotors(),
+        lambda: print('stop coral motors, button 7')
+      )
+    )
+    '''
     
     # Y button - Intake algae
     # self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
@@ -236,6 +252,13 @@ class MyRobot(commands2.TimedCommandRobot):
         lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
       )
     )
+
+    '''self.buttonBoardCommandController.button(5).onTrue(
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed),
+        lambda: print('algae intake, button 5')
+      )
+    )'''
 
     # B button - Eject algae
     # self.EEECommandXboxController.b().whileTrue(AlgaeIntakeControl(self.endEffector, "eject"))
@@ -250,11 +273,30 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
+    '''self.buttonBoardCommandController.button(8).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.endEffector.algae_intake_motor.set(constants.intakeConsts.algaeIntakeSpeed)
+        ),
+        commands2.InstantCommand(
+          lambda: print("eject"),
+          lambda: print('coral eject, button 8')
+        )
+      )
+    )'''
+
     self.EEECommandXboxController.b().onFalse(
       commands2.InstantCommand(
         lambda: self.endEffector.algae_intake_motor.set(0)
       )
     )
+
+    '''self.buttonBoardCommandController.button(6).onFalse(
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(0),
+        lambda: print('algae intake stop')
+      )
+    )'''
 
     # Start button to test algae intake
     self.EEECommandXboxController.start().onTrue(TestAlgaeIntake(self.endEffector))
@@ -264,15 +306,34 @@ class MyRobot(commands2.TimedCommandRobot):
         MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
     )
 
+    '''self.buttonBoardCommandController.button(4).onTrue(
+      commands2.InstantCommand(
+        lambda: MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle),  # 45 degrees in radians
+        lambda: print('algae arm low, button 4')
+      )
+    )'''
+
     # For right trigger - 135 degrees (3π/4 radians)
     self.EEECommandXboxController.rightTrigger().onTrue(
         MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
 
+    '''self.buttonBoardCommandController.button(9).onTrue(
+      commands2.InstantCommand(
+        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle),  # 135 degrees in radians
+        lambda: print('algae arm high, button 9')
+      )
+    )'''
+
     # stow the arm when down dpad is pressed
     self.EEECommandXboxController.povUp().onTrue(
       MoveAlgaeArmToPosition(self.endEffector, 3.1)  # about 180 degrees in radians
     )
+
+    #'''self.buttonBoardCommandController.button(8).onTrue(
+    #  MoveAlgaeArmToPosition(self.endEffector, 3.1)  # about 180 degrees in radians
+    #  print('algae arm stow')
+    #)
     
 
     # wait until coral is detected by the EE canrange 
@@ -288,6 +349,18 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
       )
     )
+
+    '''self.buttonBoardCommandController.button(6).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(lambda: print("in")),
+        commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
+        WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+        WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+        commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors()),
+        print('coral intake, button 6')
+      )
+    )'''
 
     # Add debug mode toggle on Back/Select button
     self.EEECommandXboxController.back().onTrue(
