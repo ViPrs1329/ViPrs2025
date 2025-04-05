@@ -191,9 +191,9 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
-    """
-    # Button ??? for Auto Align Left
-    self.buttonBoardCommandController.button(???).onTrue(
+    
+    # Button 10 for Auto Align Left
+    self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -211,8 +211,8 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-    # Button ??? for Auto Align Right
-    self.buttonBoardCommandController.button(???).onTrue(
+    # Button 9 for Auto Align Right
+    self.buttonBoardCommandController.button(9).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -229,7 +229,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
-
+    """
     # Button ???: Elevator to L2 + Auto Align Left
     self.buttonBoardCommandController.button(???).onTrue(
         commands2.SequentialCommandGroup(
@@ -343,6 +343,7 @@ class MyRobot(commands2.TimedCommandRobot):
             )
         )
     )
+    """
   
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
@@ -508,7 +509,7 @@ class MyRobot(commands2.TimedCommandRobot):
       MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
 
-    self.buttonBoardCommandController.button(9).onTrue(
+    self.buttonBoardCommandController.button(8).onTrue(
       MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
 
