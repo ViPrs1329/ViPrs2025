@@ -191,7 +191,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
-
+    """
     # Button ??? for Auto Align Left
     self.buttonBoardCommandController.button(???).onTrue(
       commands2.SequentialCommandGroup(
@@ -343,7 +343,7 @@ class MyRobot(commands2.TimedCommandRobot):
             )
         )
     )
-
+  
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
     #     commands2.InstantCommand(
