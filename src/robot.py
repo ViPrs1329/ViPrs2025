@@ -388,22 +388,30 @@ class MyRobot(commands2.TimedCommandRobot):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
 
-    # Create a command to drive forward 4 feet (converted to meters)
-    feet_to_meters = 0.3048  # 1 foot = 0.3048 meters
-    distance_feet = constants.autoConsts.autoDriveDistance
-    distance_meters = distance_feet * feet_to_meters
+    # # Create a command to drive forward 4 feet (converted to meters)
+    # feet_to_meters = 0.3048  # 1 foot = 0.3048 meters
+    # distance_feet = constants.autoConsts.autoDriveDistance
+    # distance_meters = distance_feet * feet_to_meters
     
-    # Reset the drivetrain odometry before starting auto
-    self.drivetrain.resetHarder()
+    # # Reset the drivetrain odometry before starting auto
+    # self.drivetrain.resetHarder()
 
-    # Make sure motors are not in motion
-    self.drivetrain.stopMotors()
+    # # Make sure motors are not in motion
+    # self.drivetrain.stopMotors()
     
-    # Create and schedule the autonomous command
-    self.autonomousCommand = DriveDistance(self.drivetrain, distance_meters, 0.3)
-    self.scheduler.schedule(self.autonomousCommand)
+    # # Create and schedule the autonomous command
+    # self.autonomousCommand = DriveDistance(self.drivetrain, distance_meters, 0.3)
+    # self.scheduler.schedule(self.autonomousCommand)
     
-    # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
+    # # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
+    selectedAuto = self.autoChooser.getSelected()
+    self.drivetrain.resetHarder()
+    if selectedAuto:
+      print(f"Running PathPlanner auto: {selectedAuto}")
+      self.scheduler.schedule(selectedAuto)
+    else:
+      print("No path selected, running default auto")
+      # Run default auto command
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
