@@ -192,6 +192,158 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
+    # Button ??? for Auto Align Left
+    self.buttonBoardCommandController.button(???).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "left"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+        )
+      )
+    )
+
+    # Button ??? for Auto Align Right
+    self.buttonBoardCommandController.button(???).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "right"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+        )
+      )
+    )
+
+    # Button ???: Elevator to L2 + Auto Align Left
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L2 + Auto Align Right
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L3 + Auto Align Left
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L3 + Auto Align Right
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
     #     commands2.InstantCommand(
