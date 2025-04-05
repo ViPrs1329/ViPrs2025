@@ -18,7 +18,7 @@ class EndEffector(commands2.Subsystem):
         super().__init__()
         inst = ntcore.NetworkTableInstance.getDefault()
         self.table = inst.getTable("EE Table")
-        self.EEEXboxController = wpilib.XboxController(1)
+        self.EEEXboxController = wpilib.XboxController(2)
         self.i = 0
 
         # 1. Algae Intake Rotation Motor

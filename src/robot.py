@@ -123,6 +123,18 @@ class MyRobot(commands2.TimedCommandRobot):
     self.elevatorController.currentLevel = 1
     # Move the elevator and arm to the appropriate positions
     self.elevatorController.gotoPosition(target_position)
+
+  def goToL2(self):
+    target_height = constants.reefConsts.reefLevels[1][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.elevatorController.currentLevel = 2
+    self.elevatorController.gotoPosition(target_position)
+
+  def goToL3(self):
+    target_height = constants.reefConsts.reefLevels[2][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.elevatorController.currentLevel = 3
+    self.elevatorController.gotoPosition(target_position)
   
   def switchToAutoDrive(self):
     self.manualDrive = False
@@ -216,20 +228,55 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()))
     
+    # Elevator positions - button board
+    # Button 3 - Base
+    self.buttonBoardCommandController.button(3).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToBaseLevel() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
+
+    # Button 2 - L2
+    self.buttonBoardCommandController.button(2).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToL2() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
+
+    # Button 1 - L3
+    self.buttonBoardCommandController.button(1).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToL3() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
     
-    
+    # Eject coral - Xbox controller
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
         lambda: self.ejectCoral()
       )
     )
 
-    '''self.buttonBoardCommandController.button(3).onTrue(
-      commands2.InstantCommand(
-        lambda: self.ejectCoral(),
-        lambda: print('ejectCoral, button 3')
+    # Eject coral - Button board
+    # Axis 3 - 1.0 
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(3) - 1.0) < 0.1).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ejectCoral()
+        ),
+        commands2.InstantCommand(
+          lambda: print(f"eject coral - {self.buttonBoardCommandController.getRawAxis(2)}")
+        )
       )
-    )'''
+    ).onFalse(  # Stop motor once trigger-button is not pressed
+      commands2.InstantCommand(
+        lambda: self.endEffector.stopCoralMotors()
+      )
+    )
+
     
     self.EEECommandXboxController.a().onFalse(
       commands2.InstantCommand(
@@ -237,13 +284,10 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-    '''self.buttonBoardCommandController.button(7).onFalse(
-      commands2.InstantCommand(
-        lambda: self.endEffector.stopCoralMotors(),
-        lambda: print('stop coral motors, button 7')
-      )
+    self.buttonBoardCommandController.button(7).onFalse(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeZeroPosition)
     )
-    '''
+    
     
     # Y button - Intake algae
     # self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
@@ -253,12 +297,11 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-    '''self.buttonBoardCommandController.button(5).onTrue(
+    self.buttonBoardCommandController.button(5).onTrue(
       commands2.InstantCommand(
-        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed),
-        lambda: print('algae intake, button 5')
+        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
       )
-    )'''
+    )
 
     # B button - Eject algae
     # self.EEECommandXboxController.b().whileTrue(AlgaeIntakeControl(self.endEffector, "eject"))
@@ -273,57 +316,49 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-    '''self.buttonBoardCommandController.button(8).onTrue(
+    # Axis 4 -> 1.0 - Eject algae
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(2) - 1.0) < 0.1).onTrue(
       commands2.ParallelCommandGroup(
         commands2.InstantCommand(
           lambda: self.endEffector.algae_intake_motor.set(constants.intakeConsts.algaeIntakeSpeed)
         ),
         commands2.InstantCommand(
-          lambda: print("eject"),
-          lambda: print('coral eject, button 8')
+          lambda: print(f"eject algae - {self.buttonBoardCommandController.getRawAxis(2)}")
         )
       )
-    )'''
-
+    ).onFalse(  # Stop motor once trigger-button is not pressed
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(0)
+      )
+    )
+    
+    # Stop algae eject when button is not pressed
     self.EEECommandXboxController.b().onFalse(
       commands2.InstantCommand(
         lambda: self.endEffector.algae_intake_motor.set(0)
       )
     )
 
-    '''self.buttonBoardCommandController.button(6).onFalse(
-      commands2.InstantCommand(
-        lambda: self.endEffector.algae_intake_motor.set(0),
-        lambda: print('algae intake stop')
-      )
-    )'''
-
     # Start button to test algae intake
     self.EEECommandXboxController.start().onTrue(TestAlgaeIntake(self.endEffector))
 
     # For left trigger - 45 degrees (π/4 radians)
     self.EEECommandXboxController.leftTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
     )
 
-    '''self.buttonBoardCommandController.button(4).onTrue(
-      commands2.InstantCommand(
-        lambda: MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle),  # 45 degrees in radians
-        lambda: print('algae arm low, button 4')
-      )
-    )'''
+    self.buttonBoardCommandController.button(4).onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
+    )
 
     # For right trigger - 135 degrees (3π/4 radians)
     self.EEECommandXboxController.rightTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
 
-    '''self.buttonBoardCommandController.button(9).onTrue(
-      commands2.InstantCommand(
-        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle),  # 135 degrees in radians
-        lambda: print('algae arm high, button 9')
-      )
-    )'''
+    self.buttonBoardCommandController.button(9).onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
+    )
 
     # stow the arm when down dpad is pressed
     self.EEECommandXboxController.povUp().onTrue(
@@ -350,7 +385,7 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-    '''self.buttonBoardCommandController.button(6).onTrue(
+    self.buttonBoardCommandController.button(6).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(lambda: print("in")),
         commands2.InstantCommand(lambda: self.goToBaseLevel()),
@@ -360,7 +395,7 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors()),
         print('coral intake, button 6')
       )
-    )'''
+    )
 
     # Add debug mode toggle on Back/Select button
     self.EEECommandXboxController.back().onTrue(
@@ -411,7 +446,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.button_debugger = SimpleButtonBoardDebug()
 
-    print("=============== JOYSTIC INFO =====================")
+    print("=============== JOYSTICK INFO =====================")
     print(f"Joystick 0 name: {wpilib.DriverStation.getJoystickName(0)}")
     print(f"Joystick 1 name: {wpilib.DriverStation.getJoystickName(1)}")
     print(f"Joystick 2 name: {wpilib.DriverStation.getJoystickName(2)}")
