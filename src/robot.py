@@ -10,6 +10,7 @@ import wpilib
 import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Translation3d, Rotation3d, Translation2d
+from wpilib import SendableChooser
 import rev
 import math
 import commands2
@@ -46,6 +47,10 @@ from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from commands.autoAlign import AutoAlign
 from commands.detectAprilTag import AprilTagMonitorCommand
 from phoenix6.hardware import CANrange
+
+from pathplannerlib.auto import NamedCommands, AutoBuilder
+
+from wpilib import SmartDashboard
 
 class MyRobot(commands2.TimedCommandRobot):
   def systemTempCheck(self):
@@ -358,7 +363,12 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
-    
+    self.autoChooser = AutoBuilder.buildAutoChooser()
+    NamedCommands.registerCommand("marker 1", commands2.PrintCommand("passed marker 1"))
+    NamedCommands.registerCommand("marker 2", commands2.PrintCommand("passed marker 2"))
+    NamedCommands.registerCommand("Hello World command", commands2.PrintCommand("Hello World"))
+
+    SmartDashboard.putData("Auto Mode", self.autoChooser)
 
     print("robotInit()")
 
