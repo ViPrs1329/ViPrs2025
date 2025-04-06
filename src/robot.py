@@ -20,6 +20,7 @@ from subsystems.EndEffector import EndEffector
 from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
 from subsystems.LedSubsystem import LED
+from team1329.SimpleButtonBoardDebug import SimpleButtonBoardDebug
 import constants
 import numpy as np
 import ntcore
@@ -127,6 +128,18 @@ class MyRobot(commands2.TimedCommandRobot):
     self.elevatorController.currentLevel = 1
     # Move the elevator and arm to the appropriate positions
     self.elevatorController.gotoPosition(target_position)
+
+  def goToL2(self):
+    target_height = constants.reefConsts.reefLevels[1][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.elevatorController.currentLevel = 2
+    self.elevatorController.gotoPosition(target_position)
+
+  def goToL3(self):
+    target_height = constants.reefConsts.reefLevels[2][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.elevatorController.currentLevel = 3
+    self.elevatorController.gotoPosition(target_position)
   
   def switchToAutoDrive(self):
     self.manualDrive = False
@@ -183,7 +196,160 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
+    
+    # Button 10 for Auto Align Left
+    self.buttonBoardCommandController.button(10).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "left"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+        )
+      )
+    )
 
+    # Button 9 for Auto Align Right
+    self.buttonBoardCommandController.button(9).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        AutoAlign(self.llController, self.drivetrain, "right"),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+        )
+      )
+    )
+    """
+    # Button ???: Elevator to L2 + Auto Align Left
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L2 + Auto Align Right
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L3 + Auto Align Left
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+
+    # Button ???: Elevator to L3 + Auto Align Right
+    self.buttonBoardCommandController.button(???).onTrue(
+        commands2.SequentialCommandGroup(
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+            ),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
+        )
+    )
+    """
+  
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
     #     commands2.InstantCommand(
@@ -220,22 +386,76 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     self.EEECommandXboxController.rightBumper().onTrue(SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()))
     
+    # Elevator positions - button board
+    # Button 3 - Base
+    self.buttonBoardCommandController.button(3).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToBaseLevel() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
+
+    # Button 2 - L2
+    self.buttonBoardCommandController.button(2).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToL2() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
+
+    # Button 1 - L3
+    self.buttonBoardCommandController.button(1).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand( lambda: self.goToL3() ),
+        commands2.InstantCommand( lambda: print("Elevator to base BB"))
+      )
+    )
     
-    
+    # Eject coral - Xbox controller
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
         lambda: self.ejectCoral()
       )
     )
+
+    # Eject coral - Button board
+    # Axis 3 - 1.0 
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(3) - 1.0) < 0.1).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ejectCoral()
+        ),
+        commands2.InstantCommand(
+          lambda: print(f"eject coral - {self.buttonBoardCommandController.getRawAxis(2)}")
+        )
+      )
+    ).onFalse(  # Stop motor once trigger-button is not pressed
+      commands2.InstantCommand(
+        lambda: self.endEffector.stopCoralMotors()
+      )
+    )
+
+    
     self.EEECommandXboxController.a().onFalse(
       commands2.InstantCommand(
         lambda: self.endEffector.stopCoralMotors()
       )
     )
+
+    self.buttonBoardCommandController.button(7).onFalse(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeZeroPosition)
+    )
+    
     
     # Y button - Intake algae
     # self.EEECommandXboxController.y().whileTrue(AlgaeIntakeControl(self.endEffector, "intake"))
     self.EEECommandXboxController.y().onTrue(
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
+      )
+    )
+
+    self.buttonBoardCommandController.button(5).onTrue(
       commands2.InstantCommand(
         lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
       )
@@ -254,6 +474,23 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
+    # Axis 4 -> 1.0 - Eject algae
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(2) - 1.0) < 0.1).onTrue(
+      commands2.ParallelCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.endEffector.algae_intake_motor.set(constants.intakeConsts.algaeIntakeSpeed)
+        ),
+        commands2.InstantCommand(
+          lambda: print(f"eject algae - {self.buttonBoardCommandController.getRawAxis(2)}")
+        )
+      )
+    ).onFalse(  # Stop motor once trigger-button is not pressed
+      commands2.InstantCommand(
+        lambda: self.endEffector.algae_intake_motor.set(0)
+      )
+    )
+    
+    # Stop algae eject when button is not pressed
     self.EEECommandXboxController.b().onFalse(
       commands2.InstantCommand(
         lambda: self.endEffector.algae_intake_motor.set(0)
@@ -265,18 +502,31 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # For left trigger - 45 degrees (π/4 radians)
     self.EEECommandXboxController.leftTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
+    )
+
+    self.buttonBoardCommandController.button(4).onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)  # 45 degrees in radians
     )
 
     # For right trigger - 135 degrees (3π/4 radians)
     self.EEECommandXboxController.rightTrigger().onTrue(
-        MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
+    )
+
+    self.buttonBoardCommandController.button(8).onTrue(
+      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)  # 135 degrees in radians
     )
 
     # stow the arm when down dpad is pressed
     self.EEECommandXboxController.povUp().onTrue(
       MoveAlgaeArmToPosition(self.endEffector, 3.1)  # about 180 degrees in radians
     )
+
+    #'''self.buttonBoardCommandController.button(8).onTrue(
+    #  MoveAlgaeArmToPosition(self.endEffector, 3.1)  # about 180 degrees in radians
+    #  print('algae arm stow')
+    #)
     
 
     # wait until coral is detected by the EE canrange 
@@ -290,6 +540,18 @@ class MyRobot(commands2.TimedCommandRobot):
         WaitUntilCoralIsDetected(self.coralIsInRangeEE),
         WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
         commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
+      )
+    )
+
+    self.buttonBoardCommandController.button(6).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(lambda: print("in")),
+        commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
+        WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+        WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+        commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors()),
+        print('coral intake, button 6')
       )
     )
 
@@ -315,6 +577,8 @@ class MyRobot(commands2.TimedCommandRobot):
     This function is called upon program startup and
     should be used for any initialization code.
     """
+    print("=== robotInit()")
+
     self.ledController = LED()
 
     self.manualDrive = True
@@ -335,6 +599,16 @@ class MyRobot(commands2.TimedCommandRobot):
     self.drivingCommandXboxController = commands2.button.CommandXboxController(0)
     self.EEEXboxController = wpilib.XboxController(1)
     self.EEECommandXboxController = commands2.button.CommandXboxController(1)
+    self.buttonBoardController = wpilib.Joystick(2)
+    self.buttonBoardCommandController = commands2.button.CommandJoystick(2)
+
+    self.button_debugger = SimpleButtonBoardDebug()
+
+    print("=============== JOYSTICK INFO =====================")
+    print(f"Joystick 0 name: {wpilib.DriverStation.getJoystickName(0)}")
+    print(f"Joystick 1 name: {wpilib.DriverStation.getJoystickName(1)}")
+    print(f"Joystick 2 name: {wpilib.DriverStation.getJoystickName(2)}")
+          
     
     self.drivetrain = DriveTrain()
     self.elevatorController = Elevator()
@@ -384,6 +658,9 @@ class MyRobot(commands2.TimedCommandRobot):
       self.ledController.changeStates(constants.RobotStates.Tag)
     else:
       self.ledController.changeStates(constants.RobotStates.noTag)
+
+    self.button_debugger.update()
+    
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
@@ -516,6 +793,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
 
     self.scheduler.run()
+
     # print(self.elevatorController.currentLevel, self.coralIsOutOfRangeFunnel())
     # print(self.canRangeFunnel.get_distance().value_as_double)
     # important print statement
