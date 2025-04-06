@@ -229,16 +229,16 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
-    """
+    
     # Button ???: Elevator to L2 + Auto Align Left
-    self.buttonBoardCommandController.button(???).onTrue(
+    self.buttonBoardCommandController.axisGreaterThan(2,0.8).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L2
             commands2.InstantCommand(
                 lambda: print("Moving to L2 and auto-aligning LEFT")
             ),
             commands2.InstantCommand(
-                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+                lambda: self.changeElevatorLevel(2)  # Start from a known position
             ),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
             # Then auto-align left
@@ -258,15 +258,16 @@ class MyRobot(commands2.TimedCommandRobot):
         )
     )
 
+
     # Button ???: Elevator to L2 + Auto Align Right
-    self.buttonBoardCommandController.button(???).onTrue(
+    self.buttonBoardCommandController.axisLessThan(2,-0.8).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L2
             commands2.InstantCommand(
                 lambda: print("Moving to L2 and auto-aligning RIGHT")
             ),
             commands2.InstantCommand(
-                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+                lambda: self.changeElevatorLevel(2)  # Start from a known position
             ),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
             # Then auto-align right
@@ -287,14 +288,14 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Button ???: Elevator to L3 + Auto Align Left
-    self.buttonBoardCommandController.button(???).onTrue(
+    self.buttonBoardCommandController.axisLessThan(3,-0.8).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
                 lambda: print("Moving to L3 and auto-aligning LEFT")
             ),
             commands2.InstantCommand(
-                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+                lambda: self.ChangeElevatorLevel(3)  # Start from a known position
             ),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
@@ -316,14 +317,14 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Button ???: Elevator to L3 + Auto Align Right
-    self.buttonBoardCommandController.button(???).onTrue(
+    self.buttonBoardCommandController.axisGreaterThan(3,0.8).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
                 lambda: print("Moving to L3 and auto-aligning RIGHT")
             ),
             commands2.InstantCommand(
-                lambda: self.elevatorController.currentLevel = 1  # Start from a known position
+                lambda: self.changeElevatorLevel(3)  # Start from a known position
             ),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
             SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
@@ -343,8 +344,7 @@ class MyRobot(commands2.TimedCommandRobot):
             )
         )
     )
-    """
-  
+    
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
     #     commands2.InstantCommand(
@@ -651,6 +651,9 @@ class MyRobot(commands2.TimedCommandRobot):
 
     self.button_debugger.update()
     
+  def changeElevatorLevel(self, level):
+    self.elevatorController.currentLevel = level
+
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")

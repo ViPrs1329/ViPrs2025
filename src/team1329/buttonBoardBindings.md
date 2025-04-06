@@ -12,6 +12,7 @@ b6 - CorInt - GOOD
 b3 - G - GOOD
 b2 - L2 - GOOD
 b1 - L3 - GOOD
-b10 - AAL - 
-b9 - AAR - 
+b10 - AAL - GOOD
+b9 - AAR - GOOD
+
 
