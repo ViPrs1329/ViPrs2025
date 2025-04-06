@@ -11,9 +11,17 @@ from wpimath.units import degreesToRadians
 
 from constants import CANIDs
 
+import constants
+
 from phoenix6.hardware import CANcoder, Pigeon2
 
 import ntcore
+
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.config import RobotConfig
+from pathplannerlib.controller import PPHolonomicDriveController
+
+from wpilib import SmartDashboard
 
 
 def lratio(angle):
@@ -37,6 +45,12 @@ def getSwerveModPos(rotEnc : CANcoder, driveEnc: rev.SparkRelativeEncoder) -> Sw
         (driveEnc.getPosition()/6.75)*0.31918580816,
         Rotation2d(ticks2radODOMETRY(rotEnc.get_position().value_as_double))
     )
+
+def negateOdometry(pose: Pose2d):
+  x = pose.X()
+  y = pose.Y()
+  r = pose.rotation()
+  return Pose2d(Translation2d(-x, -y), r)
 
 class DriveTrain(commands2.Subsystem):
   def __init__(self) -> None:
@@ -172,6 +186,51 @@ class DriveTrain(commands2.Subsystem):
 
     self.field = Field2d()
 
+    try:
+      self.config = RobotConfig.fromGUISettings()
+      AutoBuilder.configure(
+        self.getPose(),
+        self.getPositions(),
+        self.getSpeeds(),
+        self.driveFromRelativeCoordinates,
+        PPHolonomicDriveController(
+          constants.PathPlanner.translationConsts,
+          constants.PathPlanner.rotationConsts
+        ),
+        self.config,
+        self.shouldMirrorpath,
+        self
+      )
+    
+    except:
+      raise ValueError("Failed to load PathPlanner config and configure AutoBuilder")
+    
+    SmartDashboard.putData("Field", self.field)
+
+  def shouldMirrorpath(self):
+    alliance = DriverStation.getAlliance()
+    if alliance == alliance.kRed:
+      return True
+    else:
+      return False
+
+  def getModuleStates(self):
+    return self.kinematics.toSwerveModuleStates(self.getChassisSpeed(), Translation2d(0, 0))
+
+  def getSpeeds(self):
+    return self.kinematics.toChassisSpeeds(self.getModuleStates())
+
+  def resetPose(self, pose: Pose2d):
+    self.odometry.resetPosition(self.gyro.getRotation2d, getSwerveModPos())
+
+  def getPositions(self):
+    return (
+      getSwerveModPos(self.FleftEnc, self.frontLeftDriveEnc),
+      getSwerveModPos(self.FrightEnc, self.frontRightDriveEnc),
+      getSwerveModPos(self.BleftEnc, self.backLeftDriveEnc),
+      getSwerveModPos(self.BrightEnc, self.backRightDriveEnc),
+    )
+
   def resetOdometry(self, pose: Pose2d):
     self.gyro.reset()
     self.gyro.set_yaw(0)
@@ -276,8 +335,8 @@ class DriveTrain(commands2.Subsystem):
       ),
 
     )
-    self.currentPosition = pose
-    self.field.setRobotPose(pose)
+    self.currentPosition = negateOdometry(pose)
+    self.field.setRobotPose(negateOdometry(pose))
     # self.updateOdometry()
 #     print(
 # f"""
@@ -357,11 +416,53 @@ class DriveTrain(commands2.Subsystem):
     # print('\n')
 
   def driveFromRelativeCoordinates(self, vx: float, vy: float, vt: float):
+    """
     rotation = degreesToRadians(self.gyro.get_yaw().value_as_double)
     deltax = vx * math.cos(rotation) + vy * math.sin(rotation)
     deltay = vx * math.sin(rotation) - vy * math.cos(rotation)
     speeds = ChassisSpeeds(deltax, deltay, vt)
     self.manualDriveFromChassisSpeeds(speeds)
+    """
+    # robotRelativeSpeeds = ChassisSpeeds(vx, vy, vt)
+    # targetSpeeds = robotRelativeSpeeds.discretize()
+    # targetStates = self.kinematics.toSwerveModuleStates(targetSpeeds)
+    # Get the current robot heading from the gyro
+    currentAngle = self.getGyroHeading()
+    
+    # Create field-relative chassis speeds
+    fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        vx, vy, vt, currentAngle
+    )
+    
+    # Convert to module states
+    moduleStates = self.kinematics.toSwerveModuleStates(fieldRelativeSpeeds)
+    
+    # Desaturate wheel speeds
+    maxSpeed = 4.1  # Same as in your other method
+    frontLeft, frontRight, backLeft, backRight = SwerveDrive4Kinematics.desaturateWheelSpeeds(
+        moduleStates, maxSpeed
+    )
+    
+    # Optimize and set module states directly
+    frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
+    frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
+    backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
+    backRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
+    
+    # Set rotation motors
+    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
+    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
+    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
+    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
+    
+    # Set drive motors
+    self.backLeftDrive.set(backLeft.speed)
+    self.backRightDrive.set(backRight.speed)
+    self.frontLeftDrive.set(frontLeft.speed)
+    self.frontRightDrive.set(frontRight.speed)
+    
+    # Update lastChassisSpeed for odometry
+    self.lastChassisSpeed = fieldRelativeSpeeds
     
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds

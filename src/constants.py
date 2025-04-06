@@ -2,6 +2,8 @@
 import numpy
 import math
 
+from pathplannerlib.config import PIDConstants
+
 class controller:
     scale = 0.5
     tscale = 1
@@ -115,3 +117,7 @@ class RobotStates:
     Tag = 2
     aligning = 3
     aligned = 4
+
+class PathPlanner:
+    translationConsts = PIDConstants(0.3, 0, 0)
+    rotationConsts = PIDConstants(0.3, 0, 0)
