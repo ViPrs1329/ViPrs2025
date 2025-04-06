@@ -4,7 +4,7 @@ import commands2
 
 from wpimath.kinematics import SwerveDrive4Kinematics, SwerveModuleState, ChassisSpeeds, SwerveDrive4Odometry, SwerveModulePosition
 from wpimath.geometry import Translation2d, Rotation2d, Pose2d
-
+  
 from wpilib import DriverStation, Field2d
 from wpimath import controller
 from wpimath.units import degreesToRadians
@@ -20,6 +20,7 @@ import ntcore
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import RobotConfig
 from pathplannerlib.controller import PPHolonomicDriveController
+from pathplannerlib.util import DriveFeedforwards
 
 from wpilib import SmartDashboard
 
@@ -189,9 +190,9 @@ class DriveTrain(commands2.Subsystem):
     try:
       self.config = RobotConfig.fromGUISettings()
       AutoBuilder.configure(
-        self.getPose(),
-        self.getPositions(),
-        self.getSpeeds(),
+        self.getPose,
+        self.resetHarder,
+        self.getSpeeds,
         self.driveFromRelativeCoordinates,
         PPHolonomicDriveController(
           constants.PathPlanner.translationConsts,
@@ -288,7 +289,7 @@ class DriveTrain(commands2.Subsystem):
   
   def getPose(self):
     nonYPose = self.odometry.getPose()
-    return nonYPose
+    return negateOdometry(self.currentPosition)
   
   def shouldFlipPath(self): #checks if the alliance is red, therefore should mirror the path to account for being on opposite side of field
     return DriverStation.getAlliance() == DriverStation.Alliance.kRed
@@ -415,7 +416,8 @@ class DriveTrain(commands2.Subsystem):
     # print(rSpeedList)
     # print('\n')
 
-  def driveFromRelativeCoordinates(self, vx: float, vy: float, vt: float):
+  
+  def driveFromRelativeCoordinates(self, speeds: ChassisSpeeds, ff: DriveFeedforwards):
     """
     rotation = degreesToRadians(self.gyro.get_yaw().value_as_double)
     deltax = vx * math.cos(rotation) + vy * math.sin(rotation)
@@ -430,6 +432,12 @@ class DriveTrain(commands2.Subsystem):
     currentAngle = self.getGyroHeading()
     
     # Create field-relative chassis speeds
+    vx = speeds.vx
+    vy = -speeds.vy
+    vt = speeds.omega
+
+
+
     fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
         vx, vy, vt, currentAngle
     )

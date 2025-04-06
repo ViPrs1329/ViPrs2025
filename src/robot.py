@@ -637,13 +637,14 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
-    self.autoChooser = AutoBuilder.buildAutoChooser()
+    self.autoChooser = AutoBuilder.buildAutoChooser("Test Auto")
     NamedCommands.registerCommand("marker 1", commands2.PrintCommand("passed marker 1"))
     NamedCommands.registerCommand("marker 2", commands2.PrintCommand("passed marker 2"))
     NamedCommands.registerCommand("Hello World command", commands2.PrintCommand("Hello World"))
 
-    SmartDashboard.putData("Auto Mode", self.autoChooser)
-
+    
+    SmartDashboard.putData("Auto choices", self.autoChooser)
+    SmartDashboard.updateValues()
     print("robotInit()")
 
   def robotPeriodic(self):
@@ -685,7 +686,7 @@ class MyRobot(commands2.TimedCommandRobot):
     
     # # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
     selectedAuto = self.autoChooser.getSelected()
-    self.drivetrain.resetHarder()
+    # self.drivetrain.resetHarder(Pose2d(2, 7, 0))
     if selectedAuto:
       print(f"Running PathPlanner auto: {selectedAuto}")
       self.scheduler.schedule(selectedAuto)
@@ -695,8 +696,10 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
-    print("autonomousPeriodic()")
-    pass
+    # print("autonomousPeriodic()")
+    self.scheduler.run()
+    self.robotPosition.set(self.drivetrain.currentPosition)
+    self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
 
   def disabledInit(self):
     """This function is called initially when disabledd"""
