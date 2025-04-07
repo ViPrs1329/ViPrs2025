@@ -200,6 +200,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # Button 10 for Auto Align Left
     self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
+        commands2.PrintCommand("this button is pressed"),
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
         ),
@@ -442,7 +443,7 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ejectCoral()
         ),
         commands2.InstantCommand(
-          lambda: print(f"eject coral - {self.buttonBoardCommandController.getRawAxis(2)}")
+          lambda: print(f"eject coral - {self.buttonBoardCommandController.getRawAxis(3)}")
         )
       )
     ).onFalse(  # Stop motor once trigger-button is not pressed
@@ -596,7 +597,7 @@ class MyRobot(commands2.TimedCommandRobot):
     print("=== robotInit()")
 
     self.ledController = LED()
-
+    self.ledController.changeStates(constants.RobotStates.noTag)
     self.manualDrive = True
     # camera = CameraServer.startAutomaticCapture()
     # camera.setFPS(15)
@@ -769,8 +770,10 @@ class MyRobot(commands2.TimedCommandRobot):
       self.llPredictionPosition.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
         
     if self.llController.limelightLeftDetectsTag() or self.llController.limelightRightDetectsTag():
+      print("tag")
       self.ledController.changeStates(constants.RobotStates.Tag)
     else:
+      print("no tag")
       self.ledController.changeStates(constants.RobotStates.noTag)
 
     self.button_debugger.update()

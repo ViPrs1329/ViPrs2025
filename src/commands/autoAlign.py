@@ -84,13 +84,13 @@ class AutoAlign(commands2.Command):
 
         self.speedYPub.set(ySpeed)
 
-        speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
+        speeds = ChassisSpeeds(-ySpeed, -xSpeed, -tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))
         self.dTPub.set(abs(self.dt))
         # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
-        self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, tSpeed)
+        self.drivetrain.driveFromRelativeCoordinates(speeds, None)
       except:
 
         self.cancel()
