@@ -236,6 +236,7 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
     
+    ################ THIS CODE IS MUCKING WITH  AlgEj #############
     # Button ???: Elevator to L2 + Auto Align Left
     self.buttonBoardCommandController.axisGreaterThan(2,0.8).onTrue(
       commands2.ParallelCommandGroup(
@@ -268,7 +269,7 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
-
+    ################ THIS CODE IS MUCKING WITH  AlgEj #############
     # Button ???: Elevator to L2 + Auto Align Right
     self.buttonBoardCommandController.axisLessThan(2,-0.8).onTrue(
       commands2.ParallelCommandGroup(
@@ -301,6 +302,7 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
+    ################ THIS CODE IS MUCKING WITH  AlgEj #############
     # Button ???: Elevator to L3 + Auto Align Left
     self.buttonBoardCommandController.axisLessThan(3,-0.8).onTrue(
       commands2.ParallelCommandGroup(
@@ -334,6 +336,7 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
 
+    ################ THIS CODE IS MUCKING WITH  AlgEj #############
     # Button ???: Elevator to L3 + Auto Align Right
     self.buttonBoardCommandController.axisGreaterThan(3,0.8).onTrue(
       commands2.ParallelCommandGroup(
