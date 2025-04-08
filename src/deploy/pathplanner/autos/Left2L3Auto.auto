@@ -1,0 +1,61 @@
+{
+  "version": "2025.0",
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LStart to FlReef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "knockHighAlgae"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AAL-L3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "FlReef to LCoral"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intakeCoral"
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 4.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "LCoral to FlReef"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "AAR-L3"
+          }
+        }
+      ]
+    }
+  },
+  "resetOdom": true,
+  "folder": null,
+  "choreoAuto": false
+}

@@ -38,12 +38,12 @@ class AutoAlign(commands2.Command):
   def initialize(self):
 
     xkp = 0.4
-    xki = 0.04
+    xki = 0.02
     xkd = 0.06
 
-    ykp = 0.2
-    yki = 0.1
-    ykd = 0.1
+    ykp = 0.4
+    yki = 0.02
+    ykd = 0.2
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
     self.alignLocationXPub.set(self.alignPosition)
@@ -53,7 +53,7 @@ class AutoAlign(commands2.Command):
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
-    tki = 0.15
+    tki = 0.0
     tkd = 0.1
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)
@@ -84,7 +84,7 @@ class AutoAlign(commands2.Command):
 
         self.speedYPub.set(ySpeed)
 
-        speeds = ChassisSpeeds(-ySpeed, -xSpeed, -tSpeed)
+        speeds = ChassisSpeeds(ySpeed, -xSpeed, -tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 5.19675,
+        "y": 5.18525
       },
       "prevControl": null,
       "nextControl": {
-        "x": 3.0,
-        "y": 7.0
+        "x": 5.346006675528466,
+        "y": 4.984694658983636
       },
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Left Far Reef"
     },
     {
       "anchor": {
-        "x": 3.0,
-        "y": 7.0
+        "x": 1.6672500000000001,
+        "y": 7.34975
       },
       "prevControl": {
-        "x": 2.0,
-        "y": 7.0
+        "x": 4.947908483372242,
+        "y": 5.6117767732336175
       },
       "nextControl": null,
       "isLocked": false,
-      "linkedName": null
+      "linkedName": "Left Coral Station"
     }
   ],
   "rotationTargets": [],
@@ -42,13 +42,13 @@
   },
   "goalEndState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": -53.343891584033166
   },
   "reversed": false,
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 0.0
+    "rotation": -119.99999999999999
   },
   "useDefaultConstraints": true
 }

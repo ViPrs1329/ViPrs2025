@@ -110,7 +110,7 @@ class sensorConsts:
     pass
 
 class visionConsts:
-    alignOffset = 0.156
+    alignOffset = 0.158
 
 class RobotStates:
     noTag = 1
