@@ -43,7 +43,8 @@ def ticks2radODOMETRY(something):
 def getSwerveModPos(rotEnc : CANcoder, driveEnc: rev.SparkRelativeEncoder) -> SwerveModulePosition:
     return SwerveModulePosition(
                                         # 2pi*r
-        (driveEnc.getPosition()/6.75)*0.31918580816,
+        #                       gear ratio        in->m              wheel diameter                    pi
+        (driveEnc.getPosition()/   6.75   )   *   0.0524 * constants.driveConsts.wheelDiameter * 3.14159265358979323846264338327950288,
         Rotation2d(ticks2radODOMETRY(rotEnc.get_position().value_as_double))
     )
 
