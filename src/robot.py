@@ -236,138 +236,112 @@ class MyRobot(commands2.TimedCommandRobot):
       )
     )
     
-    ################ THIS CODE IS MUCKING WITH  AlgEj #############
-    # Button ???: Elevator to L2 + Auto Align Left
-    self.buttonBoardCommandController.axisGreaterThan(2,0.8).onTrue(
-      commands2.ParallelCommandGroup(
+    # Axis 4 -> 1.0 : Elevator to L2 + Auto Align Left
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
-          # First, set elevator to L2
-          commands2.InstantCommand(
-              lambda: print("Moving to L2 and auto-aligning LEFT")
-          ),
-          commands2.InstantCommand(
-              lambda: self.changeElevatorLevel(2)  # Start from a known position
-          ),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-        ),
-        commands2.SequentialCommandGroup(
-          # Then auto-align left
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-          ),
-          commands2.InstantCommand(
-              self.switchToAutoDrive
-          ),
-          AutoAlign(self.llController, self.drivetrain, "left"),
-          commands2.InstantCommand(
-              self.switchToManualDrive
-          ),
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-          )
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.goToL2()
+            ),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
         )
-      )
     )
 
-    ################ THIS CODE IS MUCKING WITH  AlgEj #############
-    # Button ???: Elevator to L2 + Auto Align Right
-    self.buttonBoardCommandController.axisLessThan(2,-0.8).onTrue(
-      commands2.ParallelCommandGroup(
+    # Axis 4 -> -1.0 : Elevator to L2 + Auto Align Right
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
-          # First, set elevator to L2
-          commands2.InstantCommand(
-              lambda: print("Moving to L2 and auto-aligning RIGHT")
-          ),
-          commands2.InstantCommand(
-              lambda: self.changeElevatorLevel(2)  # Start from a known position
-          ),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-        ),
-        commands2.SequentialCommandGroup(
-          # Then auto-align right
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-          ),
-          commands2.InstantCommand(
-              self.switchToAutoDrive
-          ),
-          AutoAlign(self.llController, self.drivetrain, "right"),
-          commands2.InstantCommand(
-              self.switchToManualDrive
-          ),
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-          )
+            # First, set elevator to L2
+            commands2.InstantCommand(
+                lambda: print("Moving to L2 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.goToL2()
+            ),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
         )
-      )
     )
 
-    ################ THIS CODE IS MUCKING WITH  AlgEj #############
-    # Button ???: Elevator to L3 + Auto Align Left
-    self.buttonBoardCommandController.axisLessThan(3,-0.8).onTrue(
-      commands2.ParallelCommandGroup(
+    # Axis 5 -> 1.0 : Elevator to L3 + Auto Align Left
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
-          # First, set elevator to L3 (need two "up" commands from L1)
-          commands2.InstantCommand(
-              lambda: print("Moving to L3 and auto-aligning LEFT")
-          ),
-          commands2.InstantCommand(
-              lambda: self.ChangeElevatorLevel(3)  # Start from a known position
-          ),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-        ),
-        commands2.SequentialCommandGroup(
-          # Then auto-align left
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-          ),
-          commands2.InstantCommand(
-              self.switchToAutoDrive
-          ),
-          AutoAlign(self.llController, self.drivetrain, "left"),
-          commands2.InstantCommand(
-              self.switchToManualDrive
-          ),
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-          )
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning LEFT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.goToL3()
+            ),
+            # Then auto-align left
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
         )
-      )
     )
 
-    ################ THIS CODE IS MUCKING WITH  AlgEj #############
-    # Button ???: Elevator to L3 + Auto Align Right
-    self.buttonBoardCommandController.axisGreaterThan(3,0.8).onTrue(
-      commands2.ParallelCommandGroup(
+    # Axis 5 -> -1.0 : Elevator to L3 + Auto Align Right
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
-          # First, set elevator to L3 (need two "up" commands from L1)
-          commands2.InstantCommand(
-              lambda: print("Moving to L3 and auto-aligning RIGHT")
-          ),
-          commands2.InstantCommand(
-              lambda: self.changeElevatorLevel(3)  # Start from a known position
-          ),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-          SetElevator("up", self.elevatorController, self.endEffector, lambda: self.coralIsOutOfRangeFunnel()),
-        ),
-        commands2.SequentialCommandGroup(
-          # Then auto-align right
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-          ),
-          commands2.InstantCommand(
-              self.switchToAutoDrive
-          ),
-          AutoAlign(self.llController, self.drivetrain, "right"),
-          commands2.InstantCommand(
-              self.switchToManualDrive
-          ),
-          commands2.InstantCommand(
-              lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-          )
+            # First, set elevator to L3 (need two "up" commands from L1)
+            commands2.InstantCommand(
+                lambda: print("Moving to L3 and auto-aligning RIGHT")
+            ),
+            commands2.InstantCommand(
+                lambda: self.goToL3()
+            ),
+            # Then auto-align right
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+            ),
+            commands2.InstantCommand(
+                self.switchToAutoDrive
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right"),
+            commands2.InstantCommand(
+                self.switchToManualDrive
+            ),
+            commands2.InstantCommand(
+                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+            )
         )
-      )
     )
     
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
