@@ -193,7 +193,7 @@ class DriveTrain(commands2.Subsystem):
         self.getPose,
         self.resetHarder,
         self.getSpeeds,
-        self.driveFromRelativeCoordinates,
+        self.ppRelativeDrive,
         PPHolonomicDriveController(
           constants.PathPlanner.translationConsts,
           constants.PathPlanner.rotationConsts
@@ -415,7 +415,9 @@ class DriveTrain(commands2.Subsystem):
     # print(dSpeedList)
     # print(rSpeedList)
     # print('\n')
-
+  def ppRelativeDrive(self, speeds: ChassisSpeeds, ff):
+    speeds = ChassisSpeeds(-speeds.vx, speeds.vy, speeds.omega)
+    self.driveFromRelativeCoordinates(speeds, ff)
   
   def driveFromRelativeCoordinates(self, speeds: ChassisSpeeds, ff: DriveFeedforwards):
     """
