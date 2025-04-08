@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 8.56037020053892,
-        "y": 1.793047666452553
+        "x": 6.0665851654430965,
+        "y": 3.7545673059670754
       },
       "isLocked": false,
       "linkedName": "Right Starting Point"
@@ -20,8 +20,8 @@
         "y": 2.8452499999999996
       },
       "prevControl": {
-        "x": 4.9113152104592706,
-        "y": 2.740366248655453
+        "x": 5.73718264264094,
+        "y": 2.470718872556273
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 179.1048262897889
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }

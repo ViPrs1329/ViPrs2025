@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.778142697962503,
-        "y": 5.968170862691144
+        "x": 6.681319037191596,
+        "y": 5.9005730860589525
       },
       "isLocked": false,
       "linkedName": "Left Starting Point"
@@ -20,8 +20,8 @@
         "y": 5.18525
       },
       "prevControl": {
-        "x": 6.430725061712815,
-        "y": 5.996531485038928
+        "x": 7.0701301673643995,
+        "y": 4.683227598797077
       },
       "nextControl": null,
       "isLocked": false,
@@ -48,7 +48,7 @@
   "folder": null,
   "idealStartingState": {
     "velocity": 0,
-    "rotation": 180.0
+    "rotation": 0.0
   },
   "useDefaultConstraints": true
 }
