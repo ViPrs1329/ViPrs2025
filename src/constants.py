@@ -73,6 +73,7 @@ class inputConsts:
 
 class driveConsts:
     wheelDiameter = 4
+    autoScalingFactor = 0.25
 
 class autoConsts:
     autoDriveDistance = 4.0 # feet travelled for simple DriveDistance command
