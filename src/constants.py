@@ -119,5 +119,5 @@ class RobotStates:
     aligned = 4
 
 class PathPlanner:
-    translationConsts = PIDConstants(0.02, 0, 0)
-    rotationConsts = PIDConstants(0.3, 0, 0)
+    translationConsts = PIDConstants(0.01, 0, 0)
+    rotationConsts = PIDConstants(0.01, 0, 0)
