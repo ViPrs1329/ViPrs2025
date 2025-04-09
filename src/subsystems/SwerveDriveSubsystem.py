@@ -63,6 +63,8 @@ class DriveTrain(commands2.Subsystem):
     self.table = inst.getTable("Swerve Table")
 
     self.FRlratio = self.table.getDoubleTopic("FR lratio").publish()
+    self.robotPosXPub = self.table.getDoubleTopic("Position X").publish()
+    self.robotPosYPub = self.table.getDoubleTopic("Position Y").publish()
 
     self.robotOdometryPosition = Pose2d()
     self.combinedPosition = Pose2d()
@@ -339,6 +341,8 @@ class DriveTrain(commands2.Subsystem):
     )
     self.currentPosition = negateOdometry(pose)
     self.field.setRobotPose(negateOdometry(pose))
+    self.robotPosXPub.set(self.getPose().X())
+    self.robotPosYPub.set(self.getPose().Y())
     # self.updateOdometry()
 #     print(
 # f"""
