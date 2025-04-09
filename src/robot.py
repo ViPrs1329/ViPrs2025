@@ -792,7 +792,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # print("autonomousPeriodic()")
     self.scheduler.run()
     self.robotPosition.set(self.drivetrain.currentPosition)
-    self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
+    self.negatedRobotPosition.set(self.drivetrain.getPose())
 
   def disabledInit(self):
     """This function is called initially when disabledd"""
