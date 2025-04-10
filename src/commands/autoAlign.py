@@ -47,13 +47,13 @@ class AutoAlign(commands2.Command):
     else:
       raise ValueError(f"robot can't align to {self.alignSide}. must be 'left' or 'right'")
 
-    xkp = 0.4
-    xki = 0.06
-    xkd = 0.06
+    xkp = 0.3
+    xki = 0.08
+    xkd = 0.0
 
     ykp = 0.4
-    yki = 0.02
-    ykd = 0.2
+    yki = 0.05
+    ykd = 0.0
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
     self.alignLocationXPub.set(self.alignPosition)
@@ -62,9 +62,9 @@ class AutoAlign(commands2.Command):
     self.yController.setSetpoint(0.04)
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
-    tkp = 0.7
-    tki = 0.0
-    tkd = 0.1
+    tkp = 0.5
+    tki = 0.07
+    tkd = 0.0
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)
     self.alignLocationTPub.set(0)

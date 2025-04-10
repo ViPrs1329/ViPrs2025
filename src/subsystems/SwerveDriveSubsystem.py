@@ -422,7 +422,7 @@ class DriveTrain(commands2.Subsystem):
     # print(rSpeedList)
     # print('\n')
   def ppRelativeDrive(self, speeds: ChassisSpeeds, ff):
-    speeds = ChassisSpeeds(-speeds.vx * constants.driveConsts.autoScalingFactor, speeds.vy * constants.driveConsts.autoScalingFactor, speeds.omega)
+    speeds = ChassisSpeeds(speeds.vy * constants.driveConsts.autoScalingFactor, speeds.vx * constants.driveConsts.autoScalingFactor, speeds.omega)
     self.driveFromRelativeCoordinates(speeds, ff)
     self.driveSpeedsPub.set(speeds)
   
