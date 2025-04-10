@@ -18,12 +18,12 @@ class AutoAlign(commands2.Command):
     self.llSubsystem = llSubsystem
     self.drivetrain = drivetrain
     self.alignPosition = 0
-    if alignLocation == "left":
-      self.alignPosition = constants.visionConsts.alignOffset
-    elif alignLocation == "right":
-      self.alignPosition = -constants.visionConsts.alignOffset
-    else:
-      raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
+    # if alignLocation == "left":
+    #   self.alignPosition = constants.visionConsts.alignOffset
+    # elif alignLocation == "right":
+    #   self.alignPosition = -constants.visionConsts.alignOffset
+    # else:
+    #   raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
     
     self.alignLocationXPub = self.table.getDoubleTopic("Align Location X").publish()
     self.alignLocationYPub = self.table.getDoubleTopic("Align Location Y").publish()
@@ -35,7 +35,17 @@ class AutoAlign(commands2.Command):
     self.dXPub = self.table.getDoubleTopic("dx").publish()
     self.dYPub = self.table.getDoubleTopic("dy").publish()
     self.dTPub = self.table.getDoubleTopic("dt").publish()
+
+    self.alignSide = alignLocation
+
   def initialize(self):
+
+    if self.alignSide == "left":
+      self.alignPosition = constants.visionConsts.alignOffset
+    elif self.alignSide == "right":
+      self.alignPosition = -constants.visionConsts.alignOffset
+    else:
+      raise ValueError(f"robot can't align to {self.alignSide}. must be 'left' or 'right'")
 
     xkp = 0.4
     xki = 0.06
@@ -74,17 +84,20 @@ class AutoAlign(commands2.Command):
         self.dt = targetPose.rotation().Y()
         # self.dt = targetPose.rotation().X()
 
+        tagAngle = math.atan2(self.dx, self.dz)
+
         self.currentXPub.set(self.dx)
         self.currentYPub.set(self.dz)
         self.currentTPub.set(self.dt)
         
         xSpeed = self.xController.calculate(self.dx)
         ySpeed = self.yController.calculate(self.dz)
-        tSpeed = -self.tController.calculate(self.dt)
+        tSpeed = self.tController.calculate(self.dt)
 
         self.speedYPub.set(ySpeed)
 
-        speeds = ChassisSpeeds(ySpeed, -xSpeed, -tSpeed)
+        # speeds = ChassisSpeeds(ySpeed, -xSpeed, tSpeed)
+        speeds = ChassisSpeeds(0, -xSpeed, tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))

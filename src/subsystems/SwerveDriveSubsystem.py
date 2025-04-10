@@ -447,7 +447,7 @@ class DriveTrain(commands2.Subsystem):
 
 
 
-    fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
         vx, vy, vt, currentAngle
     )
     
