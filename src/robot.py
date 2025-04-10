@@ -198,7 +198,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     
     # Button 10 for Auto Align Left
-    self.buttonBoardCommandController.button(10).onTrue(
+    """ self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
         commands2.PrintCommand("this button is pressed"),
         commands2.InstantCommand(
@@ -215,10 +215,10 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
-    )
+    ) """
 
     # Button 9 for Auto Align Right
-    self.buttonBoardCommandController.button(9).onTrue(
+    """ self.buttonBoardCommandController.button(9).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -232,6 +232,70 @@ class MyRobot(commands2.TimedCommandRobot):
         ),
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+        )
+      )
+    ) """
+
+    # For left auto-align
+    self.buttonBoardCommandController.button(10).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        # Create a named instance of the AutoAlign command so we can reference it later
+        commands2.cmd.RunCommand(lambda: None).withName("leftAutoAlign").beforeStarting(
+          AutoAlign(self.llController, self.drivetrain, "left")
+        ),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        # Check if alignment was successful and update LEDs accordingly
+        commands2.ConditionalCommand(
+          # If successful
+          commands2.InstantCommand(
+            lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+          ),
+          # If failed
+          commands2.InstantCommand(
+            lambda: self.ledController.changeStates(constants.RobotStates.noTag)
+          ),
+          # Condition to check
+          lambda: self.scheduler.requiring(commands2.CommandScheduler.getInstance().getCommand("leftAutoAlign")).wasSuccessful()
+        )
+      )
+    )
+
+    # For right auto-align
+    self.buttonBoardCommandController.button(9).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        ),
+        commands2.InstantCommand(
+          self.switchToAutoDrive
+        ),
+        # Create a named instance of the AutoAlign command so we can reference it later
+        commands2.cmd.RunCommand(lambda: None).withName("rightAutoAlign").beforeStarting(
+          AutoAlign(self.llController, self.drivetrain, "right")
+        ),
+        commands2.InstantCommand(
+          self.switchToManualDrive
+        ),
+        # Check if alignment was successful and update LEDs accordingly
+        commands2.ConditionalCommand(
+          # If successful
+          commands2.InstantCommand(
+            lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+          ),
+          # If failed
+          commands2.InstantCommand(
+            lambda: self.ledController.changeStates(constants.RobotStates.noTag)
+          ),
+          # Condition to check
+          lambda: self.scheduler.requiring(commands2.CommandScheduler.getInstance().getCommand("rightAutoAlign")).wasSuccessful()
         )
       )
     )
