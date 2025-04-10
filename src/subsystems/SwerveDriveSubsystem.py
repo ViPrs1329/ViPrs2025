@@ -433,7 +433,7 @@ class DriveTrain(commands2.Subsystem):
     deltay = vx * math.sin(rotation) - vy * math.cos(rotation)
     speeds = ChassisSpeeds(deltax, deltay, vt)
     self.manualDriveFromChassisSpeeds(speeds)
-    """
+    
     # robotRelativeSpeeds = ChassisSpeeds(vx, vy, vt)
     # targetSpeeds = robotRelativeSpeeds.discretize()
     # targetStates = self.kinematics.toSwerveModuleStates(targetSpeeds)
@@ -477,6 +477,26 @@ class DriveTrain(commands2.Subsystem):
     self.backRightDrive.set(backRight.speed)
     self.frontLeftDrive.set(frontLeft.speed)
     self.frontRightDrive.set(frontRight.speed)
+    
+    # Update lastChassisSpeed for odometry
+    self.lastChassisSpeed = fieldRelativeSpeeds
+    """
+    # Get the current robot heading from the gyro
+    currentAngle = self.getGyroHeading()
+    
+    # Create field-relative chassis speeds
+    # Note: We don't need to negate vy here - let the fromFieldRelativeSpeeds do the coordinate transformation
+    vx = speeds.vx
+    vy = speeds.vy
+    vt = speeds.omega
+
+    # Use the proper WPILib method for field-relative conversion
+    fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+        vx, vy, vt, currentAngle
+    )
+    
+    # Pass to the existing manual drive method
+    self.manualDriveFromChassisSpeeds(fieldRelativeSpeeds)
     
     # Update lastChassisSpeed for odometry
     self.lastChassisSpeed = fieldRelativeSpeeds
