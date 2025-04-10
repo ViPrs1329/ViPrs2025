@@ -491,8 +491,8 @@ class DriveTrain(commands2.Subsystem):
     vt = speeds.omega
 
     # Use the proper WPILib method for field-relative conversion
-    fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        vx, vy, vt, currentAngle
+    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(
+      vx, vy, vt, currentAngle
     )
     
     # Pass to the existing manual drive method
@@ -500,7 +500,7 @@ class DriveTrain(commands2.Subsystem):
     
     # Update lastChassisSpeed for odometry
     self.lastChassisSpeed = fieldRelativeSpeeds
-    
+
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds
 
