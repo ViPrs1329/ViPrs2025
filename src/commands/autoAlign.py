@@ -17,14 +17,11 @@ class AutoAlign(commands2.Command):
 
     self.llSubsystem = llSubsystem
     self.drivetrain = drivetrain
-    self.alignPosition = 0
-    # if alignLocation == "left":
-    #   self.alignPosition = constants.visionConsts.alignOffset
-    # elif alignLocation == "right":
-    #   self.alignPosition = -constants.visionConsts.alignOffset
-    # else:
-    #   raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
+    self.alignPosition = constants.visionConsts.alignOffset
+    # Store the requested alignment side rather than computing offset now
+    self.alignSide = alignLocation  # "left" or "right"
     
+    # Network tables for debugging
     self.alignLocationXPub = self.table.getDoubleTopic("Align Location X").publish()
     self.alignLocationYPub = self.table.getDoubleTopic("Align Location Y").publish()
     self.alignLocationTPub = self.table.getDoubleTopic("Align Location T").publish()
@@ -35,41 +32,34 @@ class AutoAlign(commands2.Command):
     self.dXPub = self.table.getDoubleTopic("dx").publish()
     self.dYPub = self.table.getDoubleTopic("dy").publish()
     self.dTPub = self.table.getDoubleTopic("dt").publish()
-
-    self.alignSide = alignLocation
-
+    self.relativePosePub = self.table.getDoubleTopic("Relative Pose").publish()
+    
   def initialize(self):
-
-    if self.alignSide == "left":
-      self.alignPosition = constants.visionConsts.alignOffset
-    elif self.alignSide == "right":
-      self.alignPosition = -constants.visionConsts.alignOffset
-    else:
-      raise ValueError(f"robot can't align to {self.alignSide}. must be 'left' or 'right'")
-
+    # PID Controllers
     xkp = 0.4
-    xki = 0.06
+    xki = 0.02
     xkd = 0.06
-
+    self.xController = PIDController(xkp, xki, xkd)
+    
     ykp = 0.4
     yki = 0.02
     ykd = 0.2
-    self.xController = PIDController(xkp, xki, xkd)
-    self.xController.setSetpoint(self.alignPosition)
-    self.alignLocationXPub.set(self.alignPosition)
-
     self.yController = PIDController(ykp, yki, ykd)
-    self.yController.setSetpoint(0.04)
-    self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
     tki = 0.0
     tkd = 0.1
     self.tController = PIDController(tkp, tki, tkd)
-    self.tController.setSetpoint(0)
+    
+    # Default setpoint values - will be updated in first execute()
+    self.alignLocationXPub.set(0)
+    self.alignLocationYPub.set(0.02)  # Default forward distance
     self.alignLocationTPub.set(0)
 
     self.dx = self.dy = self.dt = 1000
+    
+    # Wait to set actual setpoints until we get tag data in execute()
+    self.setpointsInitialized = False
 
   def execute(self):
     if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
@@ -78,52 +68,90 @@ class AutoAlign(commands2.Command):
         self.dx = targetPose.X()
         self.dy = targetPose.Y()
         self.dz = targetPose.Z()
-
-
-        # self.dt = targetPose.rotation().Z()
-        self.dt = targetPose.rotation().Y()
-        # self.dt = targetPose.rotation().X()
-
-        tagAngle = math.atan2(self.dx, self.dz)
-
+        
+        # Get the target's rotation - this tells us its orientation
+        target_rot_y = targetPose.rotation().Y()
+        self.dt = target_rot_y
+        
+        # Determine tag orientation angle (in radians)
+        tag_angle = math.atan2(self.dx, self.dz)
+        self.relativePosePub.set(tag_angle)
+        
+        # Initialize setpoints on first detection
+        if not self.setpointsInitialized:
+          offset_amount = constants.visionConsts.alignOffset
+          
+          # Determine which side to align to based on the tag's orientation
+          # Note: tag_angle will be near 0 when directly in front,
+          # positive on one side, negative on the other
+          if self.alignSide == "left":
+            # Offset to the left relative to the tag's orientation
+            target_x = offset_amount * math.cos(tag_angle + math.pi/2)
+          else:  # "right"
+            # Offset to the right relative to the tag's orientation
+            target_x = offset_amount * math.cos(tag_angle - math.pi/2)
+            
+          # Set the PID controller setpoints
+          self.xController.setSetpoint(target_x)
+          self.yController.setSetpoint(0.02)  # Fixed distance from tag
+          self.tController.setSetpoint(0)  # Want to be facing directly at the tag
+          
+          self.alignLocationXPub.set(target_x)
+          self.setpointsInitialized = True
+        
+        # Update current pose information
         self.currentXPub.set(self.dx)
         self.currentYPub.set(self.dz)
         self.currentTPub.set(self.dt)
         
+        # Calculate control outputs
         xSpeed = self.xController.calculate(self.dx)
         ySpeed = self.yController.calculate(self.dz)
-        tSpeed = self.tController.calculate(self.dt)
-
+        tSpeed = -self.tController.calculate(self.dt)
+        
         self.speedYPub.set(ySpeed)
-
-        # speeds = ChassisSpeeds(ySpeed, -xSpeed, tSpeed)
-        speeds = ChassisSpeeds(0, -xSpeed, tSpeed)
-        # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
-        self.dXPub.set(abs(self.dx - self.alignPosition))
+        
+        # Convert to chassis speeds 
+        speeds = ChassisSpeeds(ySpeed, -xSpeed, -tSpeed)
+        
+        # Publish debug info
+        self.dXPub.set(abs(self.dx - self.xController.getSetpoint()))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))
         self.dTPub.set(abs(self.dt))
-        # self.drivetrain.driveFromRelativeCoordinates(ySpeed, xSpeed, 0)
+        
+        # Drive the robot
         self.drivetrain.driveFromRelativeCoordinates(speeds, None)
-      except:
-
+        
+      except Exception as e:
+        print(f"Error in AutoAlign: {e}")
         self.cancel()
     else:
-      print("sum ting wong (no RIMEright deTECted)")
+      print("No April tag detected")
     
   def end(self, interrupted: bool):
-    pass
-
-  def inTollerance(self):
-    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.02) and (abs(self.dt) < 0.05):
-      return True
+    if interrupted:
+      print("Auto align interrupted")
     else:
-      return False
+      print("Auto align completed")
+    self.drivetrain.stopMotors()
+    
+  def inTolerance(self):
+    x_tolerance = 0.02
+    y_tolerance = 0.02
+    t_tolerance = 0.05
+    
+    # Check if we're within tolerance of the setpoints
+    return (abs(self.dx - self.xController.getSetpoint()) < x_tolerance and 
+            abs(self.dz - self.yController.getSetpoint()) < y_tolerance and 
+            abs(self.dt) < t_tolerance)
     
   def isFinished(self) -> bool:
     if (not self.llSubsystem.limelightLeftDetectsTag()) and (not self.llSubsystem.limelightRightDetectsTag()):
-      print("wi tu lo (out no tag)")
+      print("Auto align finished: No tag visible")
       return True
-    if self.inTollerance():
-      print("bang ding ow (out toller)")
+      
+    if self.inTolerance():
+      print("Auto align finished: At target position")
       return True
+      
     return False
