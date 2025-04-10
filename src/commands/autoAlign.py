@@ -96,8 +96,8 @@ class AutoAlign(commands2.Command):
 
         self.speedYPub.set(ySpeed)
 
-        # speeds = ChassisSpeeds(ySpeed, -xSpeed, tSpeed)
-        speeds = ChassisSpeeds(0, -xSpeed, tSpeed)
+        # speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
+        speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))

@@ -440,31 +440,23 @@ class DriveTrain(commands2.Subsystem):
     frontLeft, frontRight, backLeft, backRight = SwerveDrive4Kinematics.desaturateWheelSpeeds(moduleStates, maxModSpeed)
 
 
-    frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
-    Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
-    frontRightOptimized = SwerveModuleState.optimize(frontRight,
-    Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
-    backLeftOptimized = SwerveModuleState.optimize(backLeft,
-    Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
-    backRightOptimized = SwerveModuleState.optimize(backRight,
-    Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
+    frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
+    frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
+    backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
+    backRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
 
-    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeftOptimized.angle.radians())))
-    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeftOptimized.angle.radians())))
-    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRightOptimized.angle.radians())))
-    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRightOptimized.angle.radians())))
+    self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
+    self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
+    self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
+    self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
 
-    #self.backLeftDrive.set(-backLeftOptimized.speed/scale)
-    #self.backRightDrive.set(backRightOptimized.speed/scale)
-    #self.frontLeftDrive.set(frontLeftOptimized.speed/scale)
-    #self.frontRightDrive.set(frontRightOptimized.speed/scale)
+    self.backLeftDrive.set(backLeft.speed)
+    self.backRightDrive.set(backRight.speed)
+    self.frontLeftDrive.set(frontLeft.speed)
+    self.frontRightDrive.set(frontRight.speed)
 
 
-    maxVoltage = 13
-    self.backLeftDrive.setVoltage(-(backLeftOptimized.speed/maxModSpeed)*maxVoltage)
-    self.backRightDrive.setVoltage((backRightOptimized.speed/maxModSpeed)*maxVoltage)
-    self.frontLeftDrive.setVoltage((frontLeftOptimized.speed/maxModSpeed)*maxVoltage)
-    self.frontRightDrive.setVoltage((frontRightOptimized.speed/maxModSpeed)*maxVoltage)
+    
     
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds
