@@ -437,7 +437,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     self.buttonBoardCommandController.button(7).onFalse(
-      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeZeroPosition)
+      MoveAlgaeArmToPosition(self.endEffector, 3.1)
     )
     
     

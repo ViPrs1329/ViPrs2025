@@ -38,7 +38,7 @@ class AutoAlign(commands2.Command):
   def initialize(self):
 
     xkp = 0.4
-    xki = 0.02
+    xki = 0.06
     xkd = 0.06
 
     ykp = 0.4
@@ -49,7 +49,7 @@ class AutoAlign(commands2.Command):
     self.alignLocationXPub.set(self.alignPosition)
 
     self.yController = PIDController(ykp, yki, ykd)
-    self.yController.setSetpoint(0.02)
+    self.yController.setSetpoint(0.04)
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
     tkp = 0.7
