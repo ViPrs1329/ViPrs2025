@@ -18,12 +18,12 @@ class AutoAlign(commands2.Command):
     self.llSubsystem = llSubsystem
     self.drivetrain = drivetrain
     self.alignPosition = 0
-    if alignLocation == "left":
-      self.alignPosition = constants.visionConsts.alignOffset
-    elif alignLocation == "right":
-      self.alignPosition = -constants.visionConsts.alignOffset
-    else:
-      raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
+    # if alignLocation == "left":
+    #   self.alignPosition = constants.visionConsts.alignOffset
+    # elif alignLocation == "right":
+    #   self.alignPosition = -constants.visionConsts.alignOffset
+    # else:
+    #   raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
     
     self.alignLocationXPub = self.table.getDoubleTopic("Align Location X").publish()
     self.alignLocationYPub = self.table.getDoubleTopic("Align Location Y").publish()
@@ -35,26 +35,36 @@ class AutoAlign(commands2.Command):
     self.dXPub = self.table.getDoubleTopic("dx").publish()
     self.dYPub = self.table.getDoubleTopic("dy").publish()
     self.dTPub = self.table.getDoubleTopic("dt").publish()
+
+    self.alignSide = alignLocation
+
   def initialize(self):
 
-    xkp = 0.4
-    xki = 0.02
-    xkd = 0.06
+    if self.alignSide == "left":
+      self.alignPosition = constants.visionConsts.alignOffset
+    elif self.alignSide == "right":
+      self.alignPosition = -constants.visionConsts.alignOffset
+    else:
+      raise ValueError(f"robot can't align to {self.alignSide}. must be 'left' or 'right'")
+
+    xkp = 0.3
+    xki = 0.08
+    xkd = 0.0
 
     ykp = 0.4
-    yki = 0.02
-    ykd = 0.2
+    yki = 0.05
+    ykd = 0.0
     self.xController = PIDController(xkp, xki, xkd)
     self.xController.setSetpoint(self.alignPosition)
     self.alignLocationXPub.set(self.alignPosition)
 
     self.yController = PIDController(ykp, yki, ykd)
-    self.yController.setSetpoint(0.02)
+    self.yController.setSetpoint(0.04)
     self.alignLocationYPub.set(self.yController.getSetpoint())
     
-    tkp = 0.7
-    tki = 0.0
-    tkd = 0.1
+    tkp = 0.5
+    tki = 0.07
+    tkd = 0.0
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(0)
     self.alignLocationTPub.set(0)
@@ -74,17 +84,20 @@ class AutoAlign(commands2.Command):
         self.dt = targetPose.rotation().Y()
         # self.dt = targetPose.rotation().X()
 
+        tagAngle = math.atan2(self.dx, self.dz)
+
         self.currentXPub.set(self.dx)
         self.currentYPub.set(self.dz)
         self.currentTPub.set(self.dt)
         
         xSpeed = self.xController.calculate(self.dx)
         ySpeed = self.yController.calculate(self.dz)
-        tSpeed = -self.tController.calculate(self.dt)
+        tSpeed = self.tController.calculate(self.dt)
 
         self.speedYPub.set(ySpeed)
 
-        speeds = ChassisSpeeds(ySpeed, -xSpeed, -tSpeed)
+        # speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
+        speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))
