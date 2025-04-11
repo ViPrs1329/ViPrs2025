@@ -66,6 +66,7 @@ class DriveTrain(commands2.Subsystem):
     self.robotPosXPub = self.table.getDoubleTopic("Position X").publish()
     self.robotPosYPub = self.table.getDoubleTopic("Position Y").publish()
     self.driveSpeedsPub = self.table.getStructTopic("Drive Speeds", ChassisSpeeds).publish()
+    self.autoInput = self.table.getStructTopic("auto input", ChassisSpeeds).publish()
 
     self.robotOdometryPosition = Pose2d()
     self.combinedPosition = Pose2d()
@@ -422,6 +423,7 @@ class DriveTrain(commands2.Subsystem):
     # print(rSpeedList)
     # print('\n')
   def ppRelativeDrive(self, speeds: ChassisSpeeds, ff):
+    self.autoInput.set(speeds)
     speeds = ChassisSpeeds(speeds.vy * constants.driveConsts.autoScalingFactor, speeds.vx * constants.driveConsts.autoScalingFactor, speeds.omega)
     self.driveFromRelativeCoordinates(speeds, ff)
     self.driveSpeedsPub.set(speeds)
