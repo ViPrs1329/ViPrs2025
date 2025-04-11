@@ -47,6 +47,8 @@ from commands.TestAlgaeIntake import TestAlgaeIntake
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from commands.autoAlign import AutoAlign
 from commands.detectAprilTag import AprilTagMonitorCommand
+from commands.SimpleAutoSequence import SimpleAutoSequence
+
 from phoenix6.hardware import CANrange
 
 from pathplannerlib.auto import NamedCommands, AutoBuilder
@@ -631,6 +633,14 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
+    # Create a second auto chooser for non-PathPlanner routines
+    self.simpleAutoChooser = wpilib.SendableChooser()
+    self.simpleAutoChooser.setDefaultOption("None", None)
+    self.simpleAutoChooser.addOption("Simple Auto Sequence", "simple")
+
+    # Add it to SmartDashboard
+    SmartDashboard.putData("Simple Auto Modes", self.simpleAutoChooser)
+
     self.autoChooser = AutoBuilder.buildAutoChooser("Test Auto")
     NamedCommands.registerCommand("AAL", 
       commands2.SequentialCommandGroup(
@@ -761,6 +771,27 @@ class MyRobot(commands2.TimedCommandRobot):
   def autonomousInit(self):
     """This function is run once each time the robot enters autonomous mode."""
     print("autonomousInit()")
+    
+    # First check the simple auto chooser
+    simpleAutoSelected = self.simpleAutoChooser.getSelected()
+    if simpleAutoSelected == "simple":
+        print("Running Simple Auto Sequence")
+        self.autonomousCommand = SimpleAutoSequence(
+            self.drivetrain, 
+            self.elevatorController, 
+            self.endEffector, 
+            self.llController
+        )
+        self.scheduler.schedule(self.autonomousCommand)
+        return
+
+    # If no simple auto was selected, try the PathPlanner chooser
+    pathPlannerSelected = self.autoChooser.getSelected()
+    if pathPlannerSelected:
+        print(f"Running PathPlanner auto: {pathPlannerSelected}")
+        self.scheduler.schedule(pathPlannerSelected)
+    else:
+        print("No autonomous routine selected, robot will do nothing in auto")
 
     # # Create a command to drive forward 4 feet (converted to meters)
     # feet_to_meters = 0.3048  # 1 foot = 0.3048 meters
@@ -778,13 +809,13 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.scheduler.schedule(self.autonomousCommand)
     
     # # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
-    selectedAuto = self.autoChooser.getSelected()
+    # selectedAuto = self.autoChooser.getSelected()
     # self.drivetrain.resetHarder(Pose2d(2, 7, 0))
-    if selectedAuto:
-      print(f"Running PathPlanner auto: {selectedAuto}")
-      self.scheduler.schedule(selectedAuto)
-    else:
-      print("No path selected, running default auto")
+    # if selectedAuto:
+    #   print(f"Running PathPlanner auto: {selectedAuto}")
+    #   self.scheduler.schedule(selectedAuto)
+    # else:
+    #   print("No path selected, running default auto")
       # Run default auto command
 
   def autonomousPeriodic(self):
