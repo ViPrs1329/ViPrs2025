@@ -45,7 +45,7 @@ from commands.AlgaeIntakeControl import AlgaeIntakeControl
 from commands.TestAlgaeIntake import TestAlgaeIntake
 # from commands.pathplannerCommand import FollowPathCommand
 from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
-from commands.autoAlign import AutoAlign
+from commands.autoAlign import AutoAlign, SafeAutoAlign
 from commands.detectAprilTag import AprilTagMonitorCommand
 from phoenix6.hardware import CANrange
 
@@ -198,9 +198,9 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     
     # Button 10 for Auto Align Left
-    self.buttonBoardCommandController.button(10).onTrue(
+    """ self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
-        commands2.PrintCommand("this button is pressed"),
+        commands2.PrintCommand("Button 10 is pressed"),
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
         ),
@@ -215,10 +215,18 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
+    ) """
+
+    # Safe auto align left for button 10
+    self.buttonBoardCommandController.button(10).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Button 10 is pressed, AAL"),
+        SafeAutoAlign(self.llController, self.drivetrain, "left", self.ledController)
+      )
     )
 
     # Button 9 for Auto Align Right
-    self.buttonBoardCommandController.button(9).onTrue(
+    """ self.buttonBoardCommandController.button(9).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -234,10 +242,18 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
+    ) """
+
+    # Safe auto align right for button 9
+    self.buttonBoardCommandController.button(9).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Button 9 is pressed, AAR"),
+        SafeAutoAlign(self.llController, self.drivetrain, "right", self.ledController)
+      )
     )
     
     # Axis 4 -> 1.0 : Elevator to L2 + Auto Align Left
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) - 1.0) < 0.1).onTrue(
+    """ commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L2
             commands2.InstantCommand(
@@ -261,10 +277,19 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: self.ledController.changeStates(constants.RobotStates.aligned)
             )
         )
+    ) """
+
+    # Safe auto align left + L2 for axis 4 -> 1.0
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) - 1.0) < 0.1).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Axis 4 -> 1.0 is pressed, AAL"),
+        commands2.InstantCommand(lambda: self.goToL2()),
+        SafeAutoAlign(self.llController, self.drivetrain, "left", self.ledController)
+      )
     )
 
     # Axis 4 -> -1.0 : Elevator to L2 + Auto Align Right
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) + 1.0) < 0.1).onTrue(
+    """ commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L2
             commands2.InstantCommand(
@@ -288,10 +313,19 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: self.ledController.changeStates(constants.RobotStates.aligned)
             )
         )
+    ) """
+
+    # Safe auto align right + L2 for axis 4 -> -1.0
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) + 1.0) < 0.1).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Axis 4 -> -1.0 is pressed, AAR"),
+        commands2.InstantCommand(lambda: self.goToL2()),
+        SafeAutoAlign(self.llController, self.drivetrain, "right", self.ledController)
+      )
     )
 
     # Axis 5 -> 1.0 : Elevator to L3 + Auto Align Left
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
+    """ commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
@@ -315,10 +349,20 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: self.ledController.changeStates(constants.RobotStates.aligned)
             )
         )
+    ) """
+
+    # Safe auto align left + L3 for axis 5 -> 1.0
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Axis 5 -> 1.0 is pressed, AAL"),
+        commands2.InstantCommand(lambda: self.goToL3()),
+        SafeAutoAlign(self.llController, self.drivetrain, "left", self.ledController)
+      )
     )
+    
 
     # Axis 5 -> -1.0 : Elevator to L3 + Auto Align Right
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
+    """ commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
@@ -342,7 +386,17 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: self.ledController.changeStates(constants.RobotStates.aligned)
             )
         )
+    ) """
+
+    # Safe auto align right + L3 for axis 5 -> -1.0
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("Axis 5 -> -1.0 is pressed, AAR"),
+        commands2.InstantCommand(lambda: self.goToL3()),
+        SafeAutoAlign(self.llController, self.drivetrain, "right", self.ledController)
+      )
     )
+    
     
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(

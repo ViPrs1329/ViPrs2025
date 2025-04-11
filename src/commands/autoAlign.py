@@ -146,3 +146,30 @@ class AutoAlign(commands2.Command):
       return True
     
     return False
+
+
+
+class SafeAutoAlign(commands2.SequentialCommandGroup):
+    def __init__(self, llController, drivetrain, side, led_controller=None):
+        # First, cancel any running AutoAlign commands
+        cancel_command = commands2.InstantCommand(
+            lambda: commands2.CommandScheduler.getInstance().cancel(
+                lambda command: isinstance(command, AutoAlign)
+            )
+        )
+        
+        # Create the rest of the command sequence
+        commands = [
+            cancel_command,
+            commands2.InstantCommand(
+                lambda: led_controller.changeStates(constants.RobotStates.aligning) if led_controller else None
+            ),
+            commands2.InstantCommand(lambda: drivetrain.switchToAutoDrive() if hasattr(drivetrain, "switchToAutoDrive") else None),
+            AutoAlign(llController, drivetrain, side),
+            commands2.InstantCommand(lambda: drivetrain.switchToManualDrive() if hasattr(drivetrain, "switchToManualDrive") else None),
+            commands2.InstantCommand(
+                lambda: led_controller.changeStates(constants.RobotStates.aligned) if led_controller else None
+            )
+        ]
+        
+        super().__init__(*commands)
