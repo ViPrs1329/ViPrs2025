@@ -773,10 +773,10 @@ class MyRobot(commands2.TimedCommandRobot):
       self.llPredictionPosition.set(Pose3d(Translation3d(0, 0, 0), Rotation3d(0, 0, 0)))
         
     if self.llController.limelightLeftDetectsTag() or self.llController.limelightRightDetectsTag():
-      print("tag")
+      # print("tag")
       self.ledController.changeStates(constants.RobotStates.Tag)
     else:
-      print("no tag")
+      # print("no tag")
       self.ledController.changeStates(constants.RobotStates.noTag)
 
     self.button_debugger.update()

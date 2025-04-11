@@ -12,8 +12,8 @@ class Rotate(commands2.Command):
     Positive angles rotate clockwise, negative angles rotate counter-clockwise.
     """
     
-    def __init__(self, drivetrain: DriveTrain, angle_degrees: float, max_speed: float = 0.6, 
-                 timeout_seconds: float = 3.0, tolerance_degrees: float = 5.0):
+    def __init__(self, drivetrain: DriveTrain, angle_degrees: float, clockwise=True, max_speed: float = 0.3, 
+                 timeout_seconds: float = 3.0, tolerance_degrees: float = 12.0):
         """
         Create a command to rotate the robot by a specific angle.
         
@@ -34,11 +34,12 @@ class Rotate(commands2.Command):
         self.max_speed = max_speed
         self.timeout = timeout_seconds
         self.tolerance = tolerance_degrees
+        self.clockwise = clockwise
         
         # PID constants for rotation control
-        self.kP = 0.02  # Proportional gain
-        self.kI = 0.0   # Integral gain
-        self.kD = 0.001 # Derivative gain
+        self.kP = 0.01  # Proportional gain
+        self.kI = 0.00   # Integral gain
+        self.kD = 0.0 # Derivative gain
         
         # Runtime variables
         self.starting_angle = 0.0
@@ -50,7 +51,8 @@ class Rotate(commands2.Command):
         """Called when the command is initially scheduled."""
         # Record the starting angle
         self.starting_angle = self.drivetrain.gyro.get_yaw().value_as_double
-        self.target_angle = self.starting_angle + self.angle_to_rotate
+        # self.target_angle = self.starting_angle + self.angle_to_rotate
+        self.target_angle = self.starting_angle + 180
         
         # Normalize the target angle to be between -180 and 180
         if self.target_angle > 180.0:
@@ -101,11 +103,12 @@ class Rotate(commands2.Command):
         rotation_speed = p_term + i_term + d_term
         
         # Clamp the rotation speed between -max_speed and max_speed
-        rotation_speed = max(-self.max_speed, min(self.max_speed, rotation_speed))
+        # rotation_speed = max(-self.max_speed, min(self.max_speed, rotation_speed))
+        rotation_speed = -self.max_speed if self.clockwise else self.max_speed
         
         # Set a minimum rotation speed to overcome friction
-        if abs(rotation_speed) < 0.15 and abs(error) > self.tolerance:
-            rotation_speed = 0.15 if error > 0 else -0.15
+        # if abs(rotation_speed) < 0.15 and abs(error) > self.tolerance:
+        #     rotation_speed = 0.15 if error > 0 else -0.15
             
         # Create a ChassisSpeeds object with only rotation
         speeds = ChassisSpeeds(0, 0, rotation_speed)

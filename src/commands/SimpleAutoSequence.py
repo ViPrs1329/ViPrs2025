@@ -31,9 +31,9 @@ class SimpleAutoSequence(commands2.SequentialCommandGroup):
         rotateCommand = Rotate(drivetrain, 180.0)
         
         # Create drive forward command (using existing DriveDistance command)
-        # Convert 10 feet to meters
+        # Convert feet to meters
         feet_to_meters = 0.3048
-        distance_meters = 10 * feet_to_meters
+        distance_meters = 1 * feet_to_meters
         driveCommand = DriveDistance(drivetrain, distance_meters, 0.5)  # 0.5 speed
         
         # Use existing auto align command

@@ -10,7 +10,7 @@ from wpilib import DriverStation, MotorControllerGroup
 from wpimath import controller
 
 
-from constants import CANIDs, convert, elevatorConsts
+from constants import CANIDs, convert, elevatorConsts, reefConsts
 
 from phoenix6.hardware import CANcoder, Pigeon2
 
@@ -98,8 +98,8 @@ class Elevator(commands2.Subsystem):
       """
       Move the elevator to Level 2.
       """
-      target_height = constants.reefConsts.reefLevels[1][1] + constants.elevatorConsts.verticalOffset
-      target_position = constants.convert.in2rot(target_height) / 2
+      target_height = reefConsts.reefLevels[1][1] + elevatorConsts.verticalOffset
+      target_position = convert.in2rot(target_height) / 2
       self.currentLevel = 2
       self.gotoPosition(target_position)
 
@@ -107,7 +107,7 @@ class Elevator(commands2.Subsystem):
       """
       Move the elevator to Level 3.
       """
-      target_height = constants.reefConsts.reefLevels[2][1] + constants.elevatorConsts.verticalOffset
-      target_position = constants.convert.in2rot(target_height) / 2
+      target_height = reefConsts.reefLevels[2][1] + elevatorConsts.verticalOffset
+      target_position = convert.in2rot(target_height) / 2
       self.currentLevel = 3
       self.gotoPosition(target_position)
