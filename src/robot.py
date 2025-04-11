@@ -161,7 +161,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # Auto Align to an april tag
     # TODO configure this command to a seperate game pad
-    self.drivingCommandXboxController.povLeft().onTrue(
+    """ self.drivingCommandXboxController.povLeft().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -177,9 +177,17 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
+    ) """
+    self.drivingCommandXboxController.povLeft().onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("povLeft AAL"),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        )
+      )
     )
 
-    self.drivingCommandXboxController.povRight().onTrue(
+    """ self.drivingCommandXboxController.povRight().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
@@ -195,8 +203,15 @@ class MyRobot(commands2.TimedCommandRobot):
           lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
+    ) """
+    self.drivingCommandXboxController.povRight().onTrue(
+      commands2.SequentialCommandGroup(
+        commands2.PrintCommand("povRight AAR"),
+        commands2.InstantCommand(
+          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+        )
+      )
     )
-    
     # Button 10 for Auto Align Left
     """ self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
@@ -604,9 +619,9 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Add debug mode toggle on Back/Select button
-    self.EEECommandXboxController.back().onTrue(
+    """ self.EEECommandXboxController.back().onTrue(
       ToggleDebugMode(self.is_debug_mode)
-    )
+    ) """
 
     # self.coralIntakeCommand = commands2.SequentialCommandGroup(
     #   WaitUntilCoralIsDetected(self.coralIsInRangeEE),
