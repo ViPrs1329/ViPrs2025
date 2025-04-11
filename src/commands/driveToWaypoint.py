@@ -40,12 +40,12 @@ class DriveToWaypoint(commands2.Command):
     self.yController = PIDController(ykp, yki, ykd)
     self.yController.setSetpoint(self.targetLoc.Y())
     
-    tkp = 0.5
+    tkp = 0.1
     tki = 0.0
     tkd = 0.0
     self.tController = PIDController(tkp, tki, tkd)
     self.tController.setSetpoint(self.targetLoc.rotation().radians())
-
+    self.tController.enableContinuousInput(0, 2 * math.pi)
     self.dx = self.dy = self.dt = 1000
 
   def execute(self):
@@ -56,7 +56,7 @@ class DriveToWaypoint(commands2.Command):
     self.dt = odometry.rotation().radians()
     
     xSpeed = self.xController.calculate(self.dx)
-    ySpeed = self.yController.calculate(self.dz)
+    ySpeed = self.yController.calculate(self.dy)
     tSpeed = self.tController.calculate(self.dt)
 
     speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
@@ -66,7 +66,7 @@ class DriveToWaypoint(commands2.Command):
     pass
 
   def inTollerance(self):
-    if (abs(self.dx - self.xController.getSetpoint()) < self.precisionXY) and (abs(self.dy - self.yController.getSetpoint()) < self.precisionXY) and (abs(self.dt) < self.precisionT):
+    if (abs(self.dx - self.xController.getSetpoint()) < self.precisionXY) and (abs(self.dy - self.yController.getSetpoint()) < self.precisionXY) and (abs(self.dt - self.tController.getSetpoint()) < self.precisionT):
       return True
     else:
       return False

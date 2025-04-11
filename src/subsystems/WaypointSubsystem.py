@@ -3,6 +3,7 @@ import wpilib
 from wpimath.geometry import Pose2d, Rotation2d
 from commands.driveToWaypoint import DriveToWaypoint
 from subsystems.SwerveDriveSubsystem import DriveTrain
+import ntcore
 
 class Waypoint(commands2.Subsystem):
   def __init__(self, drivetrain: DriveTrain) -> None:
@@ -12,6 +13,10 @@ class Waypoint(commands2.Subsystem):
     self.odSupplier: callable = drivetrain.getPose
     self.startingPoint = Pose2d(0, 0, Rotation2d())
     self.resetOdometry = drivetrain.resetOdometry
+
+    self.table = ntcore.NetworkTableInstance.getDefault().getTable("waypoint table")
+  def reset(self):
+    self.queue.clear()
 
   def addWaypoint(self, waypoint: Pose2d, precisionXY: float = 0.05, precisionT: float = 0.1):
     self.queue.append(

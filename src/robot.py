@@ -699,6 +699,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def autonomousExit(self):
     self.autonomousCommand.cancel()
+    self.waypointController.reset()
 
   def disabledInit(self):
     """This function is called initially when disabledd"""
