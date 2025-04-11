@@ -432,7 +432,7 @@ class DriveTrain(commands2.Subsystem):
 
     self.lastChassisSpeed = speeds
 
-    Vx = speeds.vy  
+    Vx = speeds.vy
     Vy = speeds.vx
     
     speeds = ChassisSpeeds(-Vx, -Vy, -speeds.omega)
