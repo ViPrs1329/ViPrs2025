@@ -291,7 +291,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Axis 5 -> 1.0 : Elevator to L3 + Auto Align Left
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
@@ -318,7 +318,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Axis 5 -> -1.0 : Elevator to L3 + Auto Align Right
-    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
+    commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
             # First, set elevator to L3 (need two "up" commands from L1)
             commands2.InstantCommand(
@@ -437,7 +437,7 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     self.buttonBoardCommandController.button(7).onFalse(
-      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeZeroPosition)
+      MoveAlgaeArmToPosition(self.endEffector, 3.1)
     )
     
     
@@ -792,7 +792,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # print("autonomousPeriodic()")
     self.scheduler.run()
     self.robotPosition.set(self.drivetrain.currentPosition)
-    self.negatedRobotPosition.set(self.negateOdometry(self.drivetrain.currentPosition))
+    self.negatedRobotPosition.set(self.drivetrain.getPose())
 
   def disabledInit(self):
     """This function is called initially when disabledd"""

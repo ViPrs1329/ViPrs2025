@@ -43,7 +43,8 @@ def ticks2radODOMETRY(something):
 def getSwerveModPos(rotEnc : CANcoder, driveEnc: rev.SparkRelativeEncoder) -> SwerveModulePosition:
     return SwerveModulePosition(
                                         # 2pi*r
-        (driveEnc.getPosition()/6.75)*0.31918580816,
+        #                       gear ratio        in->m              wheel diameter                    pi
+        (driveEnc.getPosition()/   6.75   )   *   0.31918580816,
         Rotation2d(ticks2radODOMETRY(rotEnc.get_position().value_as_double))
     )
 
@@ -62,6 +63,10 @@ class DriveTrain(commands2.Subsystem):
     self.table = inst.getTable("Swerve Table")
 
     self.FRlratio = self.table.getDoubleTopic("FR lratio").publish()
+    self.robotPosXPub = self.table.getDoubleTopic("Position X").publish()
+    self.robotPosYPub = self.table.getDoubleTopic("Position Y").publish()
+    self.driveSpeedsPub = self.table.getStructTopic("Drive Speeds", ChassisSpeeds).publish()
+    self.autoInput = self.table.getStructTopic("auto input", ChassisSpeeds).publish()
 
     self.robotOdometryPosition = Pose2d()
     self.combinedPosition = Pose2d()
@@ -337,7 +342,9 @@ class DriveTrain(commands2.Subsystem):
 
     )
     self.currentPosition = negateOdometry(pose)
-    self.field.setRobotPose(negateOdometry(pose))
+    self.field.setRobotPose(negateOdometry(self.currentPosition))
+    self.robotPosXPub.set(self.getPose().X())
+    self.robotPosYPub.set(self.getPose().Y())
     # self.updateOdometry()
 #     print(
 # f"""
@@ -416,63 +423,42 @@ class DriveTrain(commands2.Subsystem):
     # print(rSpeedList)
     # print('\n')
   def ppRelativeDrive(self, speeds: ChassisSpeeds, ff):
-    speeds = ChassisSpeeds(-speeds.vx, speeds.vy, speeds.omega)
+    self.autoInput.set(speeds)
+    speeds = ChassisSpeeds(speeds.vy * constants.driveConsts.autoScalingFactor, speeds.vx * constants.driveConsts.autoScalingFactor, speeds.omega)
     self.driveFromRelativeCoordinates(speeds, ff)
+    self.driveSpeedsPub.set(speeds)
   
   def driveFromRelativeCoordinates(self, speeds: ChassisSpeeds, ff: DriveFeedforwards):
-    """
-    rotation = degreesToRadians(self.gyro.get_yaw().value_as_double)
-    deltax = vx * math.cos(rotation) + vy * math.sin(rotation)
-    deltay = vx * math.sin(rotation) - vy * math.cos(rotation)
-    speeds = ChassisSpeeds(deltax, deltay, vt)
-    self.manualDriveFromChassisSpeeds(speeds)
-    """
-    # robotRelativeSpeeds = ChassisSpeeds(vx, vy, vt)
-    # targetSpeeds = robotRelativeSpeeds.discretize()
-    # targetStates = self.kinematics.toSwerveModuleStates(targetSpeeds)
-    # Get the current robot heading from the gyro
-    currentAngle = self.getGyroHeading()
+
+    self.lastChassisSpeed = speeds
+
+    Vx = speeds.vy  
+    Vy = speeds.vx
     
-    # Create field-relative chassis speeds
-    vx = speeds.vx
-    vy = -speeds.vy
-    vt = speeds.omega
+    speeds = ChassisSpeeds(-Vx, -Vy, -speeds.omega)
+    moduleStates = self.kinematics.toSwerveModuleStates(speeds)
+    
+    maxModSpeed = 4.1
+    frontLeft, frontRight, backLeft, backRight = SwerveDrive4Kinematics.desaturateWheelSpeeds(moduleStates, maxModSpeed)
 
 
-
-    fieldRelativeSpeeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        vx, vy, vt, currentAngle
-    )
-    
-    # Convert to module states
-    moduleStates = self.kinematics.toSwerveModuleStates(fieldRelativeSpeeds)
-    
-    # Desaturate wheel speeds
-    maxSpeed = 4.1  # Same as in your other method
-    frontLeft, frontRight, backLeft, backRight = SwerveDrive4Kinematics.desaturateWheelSpeeds(
-        moduleStates, maxSpeed
-    )
-    
-    # Optimize and set module states directly
     frontLeft.optimize(Rotation2d(ticks2rad(self.FleftEnc.get_absolute_position()._value)))
     frontRight.optimize(Rotation2d(ticks2rad(self.FrightEnc.get_absolute_position()._value)))
     backLeft.optimize(Rotation2d(ticks2rad(self.BleftEnc.get_absolute_position()._value)))
     backRight.optimize(Rotation2d(ticks2rad(self.BrightEnc.get_absolute_position()._value)))
-    
-    # Set rotation motors
+
     self.backLeftRotation.set(-self.BleftPID.calculate(self.BleftEnc.get_absolute_position()._value, lratio(backLeft.angle.radians())))
     self.frontLeftRotation.set(-self.FleftPID.calculate(self.FleftEnc.get_absolute_position()._value, lratio(frontLeft.angle.radians())))
     self.backRightRotation.set(-self.BrightPID.calculate(self.BrightEnc.get_absolute_position()._value, lratio(backRight.angle.radians())))
     self.frontRightRotation.set(-self.FrightPID.calculate(self.FrightEnc.get_absolute_position()._value, lratio(frontRight.angle.radians())))
-    
-    # Set drive motors
+
     self.backLeftDrive.set(backLeft.speed)
     self.backRightDrive.set(backRight.speed)
     self.frontLeftDrive.set(frontLeft.speed)
     self.frontRightDrive.set(frontRight.speed)
+
+
     
-    # Update lastChassisSpeed for odometry
-    self.lastChassisSpeed = fieldRelativeSpeeds
     
   def driveFromChassisSpeeds(self, speeds: ChassisSpeeds) -> None: #not used in current robot.py implementation as of 2/28
     self.lastChassisSpeed = speeds
