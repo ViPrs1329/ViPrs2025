@@ -105,13 +105,13 @@ class MyRobot(commands2.TimedCommandRobot):
   def disableSlow(self):
     self.slowScaler = 1
 
-  def ejectCoral(self):
+  """ def ejectCoral(self):
     if self.elevatorController.currentLevel != 1:
       self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed)
       self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed)
     else:
       self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed / 2)
-      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 4)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 4) """
 
   def flopArm(self):
     # print("floppp")
@@ -124,7 +124,7 @@ class MyRobot(commands2.TimedCommandRobot):
   def shouldFlopArm(self):
     return self.endEffector.algae_intake_motor.getOutputCurrent() > 15 # can't put a constant here because python is dumb?????
   
-  def goToBaseLevel(self):
+  """ def goToBaseLevel(self):
     target_height = constants.reefConsts.reefLevels[0][1] + constants.elevatorConsts.verticalOffset
     target_position = constants.convert.in2rot(target_height) / 2
     self.elevatorController.currentLevel = 1
@@ -141,7 +141,7 @@ class MyRobot(commands2.TimedCommandRobot):
     target_height = constants.reefConsts.reefLevels[2][1] + constants.elevatorConsts.verticalOffset
     target_position = constants.convert.in2rot(target_height) / 2
     self.elevatorController.currentLevel = 3
-    self.elevatorController.gotoPosition(target_position)
+    self.elevatorController.gotoPosition(target_position) """
   
   def switchToAutoDrive(self):
     self.manualDrive = False
@@ -246,7 +246,8 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: print("Moving to L2 and auto-aligning LEFT")
             ),
             commands2.InstantCommand(
-                lambda: self.goToL2()
+                # lambda: self.goToL2()
+                lambda: self.elevatorController.goToL2()
             ),
             # Then auto-align left
             commands2.InstantCommand(
@@ -273,7 +274,8 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: print("Moving to L2 and auto-aligning RIGHT")
             ),
             commands2.InstantCommand(
-                lambda: self.goToL2()
+                # lambda: self.goToL2()
+                lambda: self.elevatorController.goToL2()
             ),
             # Then auto-align right
             commands2.InstantCommand(
@@ -300,7 +302,8 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: print("Moving to L3 and auto-aligning LEFT")
             ),
             commands2.InstantCommand(
-                lambda: self.goToL3()
+                # lambda: self.goToL3()
+                lambda: self.elevatorController.goToL3()
             ),
             # Then auto-align left
             commands2.InstantCommand(
@@ -327,7 +330,8 @@ class MyRobot(commands2.TimedCommandRobot):
                 lambda: print("Moving to L3 and auto-aligning RIGHT")
             ),
             commands2.InstantCommand(
-                lambda: self.goToL3()
+                # lambda: self.goToL3()
+                lambda: self.elevatorController.goToL3()
             ),
             # Then auto-align right
             commands2.InstantCommand(
@@ -386,7 +390,8 @@ class MyRobot(commands2.TimedCommandRobot):
     # Button 3 - Base
     self.buttonBoardCommandController.button(3).onTrue(
       commands2.ParallelCommandGroup(
-        commands2.InstantCommand( lambda: self.goToBaseLevel() ),
+        # commands2.InstantCommand( lambda: self.goToBaseLevel() ),
+        commands2.InstantCommand( lambda: self.elevatorController.goToBaseLevel() ),
         commands2.InstantCommand( lambda: print("Elevator to base BB"))
       )
     )
@@ -394,7 +399,8 @@ class MyRobot(commands2.TimedCommandRobot):
     # Button 2 - L2
     self.buttonBoardCommandController.button(2).onTrue(
       commands2.ParallelCommandGroup(
-        commands2.InstantCommand( lambda: self.goToL2() ),
+        # commands2.InstantCommand( lambda: self.goToL2() ),
+        commands2.InstantCommand( lambda: self.elevatorController.goToL2() ),
         commands2.InstantCommand( lambda: print("Elevator to base BB"))
       )
     )
@@ -402,7 +408,8 @@ class MyRobot(commands2.TimedCommandRobot):
     # Button 1 - L3
     self.buttonBoardCommandController.button(1).onTrue(
       commands2.ParallelCommandGroup(
-        commands2.InstantCommand( lambda: self.goToL3() ),
+        # commands2.InstantCommand( lambda: self.goToL3() ),
+        commands2.InstantCommand( lambda: self.elevatorController.goToL3() ),
         commands2.InstantCommand( lambda: print("Elevator to base BB"))
       )
     )
@@ -410,7 +417,8 @@ class MyRobot(commands2.TimedCommandRobot):
     # Eject coral - Xbox controller
     self.EEECommandXboxController.a().onTrue(
       commands2.InstantCommand(
-        lambda: self.ejectCoral()
+        # lambda: self.ejectCoral()
+        lambda: self.endEffector.ejectCoral(self.elevatorController.currentLevel)
       )
     )
 
@@ -419,7 +427,8 @@ class MyRobot(commands2.TimedCommandRobot):
     commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(3) - 1.0) < 0.1).onTrue(
       commands2.ParallelCommandGroup(
         commands2.InstantCommand(
-          lambda: self.ejectCoral()
+          # lambda: self.ejectCoral()
+          lambda: self.endEffector.ejectCoral(self.elevatorController.currentLevel)
         ),
         commands2.InstantCommand(
           lambda: print(f"eject coral - {self.buttonBoardCommandController.getRawAxis(3)}")
@@ -531,7 +540,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.EEECommandXboxController.x().onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(lambda: print("in")),
-        commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        # commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        commands2.InstantCommand(lambda: self.elevatorController.goToBaseLevel()),
         commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
         WaitUntilCoralIsDetected(self.coralIsInRangeEE),
         WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
@@ -542,7 +552,8 @@ class MyRobot(commands2.TimedCommandRobot):
     self.buttonBoardCommandController.button(6).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(lambda: print("in")),
-        commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        # commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        commands2.InstantCommand(lambda: self.elevatorController.goToBaseLevel()),
         commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
         WaitUntilCoralIsDetected(self.coralIsInRangeEE),
         WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
@@ -679,7 +690,8 @@ class MyRobot(commands2.TimedCommandRobot):
     NamedCommands.registerCommand("intakeCoral",       
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(lambda: print("in")),
-        commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        # commands2.InstantCommand(lambda: self.goToBaseLevel()),
+        commands2.InstantCommand(lambda: self.elevatorController.goToBaseLevel()),
         commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
         WaitUntilCoralIsDetected(self.coralIsInRangeEE),
         WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
@@ -690,7 +702,8 @@ class MyRobot(commands2.TimedCommandRobot):
     NamedCommands.registerCommand("ejectCoral", 
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
-          self.ejectCoral
+          # lambda: self.ejectCoral()
+          lambda: self.endEffector.ejectCoral(self.elevatorController.currentLevel)
         ),
         commands2.WaitCommand(1),
         commands2.InstantCommand(
@@ -721,17 +734,20 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     NamedCommands.registerCommand("gotoGround",         
       commands2.InstantCommand(
-        lambda: self.goToBaseLevel() 
+        # lambda: self.goToBaseLevel() 
+        lambda: self.elevatorController.goToBaseLevel()
       )
     )
     NamedCommands.registerCommand("gotoL2", 
       commands2.InstantCommand(
-        lambda: self.goToL2() 
+        # lambda: self.goToL2() 
+        lambda: self.elevatorController.goToL2()
       )
     )
     NamedCommands.registerCommand("gotoL3",
       commands2.InstantCommand(
-        lambda: self.goToL3() 
+        # lambda: self.goToL3() 
+        lambda: self.elevatorController.goToL3()
       )
     )
     NamedCommands.registerCommand("stowAlgaeArm",

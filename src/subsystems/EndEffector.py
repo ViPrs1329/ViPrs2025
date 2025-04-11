@@ -204,3 +204,19 @@ class EndEffector(commands2.Subsystem):
 
     def stopAlgaeIntake(self):
         self.algae_intake_motor.set(0)
+
+    def ejectCoral(self, elevatorLevel=1):
+        """
+        Ejects coral at the appropriate speed based on the elevator level.
+        
+        Args:
+            elevatorLevel: The current elevator level (1-4)
+        """
+        if elevatorLevel != 1:
+            # Upper levels use full speed
+            self.coral_intake_left_motor.set(intakeConsts.intakeSpeed)
+            self.coral_intake_right_motor.set(intakeConsts.intakeSpeed)
+        else:
+            # Level 1 (ground) uses slower speeds
+            self.coral_intake_left_motor.set(intakeConsts.intakeSpeed / 2)
+            self.coral_intake_right_motor.set(intakeConsts.intakeSpeed / 4)

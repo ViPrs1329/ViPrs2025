@@ -83,3 +83,31 @@ class Elevator(commands2.Subsystem):
     self.currentLevel = 1
     self.destination = 0
     self.gotoPosition(0)
+
+  def goToBaseLevel(self):
+    """
+    Move the elevator to the base level (Level 1).
+    """
+    target_height = constants.reefConsts.reefLevels[0][1] + constants.elevatorConsts.verticalOffset
+    target_position = constants.convert.in2rot(target_height) / 2
+    self.currentLevel = 1
+    # Move the elevator to the appropriate position
+    self.gotoPosition(target_position)
+
+  def goToL2(self):
+      """
+      Move the elevator to Level 2.
+      """
+      target_height = constants.reefConsts.reefLevels[1][1] + constants.elevatorConsts.verticalOffset
+      target_position = constants.convert.in2rot(target_height) / 2
+      self.currentLevel = 2
+      self.gotoPosition(target_position)
+
+  def goToL3(self):
+      """
+      Move the elevator to Level 3.
+      """
+      target_height = constants.reefConsts.reefLevels[2][1] + constants.elevatorConsts.verticalOffset
+      target_position = constants.convert.in2rot(target_height) / 2
+      self.currentLevel = 3
+      self.gotoPosition(target_position)
