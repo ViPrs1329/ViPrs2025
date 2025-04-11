@@ -9,7 +9,7 @@ import math
 import ntcore
 
 class AutoAlign(commands2.Command):
-  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str):
+  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str, timeout_seconds: float = constants.visionConsts.autoAlignTimeout):
     super().__init__()
 
     inst = ntcore.NetworkTableInstance.getDefault()
@@ -25,6 +25,9 @@ class AutoAlign(commands2.Command):
     else:
       raise ValueError(f"robot can't align to {alignLocation}. must be 'left' or 'right'")
     
+    self.timeout_seconds = timeout_seconds
+    self.timer = wpilib.Timer()
+
     self.alignLocationXPub = self.table.getDoubleTopic("Align Location X").publish()
     self.alignLocationYPub = self.table.getDoubleTopic("Align Location Y").publish()
     self.alignLocationTPub = self.table.getDoubleTopic("Align Location T").publish()
@@ -35,7 +38,12 @@ class AutoAlign(commands2.Command):
     self.dXPub = self.table.getDoubleTopic("dx").publish()
     self.dYPub = self.table.getDoubleTopic("dy").publish()
     self.dTPub = self.table.getDoubleTopic("dt").publish()
+    self.timeElapsedPub = self.table.getDoubleTopic("Time Elapsed").publish()
   def initialize(self):
+
+    # Start the timer
+    self.timer.reset()
+    self.timer.start()
 
     xkp = 0.4
     xki = 0.02
@@ -62,6 +70,10 @@ class AutoAlign(commands2.Command):
     self.dx = self.dy = self.dt = 1000
 
   def execute(self):
+    # Update the time elapsed
+    elapsed_time = self.timer.get()
+    self.timeElapsedPub.set(elapsed_time)
+    
     if self.llSubsystem.limelightLeftDetectsTag() or self.llSubsystem.limelightRightDetectsTag():
       try:
         targetPose = self.llSubsystem.getTargetPose()
@@ -98,7 +110,8 @@ class AutoAlign(commands2.Command):
       print("sum ting wong (no RIMEright deTECted)")
     
   def end(self, interrupted: bool):
-    pass
+    # Stop the timer
+    self.timer.stop()
 
   def inTollerance(self):
     if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.02) and (abs(self.dt) < 0.05):
@@ -107,10 +120,17 @@ class AutoAlign(commands2.Command):
       return False
     
   def isFinished(self) -> bool:
+    # Check for timeout
+    if self.timer.get() >= self.timeout_seconds:
+      print(f"AUTO ALIGN TIMEOUT: Exceeded {self.timeout_seconds} seconds")
+      return True
+    
     if (not self.llSubsystem.limelightLeftDetectsTag()) and (not self.llSubsystem.limelightRightDetectsTag()):
       print("wi tu lo (out no tag)")
       return True
+    
     if self.inTollerance():
       print("bang ding ow (out toller)")
       return True
+    
     return False

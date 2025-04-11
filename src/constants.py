@@ -111,6 +111,7 @@ class sensorConsts:
 
 class visionConsts:
     alignOffset = 0.158
+    autoAlignTimeout = 5.0
 
 class RobotStates:
     noTag = 1
