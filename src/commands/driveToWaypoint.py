@@ -20,7 +20,7 @@ class DriveToWaypoint(commands2.Command):
     self.odSupplier: callable = odometrySupplier
     self.targetLoc = waypoint
 
-    self.targetPub = self.table.getStructTopic("target pose", Pose2d).publish()
+    self.targetPub = self.table.getStructTopic("target pose", Pose2d).publish().set(self.targetLoc)
 
     self.precisionXY = precisionXY
     self.precisionT = precisionT
