@@ -105,7 +105,7 @@ class AutoAlign(commands2.Command):
         self.vy = self.yController.calculate(self.dz)
         self.vt = self.tController.calculate(self.dt)
 
-        self.speedYPub.set(ySpeed)
+        self.speedYPub.set(self.vy)
 
         # speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
         speeds = ChassisSpeeds(-self.vx, -self.vy, -self.vt)
