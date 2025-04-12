@@ -1,5 +1,6 @@
 import commands2, constants
 import wpilib
+import ntcore
 
 class LED(commands2.Subsystem):
   def __init__(self) -> None:
@@ -8,16 +9,23 @@ class LED(commands2.Subsystem):
     self.blinkin.set(0.93)
     self.cooldown = 500
     self.state = constants.RobotStates.noTag
+
+    self.table = ntcore.NetworkTableInstance.getDefault()
+    self.statePub = self.table.getStringTopic("State").publish()
   
   def periodic(self):
     match self.state:
       case constants.RobotStates.noTag:
+        self.statePub.set("No Tag")
         self.setColor("red")
       case constants.RobotStates.Tag:
+        self.statePub.set("Tag")
         self.setColor("aqua")
       case constants.RobotStates.aligning:
+        self.statePub.set("Aligning")
         self.setColor("yellow")
       case constants.RobotStates.aligned:
+        self.statePub.set("Aligned")
         self.setColor("green")
 
   def changeStates(self, tostate):
