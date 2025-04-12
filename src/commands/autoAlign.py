@@ -76,7 +76,7 @@ class AutoAlign(commands2.Command):
     self.tController.setSetpoint(0)
     self.alignLocationTPub.set(0)
 
-    self.dx = self.dy = self.dt = 1000
+    self.dx = self.dy = self.dt = self.vx = self.vy = self.vt = 1000
 
   def execute(self):
     # Update the time elapsed
@@ -101,14 +101,14 @@ class AutoAlign(commands2.Command):
         self.currentYPub.set(self.dz)
         self.currentTPub.set(self.dt)
         
-        xSpeed = self.xController.calculate(self.dx)
-        ySpeed = self.yController.calculate(self.dz)
-        tSpeed = self.tController.calculate(self.dt)
+        self.vx = self.xController.calculate(self.dx)
+        self.vy = self.yController.calculate(self.dz)
+        self.vt = self.tController.calculate(self.dt)
 
         self.speedYPub.set(ySpeed)
 
         # speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
-        speeds = ChassisSpeeds(-xSpeed, -ySpeed, -tSpeed)
+        speeds = ChassisSpeeds(-self.vx, -self.vy, -self.vt)
         # print(f"dx: {self.dx}, setPoint: {self.alignPosition}, tSpeed: {tSpeed}, dy: {self.dy}, dt: {self.dt}")
         self.dXPub.set(abs(self.dx - self.alignPosition))
         self.dYPub.set(abs(self.dz - self.yController.getSetpoint()))
@@ -126,7 +126,7 @@ class AutoAlign(commands2.Command):
     self.timer.stop()
 
   def inTollerance(self):
-    if (abs(self.dx - self.alignPosition) < 0.02) and (abs(self.dz - self.yController.getSetpoint()) < 0.02) and (abs(self.dt) < 0.05):
+    if (abs(self.vx) < 0.02) and (abs(self.vy) < 0.02) and (abs(self.vt) < 0.05):
       return True
     else:
       return False
