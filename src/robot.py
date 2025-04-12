@@ -178,6 +178,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
+    
 
     self.drivingCommandXboxController.povRight().onTrue(
       commands2.SequentialCommandGroup(
@@ -200,7 +201,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # Button 10 for Auto Align Left
     self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
-        commands2.PrintCommand("this button is pressed"),
+        commands2.PrintCommand("Button 10 is pressed"),
         commands2.InstantCommand(
           lambda: self.ledController.changeStates(constants.RobotStates.aligning)
         ),
@@ -216,6 +217,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
+
 
     # Button 9 for Auto Align Right
     self.buttonBoardCommandController.button(9).onTrue(
@@ -235,7 +237,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       )
     )
-    
+
     # Axis 4 -> 1.0 : Elevator to L2 + Auto Align Left
     commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
@@ -262,6 +264,7 @@ class MyRobot(commands2.TimedCommandRobot):
             )
         )
     )
+
 
     # Axis 4 -> -1.0 : Elevator to L2 + Auto Align Right
     commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(4) + 1.0) < 0.1).onTrue(
@@ -290,6 +293,7 @@ class MyRobot(commands2.TimedCommandRobot):
         )
     )
 
+
     # Axis 5 -> 1.0 : Elevator to L3 + Auto Align Left
     commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) + 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
@@ -317,6 +321,9 @@ class MyRobot(commands2.TimedCommandRobot):
         )
     )
 
+    
+    
+
     # Axis 5 -> -1.0 : Elevator to L3 + Auto Align Right
     commands2.button.Trigger(lambda: abs(self.buttonBoardCommandController.getRawAxis(5) - 1.0) < 0.1).onTrue(
         commands2.SequentialCommandGroup(
@@ -343,6 +350,8 @@ class MyRobot(commands2.TimedCommandRobot):
             )
         )
     )
+
+   
     
     # Toggle front Limelight driver mode on/off using POV Up (D-pad Up)
     # self.drivingCommandXboxController.povUp().onTrue(
@@ -550,9 +559,9 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     # Add debug mode toggle on Back/Select button
-    self.EEECommandXboxController.back().onTrue(
+    """ self.EEECommandXboxController.back().onTrue(
       ToggleDebugMode(self.is_debug_mode)
-    )
+    ) """
 
     # self.coralIntakeCommand = commands2.SequentialCommandGroup(
     #   WaitUntilCoralIsDetected(self.coralIsInRangeEE),
