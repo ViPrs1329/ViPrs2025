@@ -21,6 +21,7 @@ from subsystems.SimpleVisionSubsystem import SimpleVisionSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
 from subsystems.LedSubsystem import LED
 from team1329.SimpleButtonBoardDebug import SimpleButtonBoardDebug
+from subsystems.WaypointSubsystem import Waypoint
 import constants
 import numpy as np
 import ntcore
@@ -48,8 +49,6 @@ from commands.waitUntilCoralIsDetected import WaitUntilCoralIsDetected
 from commands.autoAlign import AutoAlign
 from commands.detectAprilTag import AprilTagMonitorCommand
 from phoenix6.hardware import CANrange
-
-from pathplannerlib.auto import NamedCommands, AutoBuilder
 
 from wpilib import SmartDashboard
 
@@ -619,6 +618,7 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.vision = SimpleVisionSubsystem()
     self.llController = LimelightSubsystem()
     #self.elevator = Elevator()
+    self.waypointController = Waypoint(self.drivetrain)
 
     # initialize network tables
     inst = ntcore.NetworkTableInstance.getDefault()
@@ -640,110 +640,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
-    self.autoChooser = AutoBuilder.buildAutoChooser("Test Auto")
-    NamedCommands.registerCommand("AAL", 
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
-          self.switchToAutoDrive
-        ),
-        AutoAlign(self.llController, self.drivetrain, "left"),
-        commands2.InstantCommand(
-          self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-        )
-      )
-    )
-    NamedCommands.registerCommand("AAR", 
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
-          self.switchToAutoDrive
-        ),
-        AutoAlign(self.llController, self.drivetrain, "right"),
-        commands2.InstantCommand(
-          self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-        )
-      )
-    )
-    NamedCommands.registerCommand("intakeCoral",       
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(lambda: print("in")),
-        commands2.InstantCommand(lambda: self.goToBaseLevel()),
-        commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
-        WaitUntilCoralIsDetected(self.coralIsInRangeEE),
-        WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
-        commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors()),
-        print('coral intake, button 6')
-      )
-    )
-    NamedCommands.registerCommand("ejectCoral", 
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          self.ejectCoral
-        ),
-        commands2.WaitCommand(1),
-        commands2.InstantCommand(
-          self.endEffector.stopCoralMotors
-        )
-      )
-    )
-    NamedCommands.registerCommand("intakeAlgae", 
-      commands2.InstantCommand(
-        lambda: self.endEffector.algae_intake_motor.set(-constants.intakeConsts.algaeIntakeSpeed)
-      )
-    )
-    NamedCommands.registerCommand("stopAlgaeIntake", 
-      commands2.InstantCommand(
-        lambda: self.endEffector.algae_intake_motor.set(0)
-      )
-    )
-    NamedCommands.registerCommand("ejectAlgae", 
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          lambda: self.endEffector.algae_intake_motor.set(constants.intakeConsts.algaeIntakeSpeed)
-        ),
-        commands2.WaitCommand(1),
-        commands2.InstantCommand(
-          lambda: self.endEffector.algae_intake_motor.set(0)
-        )
-      )
-    )
-    NamedCommands.registerCommand("gotoGround",         
-      commands2.InstantCommand(
-        lambda: self.goToBaseLevel() 
-      )
-    )
-    NamedCommands.registerCommand("gotoL2", 
-      commands2.InstantCommand(
-        lambda: self.goToL2() 
-      )
-    )
-    NamedCommands.registerCommand("gotoL3",
-      commands2.InstantCommand(
-        lambda: self.goToL3() 
-      )
-    )
-    NamedCommands.registerCommand("stowAlgaeArm",
-      MoveAlgaeArmToPosition(self.endEffector, 3.1)
-    )
-    NamedCommands.registerCommand("raiseAlgaeArm",
-      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmReefIntakeAngle)
-    )
-    NamedCommands.registerCommand("lowerAlgaeArm",
-      MoveAlgaeArmToPosition(self.endEffector, constants.intakeConsts.algaeArmFloorIntakeAngle)
-    )
-
-    SmartDashboard.putData("Auto choices", self.autoChooser)
+    # SmartDashboard.putData("Auto choices", self.autoChooser)
     SmartDashboard.updateValues()
     print("robotInit()")
 
@@ -787,14 +684,20 @@ class MyRobot(commands2.TimedCommandRobot):
     # self.scheduler.schedule(self.autonomousCommand)
     
     # # print(f"Starting autonomous: Driving forward {distance_feet} feet ({distance_meters:.2f} meters)")
-    selectedAuto = self.autoChooser.getSelected()
+    # selectedAuto = self.autoChooser.getSelected()
     # self.drivetrain.resetHarder(Pose2d(2, 7, 0))
-    if selectedAuto:
-      print(f"Running PathPlanner auto: {selectedAuto}")
-      self.scheduler.schedule(selectedAuto)
-    else:
-      print("No path selected, running default auto")
-      # Run default auto command
+    # if selectedAuto:
+    #   print(f"Running PathPlanner auto: {selectedAuto}")
+    #   self.scheduler.schedule(selectedAuto)
+    # else:
+    #   print("No path selected, running default auto")
+    #   # Run default auto command
+    self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
+    self.waypointController.addWaypoint(Pose2d(5, 7, Rotation2d(0)))
+    self.waypointController.addCommand(commands2.PrintCommand("Mission Passed + Respect"))
+
+    self.autonomousCommand = self.waypointController.getAutonomousCommand()
+    self.scheduler.schedule(self.autonomousCommand)
 
   def autonomousPeriodic(self):
     """This function is called periodically during autonomous."""
@@ -802,6 +705,10 @@ class MyRobot(commands2.TimedCommandRobot):
     self.scheduler.run()
     self.robotPosition.set(self.drivetrain.currentPosition)
     self.negatedRobotPosition.set(self.drivetrain.getPose())
+
+  def autonomousExit(self):
+    self.autonomousCommand.cancel()
+    self.waypointController.reset()
 
   def disabledInit(self):
     """This function is called initially when disabledd"""
