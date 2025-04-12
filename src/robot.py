@@ -104,11 +104,11 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def ejectCoral(self):
     if self.elevatorController.currentLevel != 1:
-      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed)
-      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed)
+      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed * 4)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed * 4)
     else:
       self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed / 2)
-      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 4)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 2)
 
   def flopArm(self):
     # print("floppp")
@@ -146,6 +146,14 @@ class MyRobot(commands2.TimedCommandRobot):
   def switchToManualDrive(self):
     self.manualDrive = True
 
+  def checkIfAlignedAndEjectCoral(self):
+    if self.ledController.state == constants.RobotStates.aligned:
+      self.ejectCoral()
+
+  def reverseCoral(self):
+    self.endEffector.coral_intake_left_motor.set(-constants.intakeConsts.intakeSpeed)
+    self.endEffector.coral_intake_right_motor.set(-constants.intakeConsts.intakeSpeed)
+
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
     self.drivingCommandXboxController.rightTrigger().onTrue(
@@ -160,59 +168,70 @@ class MyRobot(commands2.TimedCommandRobot):
 
     # Auto Align to an april tag
     # TODO configure this command to a seperate game pad
-    self.drivingCommandXboxController.povLeft().onTrue(
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
-          self.switchToAutoDrive
-        ),
-        AutoAlign(self.llController, self.drivetrain, "left"),
-        commands2.InstantCommand(
-          self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-        )
+
+    self.drivingCommandXboxController.povUp().onTrue(
+      commands2.InstantCommand(
+        self.reverseCoral
+      )
+    ).onFalse(
+      commands2.InstantCommand(
+        self.endEffector.stopCoralMotors
       )
     )
+
+    self.drivingCommandXboxController.povDown().onTrue(
+      commands2.cmd.runOnce(
+        lambda: commands2.CommandScheduler.getInstance().cancelAll()
+      )
+    )
+
+    # self.drivingCommandXboxController.povLeft().onTrue(
+    #   commands2.SequentialCommandGroup(
+    #     commands2.InstantCommand(
+    #       lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+    #     ),
+    #     commands2.InstantCommand(
+    #       self.switchToAutoDrive
+    #     ),
+    #     AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+    #     commands2.InstantCommand(
+    #       self.switchToManualDrive
+    #     ),
+    #     commands2.InstantCommand(
+    #       lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+    #     )
+    #   )
+    # )
     
 
-    self.drivingCommandXboxController.povRight().onTrue(
-      commands2.SequentialCommandGroup(
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
-          self.switchToAutoDrive
-        ),
-        AutoAlign(self.llController, self.drivetrain, "right"),
-        commands2.InstantCommand(
-          self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
-        )
-      )
-    )
+    # self.drivingCommandXboxController.povRight().onTrue(
+    #   commands2.SequentialCommandGroup(
+    #     commands2.InstantCommand(
+    #       lambda: self.ledController.changeStates(constants.RobotStates.aligning)
+    #     ),
+    #     commands2.InstantCommand(
+    #       self.switchToAutoDrive
+    #     ),
+    #     AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+    #     commands2.InstantCommand(
+    #       self.switchToManualDrive
+    #     ),
+    #     commands2.InstantCommand(
+    #       lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+    #     )
+    #   )
+    # )
     
     # Button 10 for Auto Align Left
     self.buttonBoardCommandController.button(10).onTrue(
       commands2.SequentialCommandGroup(
         commands2.PrintCommand("Button 10 is pressed"),
         commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
           self.switchToAutoDrive
         ),
-        AutoAlign(self.llController, self.drivetrain, "left"),
+        AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
         commands2.InstantCommand(
           self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
     )
@@ -222,17 +241,11 @@ class MyRobot(commands2.TimedCommandRobot):
     self.buttonBoardCommandController.button(9).onTrue(
       commands2.SequentialCommandGroup(
         commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-        ),
-        commands2.InstantCommand(
           self.switchToAutoDrive
         ),
-        AutoAlign(self.llController, self.drivetrain, "right"),
+        AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
         commands2.InstantCommand(
           self.switchToManualDrive
-        ),
-        commands2.InstantCommand(
-          lambda: self.ledController.changeStates(constants.RobotStates.aligned)
         )
       )
     )
@@ -249,17 +262,19 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             # Then auto-align left
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-            ),
-            commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "left"),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(1),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
             )
         )
     )
@@ -277,17 +292,19 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             # Then auto-align right
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-            ),
-            commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "right"),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(1),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
             )
         )
     )
@@ -305,17 +322,19 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             # Then auto-align left
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-            ),
-            commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "left"),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(1),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
             )
         )
     )
@@ -335,17 +354,19 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             # Then auto-align right
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligning)
-            ),
-            commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "right"),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
-                lambda: self.ledController.changeStates(constants.RobotStates.aligned)
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(1),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
             )
         )
     )
@@ -692,8 +713,9 @@ class MyRobot(commands2.TimedCommandRobot):
     # else:
     #   print("No path selected, running default auto")
     #   # Run default auto command
+    self.waypointController.reset()
     self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
-    self.waypointController.addWaypoint(Pose2d(5, 7, Rotation2d(0)))
+    self.waypointController.addWaypoint(Pose2d(5, 6, Rotation2d(math.pi)))
     self.waypointController.addCommand(commands2.PrintCommand("Mission Passed + Respect"))
 
     self.autonomousCommand = self.waypointController.getAutonomousCommand()
@@ -708,7 +730,6 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def autonomousExit(self):
     self.autonomousCommand.cancel()
-    self.waypointController.reset()
 
   def disabledInit(self):
     """This function is called initially when disabledd"""

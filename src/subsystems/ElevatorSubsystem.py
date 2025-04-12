@@ -73,6 +73,13 @@ class Elevator(commands2.Subsystem):
     self.motorGroup.set(elevatorVelocity)
     # print((convert.rot2in(self.destination)) * 2 + elevatorConsts.verticalOffset)
 
+  def inTollerance(self):
+    if abs(self.elevatorPID.getError()) < 1:
+      return True
+    else:
+      print(f"error: {self.elevatorPID.getError()}")
+      return False
+
   def gotoPosition(self, position):
     self.destination = max(position, 0)
 

@@ -60,7 +60,7 @@ class DriveToWaypoint(commands2.Command):
     ySpeed = self.yController.calculate(self.dy)
     tSpeed = self.tController.calculate(self.dt)
 
-    speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
+    speeds = ChassisSpeeds(xSpeed, ySpeed, -tSpeed)
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     
   def end(self, interrupted: bool):

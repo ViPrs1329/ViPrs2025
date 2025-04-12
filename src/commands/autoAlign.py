@@ -2,6 +2,7 @@ import commands2
 import wpilib
 from subsystems.LimelightSubsystem import LimelightSubsystem
 from subsystems.SwerveDriveSubsystem import DriveTrain
+from subsystems.LedSubsystem import LED
 from wpimath.controller import PIDController
 from wpimath.kinematics import ChassisSpeeds
 import constants
@@ -9,7 +10,7 @@ import math
 import ntcore
 
 class AutoAlign(commands2.Command):
-  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str, timeout_seconds: float = constants.visionConsts.autoAlignTimeout):
+  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str, ledSubsystem: LED, timeout_seconds: float = constants.visionConsts.autoAlignTimeout):
     super().__init__()
 
     inst = ntcore.NetworkTableInstance.getDefault()
@@ -41,6 +42,8 @@ class AutoAlign(commands2.Command):
     self.timeElapsedPub = self.table.getDoubleTopic("Time Elapsed").publish()
 
     self.alignSide = alignLocation
+
+    self.led = ledSubsystem
 
   def initialize(self):
     # Start the timer
@@ -77,6 +80,8 @@ class AutoAlign(commands2.Command):
     self.alignLocationTPub.set(0)
 
     self.dx = self.dy = self.dt = self.vx = self.vy = self.vt = 1000
+
+    self.led.changeStates(constants.RobotStates.aligning)
 
   def execute(self):
     # Update the time elapsed
@@ -143,6 +148,7 @@ class AutoAlign(commands2.Command):
     
     if self.inTollerance():
       print("bang ding ow (out toller)")
+      self.led.changeStates(constants.RobotStates.aligned)
       return True
     
     return False

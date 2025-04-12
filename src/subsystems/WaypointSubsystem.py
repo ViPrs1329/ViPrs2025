@@ -1,6 +1,7 @@
 import commands2, constants
 import wpilib
 from wpimath.geometry import Pose2d, Rotation2d
+from wpimath.kinematics import ChassisSpeeds
 from commands.driveToWaypoint import DriveToWaypoint
 from subsystems.SwerveDriveSubsystem import DriveTrain
 import ntcore
@@ -19,6 +20,10 @@ class Waypoint(commands2.Subsystem):
     self.queue.clear()
 
   def addWaypoint(self, waypoint: Pose2d, precisionXY: float = 0.05, precisionT: float = 0.1):
+    x = 2 * self.startingPoint.X() - waypoint.X()
+    y = 2 * self.startingPoint.Y() - waypoint.Y()
+    r = waypoint.rotation()
+    waypoint = Pose2d(x, y, r)
     self.queue.append(
       DriveToWaypoint(
         self.drivetrain,
@@ -44,7 +49,10 @@ class Waypoint(commands2.Subsystem):
       commands2.InstantCommand(
         lambda: self.resetOdometry(self.startingPoint)
       ),
-      *self.queue
+      *self.queue,
+      commands2.InstantCommand(
+        self.drivetrain.stopMotors
+      )
     ) 
 
   def periodic(self):
