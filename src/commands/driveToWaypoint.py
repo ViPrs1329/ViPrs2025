@@ -66,7 +66,7 @@ class DriveToWaypoint(commands2.Command):
     pass
 
   def inTollerance(self):
-    if (abs(self.dx - self.xController.getSetpoint()) < self.precisionXY) and (abs(self.dy - self.yController.getSetpoint()) < self.precisionXY) and (abs(self.dt - self.tController.getSetpoint()) < self.precisionT):
+    if (abs(self.xController.getPositionError()) < self.precisionXY) and (abs(self.yController.getPositionError()) < self.precisionXY) and (abs(self.tController.getPositionError()) < self.precisionT):
       return True
     else:
       return False
