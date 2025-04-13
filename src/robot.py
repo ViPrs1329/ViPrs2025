@@ -770,8 +770,11 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
       case self.leftL3x2:
+        # set the starting pose to be up against the wall
         self.waypointController.setStartingPose(Pose2d(7.5, 7.5, Rotation2d(0)))
+        # go to the reef
         self.waypointController.addWaypoint(Pose2d(3.7, 5.3), Rotation2d(-math.pi / 3))
+        # auto align and score to the left
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(
@@ -791,18 +794,23 @@ class MyRobot(commands2.TimedCommandRobot):
             )
           )
         )
+        # reset the odometry to maintain accuracy
+        # since we know exactly where we are
         self.waypointController.addCommand(
           commands2.InstantCommand(
             lambda: self.drivetrain.resetOdometry(Pose2d(3.96, 5.25, Rotation2d(-math.pi / 3)))
           )
         )
+        # lower the elevator and start the intake motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(lambda: self.goToBaseLevel()),
             commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
           )
         )
+        # go to the feeder station
         self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        # wait for coral
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             WaitUntilCoralIsDetected(self.coralIsInRangeEE),
@@ -810,7 +818,9 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
           )
         )
+        # go back to the reef
         self.waypointController.addWaypoint(Pose2d(3.7, 5.3, Rotation2d(-math.pi / 3)))
+        # align and score to the right
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(
@@ -830,18 +840,22 @@ class MyRobot(commands2.TimedCommandRobot):
             )
           )
         )
+        # reset the odometry
         self.waypointController.addCommand(
           commands2.InstantCommand(
             lambda: self.drivetrain.resetOdometry(Pose2d(3.7, 5.1, Rotation2d(-math.pi / 3)))
           )
         )
+        # lower elevator and start motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(lambda: self.goToBaseLevel()),
             commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
           )
         )
+        # go to the feeder station
         self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        # stop the motors when coral is detected
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             WaitUntilCoralIsDetected(self.coralIsInRangeEE),
