@@ -666,6 +666,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.right = 3
     self.rotate180 = 4
     self.centerDriveForwardAndScore = 5
+    self.leftL3x2 = 6
 
     self.autoChooser = wpilib.SendableChooser()
     self.autoChooser.setDefaultOption("test", self.testAuto)
@@ -673,6 +674,7 @@ class MyRobot(commands2.TimedCommandRobot):
     self.autoChooser.addOption("right", self.right)
     self.autoChooser.addOption("rotate180", self.rotate180)
     self.autoChooser.addOption("drive forward and score from center", self.centerDriveForwardAndScore)
+    self.autoChooser.addOption("Left score 2 l3", self.leftL3x2)
 
     SmartDashboard.putData("Auto choices", self.autoChooser)
     SmartDashboard.updateValues()
@@ -751,7 +753,7 @@ class MyRobot(commands2.TimedCommandRobot):
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(
-                lambda: self.goToL2()
+                lambda: self.goToL3()
             ),
             AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
             commands2.InstantCommand(
@@ -761,12 +763,93 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
               self.checkIfAlignedAndEjectCoral
             ),
-            commands2.WaitCommand(1),
+            commands2.WaitCommand(constants.autoConsts.coralScoreTime),
             commands2.InstantCommand(
               self.endEffector.stopCoralMotors
             )
           )
         )
+      case self.leftL3x2:
+        self.waypointController.setStartingPose(Pose2d(7.5, 7.5, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(3.7, 5.3), Rotation2d(-math.pi / 3))
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(
+                lambda: self.goToL3()
+            ),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+            commands2.InstantCommand(
+              lambda: self.drivetrain.stopMotors()
+            ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
+            commands2.InstantCommand(
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(constants.autoConsts.coralScoreTime),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
+            )
+          )
+        )
+        self.waypointController.addCommand(
+          commands2.InstantCommand(
+            lambda: self.drivetrain.resetOdometry(Pose2d(3.96, 5.25, Rotation2d(-math.pi / 3)))
+          )
+        )
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(lambda: self.goToBaseLevel()),
+            commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
+          )
+        )
+        self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+            WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+            commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
+          )
+        )
+        self.waypointController.addWaypoint(Pose2d(3.7, 5.3, Rotation2d(-math.pi / 3)))
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(
+                lambda: self.goToL3()
+            ),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            commands2.InstantCommand(
+              lambda: self.drivetrain.stopMotors()
+            ),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
+            commands2.InstantCommand(
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(constants.autoConsts.coralScoreTime),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
+            )
+          )
+        )
+        self.waypointController.addCommand(
+          commands2.InstantCommand(
+            lambda: self.drivetrain.resetOdometry(Pose2d(3.7, 5.1, Rotation2d(-math.pi / 3)))
+          )
+        )
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(lambda: self.goToBaseLevel()),
+            commands2.InstantCommand(lambda: self.endEffector.startCoralMotors()),
+          )
+        )
+        self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            WaitUntilCoralIsDetected(self.coralIsInRangeEE),
+            WaitUntilCoralIsDetected(self.coralIsOutOfRangeFunnel),
+            commands2.InstantCommand(lambda: self.endEffector.stopCoralMotors())
+          )
+        )
+        
     self.waypointController.addCommand(commands2.PrintCommand("Mission Passed + Respect"))
 
     self.autonomousCommand = self.waypointController.getAutonomousCommand()
