@@ -22,16 +22,24 @@ class DriveToWaypoint(commands2.Command):
 
     self.targetPub = self.table.getStructTopic("target pose", Pose2d).publish().set(self.targetLoc)
 
+    self.dxPub = self.table.getDoubleTopic("dx").publish()
+    self.dyPub = self.table.getDoubleTopic("dy").publish()
+    self.dtPub = self.table.getDoubleTopic("dt").publish()
+
+    self.vxPub = self.table.getDoubleTopic("vx").publish()
+    self.vyPub = self.table.getDoubleTopic("vy").publish()
+    self.vtPub = self.table.getDoubleTopic("vt").publish()
+
     self.precisionXY = precisionXY
     self.precisionT = precisionT
 
   def initialize(self):
 
-    xkp = 0.3
+    xkp = 0.1
     xki = 0.0
     xkd = 0.0
 
-    ykp = 0.3
+    ykp = 0.1
     yki = 0.0
     ykd = 0.0
     self.xController = PIDController(xkp, xki, xkd)
@@ -55,12 +63,20 @@ class DriveToWaypoint(commands2.Command):
 
     self.dt = odometry.rotation().radians()
     print(f"dt: {self.dt}, error: {self.tController.getError()}")
+
+    self.dxPub.set(self.dx)
+    self.dyPub.set(self.dy)
+    self.dtPub.set(self.dt)
     
     xSpeed = self.xController.calculate(self.dx)
     ySpeed = self.yController.calculate(self.dy)
-    tSpeed = self.tController.calculate(self.dt)
+    tSpeed = -self.tController.calculate(self.dt)
 
-    speeds = ChassisSpeeds(xSpeed, ySpeed, -tSpeed)
+    self.vxPub.set(xSpeed)
+    self.vyPub.set(ySpeed)
+    self.vtPub.set(tSpeed)
+
+    speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
     
   def end(self, interrupted: bool):
