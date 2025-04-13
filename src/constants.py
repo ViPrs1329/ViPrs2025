@@ -77,6 +77,8 @@ class driveConsts:
 
 class autoConsts:
     autoDriveDistance = 4.0 # feet travelled for simple DriveDistance command
+    maxTranslationSpeed = 0.5
+    maxRotationSpeed = 0.5
 
 
 class intakeConsts:

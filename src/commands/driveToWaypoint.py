@@ -72,6 +72,10 @@ class DriveToWaypoint(commands2.Command):
     ySpeed = self.yController.calculate(self.dy)
     tSpeed = -self.tController.calculate(self.dt)
 
+    xSpeed = max(min(xSpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
+    ySpeed = max(min(ySpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
+    tSpeed = max(min(tSpeed, constants.autoConsts.maxRotationSpeed), -constants.autoConsts.maxRotationSpeed)
+
     self.vxPub.set(xSpeed)
     self.vyPub.set(ySpeed)
     self.vtPub.set(tSpeed)
