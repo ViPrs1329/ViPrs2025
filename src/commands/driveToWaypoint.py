@@ -30,16 +30,22 @@ class DriveToWaypoint(commands2.Command):
     self.vyPub = self.table.getDoubleTopic("vy").publish()
     self.vtPub = self.table.getDoubleTopic("vt").publish()
 
+    self.exPub = self.table.getDoubleTopic("ex").publish()
+    self.eyPub = self.table.getDoubleTopic("ey").publish()
+    self.etPub = self.table.getDoubleTopic("et").publish()
+
+    self.xSpeed = self.ySpeed = self.tSpeed = 0
+
     self.precisionXY = precisionXY
     self.precisionT = precisionT
 
   def initialize(self):
 
-    xkp = 0.1
+    xkp = 0.3
     xki = 0.0
     xkd = 0.0
 
-    ykp = 0.1
+    ykp = 0.3
     yki = 0.0
     ykd = 0.0
     self.xController = PIDController(xkp, xki, xkd)
@@ -48,7 +54,7 @@ class DriveToWaypoint(commands2.Command):
     self.yController = PIDController(ykp, yki, ykd)
     self.yController.setSetpoint(self.targetLoc.Y())
     
-    tkp = 0.1
+    tkp = 0.3
     tki = 0.0
     tkd = 0.0
     self.tController = PIDController(tkp, tki, tkd)
@@ -62,34 +68,46 @@ class DriveToWaypoint(commands2.Command):
     self.dy = odometry.Y()
 
     self.dt = odometry.rotation().radians()
-    print(f"dt: {self.dt}, error: {self.tController.getError()}")
+    # print(f"dt: {self.dt}, error: {self.tController.getError()}")
 
     self.dxPub.set(self.dx)
     self.dyPub.set(self.dy)
     self.dtPub.set(self.dt)
+
+    self.exPub.set(self.xController.getError())
+    self.eyPub.set(self.yController.getError())
+    self.etPub.set(self.tController.getError())
     
-    xSpeed = self.xController.calculate(self.dx)
-    ySpeed = self.yController.calculate(self.dy)
-    tSpeed = -self.tController.calculate(self.dt)
+    self.xSpeed = self.xController.calculate(self.dx)
+    self.ySpeed = self.yController.calculate(self.dy)
+    self.tSpeed = -self.tController.calculate(self.dt)
 
-    xSpeed = max(min(xSpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
-    ySpeed = max(min(ySpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
-    tSpeed = max(min(tSpeed, constants.autoConsts.maxRotationSpeed), -constants.autoConsts.maxRotationSpeed)
+    self.xSpeed = max(min(self.xSpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
+    self.ySpeed = max(min(self.ySpeed, constants.autoConsts.maxTranslationSpeed), -constants.autoConsts.maxTranslationSpeed)
+    self.tSpeed = max(min(self.tSpeed, constants.autoConsts.maxRotationSpeed), -constants.autoConsts.maxRotationSpeed)
 
-    self.vxPub.set(xSpeed)
-    self.vyPub.set(ySpeed)
-    self.vtPub.set(tSpeed)
+    self.vxPub.set(self.xSpeed)
+    self.vyPub.set(self.ySpeed)
+    self.vtPub.set(self.tSpeed)
 
-    speeds = ChassisSpeeds(xSpeed, ySpeed, tSpeed)
+    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(self.xSpeed, self.ySpeed, self.tSpeed, odometry.rotation())
     self.drivetrain.manualDriveFromChassisSpeeds(speeds)
+
+    # print(f"Position error: ({self.xController.getError():.2f}, {self.yController.getError():.2f})")
+    # print(f"Rotation error: {math.degrees(self.tController.getError()):.1f} degrees")
+    # print(f"Speeds: x={xSpeed:.2f}, y={ySpeed:.2f}, t={tSpeed:.2f}")
     
   def end(self, interrupted: bool):
     pass
 
   def inTollerance(self):
-    if (abs(self.xController.getError()) < self.precisionXY) and (abs(self.yController.getError()) < self.precisionXY) and (abs(self.tController.getError()) < self.precisionT):
+    if (abs(self.xSpeed) < self.precisionXY) and (abs(self.ySpeed) < self.precisionXY) and (abs(self.tSpeed) < self.precisionT):
       return True
     else:
+      # print("Errors")
+      # print(f"{abs(self.xController.getError()):.3f}, {self.precisionXY}")
+      # print(f"{abs(self.yController.getError()):.3f}, {self.precisionXY}")
+      # print(f"{abs(self.tController.getError()):.3f}, {self.precisionT}")
       return False
     
   def isFinished(self) -> bool:

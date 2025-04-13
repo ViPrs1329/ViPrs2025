@@ -19,7 +19,7 @@ class Waypoint(commands2.Subsystem):
   def reset(self):
     self.queue.clear()
 
-  def addWaypoint(self, waypoint: Pose2d, precisionXY: float = 0.05, precisionT: float = 0.1):
+  def addWaypoint(self, waypoint: Pose2d, precisionXY: float = 0.05, precisionT: float = 0.05):
     x = 2 * self.startingPoint.X() - waypoint.X()
     y = 2 * self.startingPoint.Y() - waypoint.Y()
     r = waypoint.rotation()
@@ -45,6 +45,7 @@ class Waypoint(commands2.Subsystem):
 
   def getAutonomousCommand(self):
     # the "*" unpacks a list into seperate arguments
+    print(self.queue)
     return commands2.SequentialCommandGroup(
       commands2.InstantCommand(
         lambda: self.resetOdometry(self.startingPoint)

@@ -740,6 +740,7 @@ class MyRobot(commands2.TimedCommandRobot):
       case self.right:
         self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
         self.waypointController.addWaypoint(Pose2d(6, 6, Rotation2d(0)))
+
       case self.rotate180:
         self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
         self.waypointController.addWaypoint(Pose2d(6, 7, Rotation2d(math.pi)))
@@ -749,7 +750,13 @@ class MyRobot(commands2.TimedCommandRobot):
         self.waypointController.addWaypoint(Pose2d(6, 4, Rotation2d(math.pi)))
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
+            commands2.InstantCommand(
+                lambda: self.goToL2()
+            ),
             AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            commands2.InstantCommand(
+              lambda: self.drivetrain.stopMotors()
+            ),
             commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
               self.checkIfAlignedAndEjectCoral
