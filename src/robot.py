@@ -661,7 +661,18 @@ class MyRobot(commands2.TimedCommandRobot):
     self.canRangeFunnel = CANrange(constants.CANIDs.CanRangeFunnel)
     self.canRangeEE = CANrange(constants.CANIDs.CanRangeEE)
 
-    # SmartDashboard.putData("Auto choices", self.autoChooser)
+    self.testAuto = 1
+    self.backUp = 2
+    self.right = 3
+    self.rotate180 = 4
+
+    self.autoChooser = wpilib.SendableChooser()
+    self.autoChooser.setDefaultOption("test", self.testAuto)
+    self.autoChooser.addOption("backUp", self.backUp)
+    self.autoChooser.addOption("right", self.right)
+    self.autoChooser.addOption("rotate180", self.rotate180)
+
+    SmartDashboard.putData("Auto choices", self.autoChooser)
     SmartDashboard.updateValues()
     print("robotInit()")
 
@@ -714,8 +725,23 @@ class MyRobot(commands2.TimedCommandRobot):
     #   print("No path selected, running default auto")
     #   # Run default auto command
     self.waypointController.reset()
-    self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
-    self.waypointController.addWaypoint(Pose2d(5, 6, Rotation2d(math.pi)))
+
+    match self.autoChooser.getSelected():
+      case self.testAuto:
+        self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(5, 6, Rotation2d(math.pi)))
+
+      case self.backUp:
+        self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(5, 7, Rotation2d(0)))
+
+      case self.right:
+        self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(6, 6, Rotation2d(0)))
+      case self.rotate180:
+        self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(6, 7, Rotation2d(math.pi)))
+        
     self.waypointController.addCommand(commands2.PrintCommand("Mission Passed + Respect"))
 
     self.autonomousCommand = self.waypointController.getAutonomousCommand()
