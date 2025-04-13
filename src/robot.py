@@ -665,12 +665,14 @@ class MyRobot(commands2.TimedCommandRobot):
     self.backUp = 2
     self.right = 3
     self.rotate180 = 4
+    self.centerDriveForwardAndScore = 5
 
     self.autoChooser = wpilib.SendableChooser()
     self.autoChooser.setDefaultOption("test", self.testAuto)
     self.autoChooser.addOption("backUp", self.backUp)
     self.autoChooser.addOption("right", self.right)
     self.autoChooser.addOption("rotate180", self.rotate180)
+    self.autoChooser.addOption("drive forward and score from center", self.centerDriveForwardAndScore)
 
     SmartDashboard.putData("Auto choices", self.autoChooser)
     SmartDashboard.updateValues()
@@ -742,6 +744,22 @@ class MyRobot(commands2.TimedCommandRobot):
         self.waypointController.setStartingPose(Pose2d(6, 7, Rotation2d(0)))
         self.waypointController.addWaypoint(Pose2d(6, 7, Rotation2d(math.pi)))
         
+      case self.centerDriveForwardAndScore:
+        self.waypointController.setStartingPose(Pose2d(7.5, 4, Rotation2d(0)))
+        self.waypointController.addWaypoint(Pose2d(6, 4, Rotation2d(math.pi)))
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            commands2.WaitUntilCommand(self.elevatorController.inTollerance),
+            commands2.InstantCommand(
+              self.checkIfAlignedAndEjectCoral
+            ),
+            commands2.WaitCommand(1),
+            commands2.InstantCommand(
+              self.endEffector.stopCoralMotors
+            )
+          )
+        )
     self.waypointController.addCommand(commands2.PrintCommand("Mission Passed + Respect"))
 
     self.autonomousCommand = self.waypointController.getAutonomousCommand()
