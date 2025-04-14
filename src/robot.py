@@ -680,6 +680,9 @@ class MyRobot(commands2.TimedCommandRobot):
     SmartDashboard.updateValues()
     print("robotInit()")
 
+  def transformPose(self, pose: Pose2d, starting: Pose2d):
+    return Pose2d(2 * starting.X() - pose.X(), 2 * starting.Y() - pose.Y(), pose.rotation())
+
   def robotPeriodic(self):
     # print("robotPeriodic()")
     targetPose = self.llController.getTargetPose()
@@ -778,7 +781,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # set the starting pose to be up against the wall
         self.waypointController.setStartingPose(Pose2d(7.5, 7.5, Rotation2d(0)))
         # go to the reef
-        self.waypointController.addWaypoint(Pose2d(3.7, 5.3), Rotation2d(-math.pi / 3))
+        self.waypointController.addWaypoint(Pose2d(3, 5.6, Rotation2d(-math.pi / 3)))
         # auto align and score to the left
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -803,7 +806,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # since we know exactly where we are
         self.waypointController.addCommand(
           commands2.InstantCommand(
-            lambda: self.drivetrain.resetOdometry(Pose2d(3.96, 5.25, Rotation2d(-math.pi / 3)))
+            lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d(math.pi / 3)), self.waypointController.getStartingPose()))
           )
         )
         # lower the elevator and start the intake motors
@@ -824,7 +827,7 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # go back to the reef
-        self.waypointController.addWaypoint(Pose2d(3.7, 5.3, Rotation2d(-math.pi / 3)))
+        self.waypointController.addWaypoint(Pose2d(3.5, 5.6, Rotation2d(-math.pi / 3)))
         # align and score to the right
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
