@@ -749,11 +749,12 @@ class MyRobot(commands2.TimedCommandRobot):
         
       case self.centerDriveForwardAndScore:
         
-# set robot to be in the center half way on the black line
-self.waypointController.setStartingPose(Pose2d(7.5, 4, Rotation2d(0)))
+        # set robot to be in the center half way on the black line
+        self.waypointController.setStartingPose(Pose2d(7.5, 4, Rotation2d(0)))
        
-# go to the reef and turn around self.waypointController.addWaypoint(Pose2d(6, 4, Rotation2d(math.pi)))
-# auto align to the reef and score
+        # go to the reef and turn around 
+        self.waypointController.addWaypoint(Pose2d(6, 4, Rotation2d(math.pi)))
+        # auto align to the reef and score
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(
