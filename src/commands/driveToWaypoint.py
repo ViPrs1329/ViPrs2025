@@ -98,7 +98,7 @@ class DriveToWaypoint(commands2.Command):
     # print(f"Speeds: x={xSpeed:.2f}, y={ySpeed:.2f}, t={tSpeed:.2f}")
     
   def end(self, interrupted: bool):
-    pass
+    self.drivetrain.stopMotors()
 
   def inTollerance(self):
     if (abs(self.xSpeed) < self.precisionXY) and (abs(self.ySpeed) < self.precisionXY) and (abs(self.tSpeed) < self.precisionT):

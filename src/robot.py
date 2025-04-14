@@ -680,7 +680,8 @@ class MyRobot(commands2.TimedCommandRobot):
     SmartDashboard.updateValues()
     print("robotInit()")
 
-  def transformPose(self, pose: Pose2d, starting: Pose2d):
+  def transformPose(self, pose: Pose2d):
+    starting = self.waypointController.getStartingPose()
     return Pose2d(2 * starting.X() - pose.X(), 2 * starting.Y() - pose.Y(), pose.rotation())
 
   def robotPeriodic(self):
@@ -779,9 +780,9 @@ class MyRobot(commands2.TimedCommandRobot):
         )
       case self.leftL3x2:
         # set the starting pose to be up against the wall
-        self.waypointController.setStartingPose(Pose2d(7.5, 7.5, Rotation2d(0)))
+        self.waypointController.setStartingPose(Pose2d(8, 7.5, Rotation2d(0)))
         # go to the reef
-        self.waypointController.addWaypoint(Pose2d(3, 5.6, Rotation2d(-math.pi / 3)))
+        self.waypointController.addWaypoint(Pose2d(2.9, 5.6, Rotation2d(-math.pi / 3)))
         # auto align and score to the left
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -794,7 +795,7 @@ class MyRobot(commands2.TimedCommandRobot):
             ),
             commands2.WaitUntilCommand(self.elevatorController.inTollerance),
             commands2.InstantCommand(
-              self.checkIfAlignedAndEjectCoral
+              self.ejectCoral
             ),
             commands2.WaitCommand(constants.autoConsts.coralScoreTime),
             commands2.InstantCommand(
@@ -804,11 +805,11 @@ class MyRobot(commands2.TimedCommandRobot):
         )
         # reset the odometry to maintain accuracy
         # since we know exactly where we are
-        self.waypointController.addCommand(
-          commands2.InstantCommand(
-            lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d(math.pi / 3)), self.waypointController.getStartingPose()))
-          )
-        )
+        # self.waypointController.addCommand(
+        #   commands2.InstantCommand(
+        #     lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d(-math.pi / 3))))
+        #   )
+        # )
         # lower the elevator and start the intake motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -849,11 +850,11 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # reset the odometry
-        self.waypointController.addCommand(
-          commands2.InstantCommand(
-            lambda: self.drivetrain.resetOdometry(Pose2d(3.7, 5.1, Rotation2d(-math.pi / 3)))
-          )
-        )
+        # self.waypointController.addCommand(
+        #   commands2.InstantCommand(
+        #     lambda: self.drivetrain.resetOdometry(Pose2d(3.7, 5.1, Rotation2d(-math.pi / 3)))
+        #   )
+        # )
         # lower elevator and start motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
