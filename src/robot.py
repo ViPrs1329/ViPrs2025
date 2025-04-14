@@ -11,6 +11,7 @@ import wpilib.drive
 from wpimath.kinematics import ChassisSpeeds
 from wpimath.geometry import Rotation2d, Pose2d, Pose3d, Translation3d, Rotation3d, Translation2d
 from wpilib import SendableChooser
+import phoenix6
 import rev
 import math
 import commands2
@@ -805,11 +806,16 @@ class MyRobot(commands2.TimedCommandRobot):
         )
         # reset the odometry to maintain accuracy
         # since we know exactly where we are
-        # self.waypointController.addCommand(
-        #   commands2.InstantCommand(
-        #     lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d(-math.pi / 3))))
-        #   )
-        # )
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(
+              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d())))
+            ),
+            commands2.InstantCommand(
+              lambda: self.drivetrain.gyro.set_yaw(-60)
+            )
+          )
+        )
         # lower the elevator and start the intake motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -850,11 +856,16 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # reset the odometry
-        # self.waypointController.addCommand(
-        #   commands2.InstantCommand(
-        #     lambda: self.drivetrain.resetOdometry(Pose2d(3.7, 5.1, Rotation2d(-math.pi / 3)))
-        #   )
-        # )
+        self.waypointController.addCommand(
+          commands2.SequentialCommandGroup(
+            commands2.InstantCommand(
+              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d())))
+            ),
+            commands2.InstantCommand(
+              lambda: self.drivetrain.gyro.set_yaw(-60)
+            )
+          )
+        )
         # lower elevator and start motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(

@@ -58,7 +58,7 @@ class AutoAlign(commands2.Command):
       raise ValueError(f"robot can't align to {self.alignSide}. must be 'left' or 'right'")
 
     xkp = 0.3
-    xki = 0.08
+    xki = 0.07
     xkd = 0.0
 
     ykp = 0.4
