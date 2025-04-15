@@ -103,6 +103,12 @@ class MyRobot(commands2.TimedCommandRobot):
   def disableSlow(self):
     self.slowScaler = 1
 
+  def enableFast(self):
+    self.slowScaler = 2
+
+  def disableFast(self):
+    self.slowScaler = 1
+
   def ejectCoral(self):
     if self.elevatorController.currentLevel != 1:
       self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed * 4)
@@ -162,6 +168,11 @@ class MyRobot(commands2.TimedCommandRobot):
     )
     self.drivingCommandXboxController.rightTrigger().onFalse(
       commands2.InstantCommand(lambda: self.disableSlow())
+    )
+    self.drivingCommandXboxController.leftTrigger().onTrue(
+      commands2.InstantCommand(lambda: self.enableFast())
+    ).onFalse(
+      commands2.InstantCommand(lambda: self.disableFast())
     )
     self.drivingCommandXboxController.x().onTrue(
       commands2.InstantCommand(lambda: self.drivetrain.gyro.set_yaw(0))
