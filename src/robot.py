@@ -782,8 +782,10 @@ class MyRobot(commands2.TimedCommandRobot):
       case self.leftL3x2:
         # set the starting pose to be up against the wall
         self.waypointController.setStartingPose(Pose2d(8, 7.5, Rotation2d(0)))
+        # intermediate point
+        self.waypointController.addWaypoint(Pose2d(2, 6.5, Rotation2d(0)))
         # go to the reef
-        self.waypointController.addWaypoint(Pose2d(2.9, 5.6, Rotation2d(-math.pi / 3)))
+        self.waypointController.addWaypoint(Pose2d(3.5, 5.6, Rotation2d(-math.pi / 3)))
         # auto align and score to the left
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -824,7 +826,7 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # go to the feeder station
-        self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        self.waypointController.addWaypoint(Pose2d(1, 7.8, Rotation2d.fromDegrees(-54)))
         # wait for coral
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -859,7 +861,7 @@ class MyRobot(commands2.TimedCommandRobot):
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
             commands2.InstantCommand(
-              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d())))
+              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.7, 5.1, Rotation2d())))
             ),
             commands2.InstantCommand(
               lambda: self.drivetrain.gyro.set_yaw(-60)
@@ -874,7 +876,7 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # go to the feeder station
-        self.waypointController.addWaypoint(Pose2d(1.1, 7, Rotation2d.fromDegrees(-54)))
+        self.waypointController.addWaypoint(Pose2d(1, 7.8, Rotation2d.fromDegrees(-54)))
         # stop the motors when coral is detected
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
