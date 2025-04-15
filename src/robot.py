@@ -819,16 +819,16 @@ class MyRobot(commands2.TimedCommandRobot):
         )
         # reset the odometry to maintain accuracy
         # since we know exactly where we are
-        self.waypointController.addCommand(
-          commands2.SequentialCommandGroup(
-            commands2.InstantCommand(
-              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d())))
-            ),
-            commands2.InstantCommand(
-              lambda: self.drivetrain.gyro.set_yaw(-60)
-            )
-          )
-        )
+        # self.waypointController.addCommand(
+        #   commands2.SequentialCommandGroup(
+        #     commands2.InstantCommand(
+        #       lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.96, 5.25, Rotation2d())))
+        #     ),
+        #     commands2.InstantCommand(
+        #       lambda: self.drivetrain.gyro.set_yaw(-60)
+        #     )
+        #   )
+        # )
         # lower the elevator and start the intake motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
@@ -869,16 +869,16 @@ class MyRobot(commands2.TimedCommandRobot):
           )
         )
         # reset the odometry
-        self.waypointController.addCommand(
-          commands2.SequentialCommandGroup(
-            commands2.InstantCommand(
-              lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.7, 5.1, Rotation2d())))
-            ),
-            commands2.InstantCommand(
-              lambda: self.drivetrain.gyro.set_yaw(-60)
-            )
-          )
-        )
+        # self.waypointController.addCommand(
+        #   commands2.SequentialCommandGroup(
+        #     commands2.InstantCommand(
+        #       lambda: self.drivetrain.resetOdometry(self.transformPose(Pose2d(3.7, 5.1, Rotation2d())))
+        #     ),
+        #     commands2.InstantCommand(
+        #       lambda: self.drivetrain.gyro.set_yaw(-60)
+        #     )
+        #   )
+        # )
         # lower elevator and start motors
         self.waypointController.addCommand(
           commands2.SequentialCommandGroup(
