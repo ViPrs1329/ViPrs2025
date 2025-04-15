@@ -46,6 +46,11 @@ class AutoAlign(commands2.Command):
     self.led = ledSubsystem
 
   def initialize(self):
+    # check if we are aligning
+    if self.led.state == constants.RobotStates.aligning:
+      self.cancel()
+      return
+    
     # Start the timer
     self.timer.reset()
     self.timer.start()
