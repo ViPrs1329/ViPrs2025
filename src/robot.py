@@ -161,6 +161,12 @@ class MyRobot(commands2.TimedCommandRobot):
     self.endEffector.coral_intake_left_motor.set(-constants.intakeConsts.intakeSpeed)
     self.endEffector.coral_intake_right_motor.set(-constants.intakeConsts.intakeSpeed)
 
+  def stopAligning(self):
+    self.stopAutoAligning = True
+
+  def allowAligning(self):
+    self.stopAutoAligning = False
+
   def configureButtonBindings(self):
     # slow down the robot when right trigger is pressed
     self.drivingCommandXboxController.rightTrigger().onTrue(
@@ -192,8 +198,12 @@ class MyRobot(commands2.TimedCommandRobot):
     )
 
     self.drivingCommandXboxController.povDown().onTrue(
-      commands2.cmd.runOnce(
-        lambda: commands2.CommandScheduler.getInstance().cancelAll()
+      commands2.InstantCommand(
+        lambda: self.stopAligning
+      )
+    ).onFalse(
+      commands2.InstantCommand(
+        self.allowAligning
       )
     )
 
@@ -205,7 +215,7 @@ class MyRobot(commands2.TimedCommandRobot):
     #     commands2.InstantCommand(
     #       self.switchToAutoDrive
     #     ),
-    #     AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+    #     AutoAlign(self.llController, self.drivetrain, "left", self.ledController, lambda: self.stopAutoAligning),
     #     commands2.InstantCommand(
     #       self.switchToManualDrive
     #     ),
@@ -224,7 +234,7 @@ class MyRobot(commands2.TimedCommandRobot):
     #     commands2.InstantCommand(
     #       self.switchToAutoDrive
     #     ),
-    #     AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+    #     AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
     #     commands2.InstantCommand(
     #       self.switchToManualDrive
     #     ),
@@ -241,7 +251,7 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.InstantCommand(
           self.switchToAutoDrive
         ),
-        AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+        AutoAlign(self.llController, self.drivetrain, "left", self.ledController, lambda: self.stopAutoAligning),
         commands2.InstantCommand(
           self.switchToManualDrive
         )
@@ -255,7 +265,7 @@ class MyRobot(commands2.TimedCommandRobot):
         commands2.InstantCommand(
           self.switchToAutoDrive
         ),
-        AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+        AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
         commands2.InstantCommand(
           self.switchToManualDrive
         )
@@ -276,7 +286,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
@@ -306,7 +316,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
@@ -336,7 +346,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
@@ -368,7 +378,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 self.switchToAutoDrive
             ),
-            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
                 self.switchToManualDrive
             ),
@@ -690,6 +700,9 @@ class MyRobot(commands2.TimedCommandRobot):
 
     SmartDashboard.putData("Auto choices", self.autoChooser)
     SmartDashboard.updateValues()
+
+    self.stopAutoAligning = False
+
     print("robotInit()")
 
   def transformPose(self, pose: Pose2d):
@@ -776,7 +789,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 lambda: self.goToL3()
             ),
-            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
               lambda: self.drivetrain.stopMotors()
             ),
@@ -803,7 +816,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 lambda: self.goToL3()
             ),
-            AutoAlign(self.llController, self.drivetrain, "left", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "left", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
               lambda: self.drivetrain.stopMotors()
             ),
@@ -854,7 +867,7 @@ class MyRobot(commands2.TimedCommandRobot):
             commands2.InstantCommand(
                 lambda: self.goToL3()
             ),
-            AutoAlign(self.llController, self.drivetrain, "right", self.ledController),
+            AutoAlign(self.llController, self.drivetrain, "right", self.ledController, lambda: self.stopAutoAligning),
             commands2.InstantCommand(
               lambda: self.drivetrain.stopMotors()
             ),

@@ -10,7 +10,7 @@ import math
 import ntcore
 
 class AutoAlign(commands2.Command):
-  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str, ledSubsystem: LED, timeout_seconds: float = constants.visionConsts.autoAlignTimeout):
+  def __init__(self, llSubsystem: LimelightSubsystem, drivetrain: DriveTrain, alignLocation: str, ledSubsystem: LED, flag: callable, timeout_seconds: float = constants.visionConsts.autoAlignTimeout):
     super().__init__()
 
     inst = ntcore.NetworkTableInstance.getDefault()
@@ -44,6 +44,8 @@ class AutoAlign(commands2.Command):
     self.alignSide = alignLocation
 
     self.led = ledSubsystem
+
+    self.flag = flag
 
   def initialize(self):
     # check if we are aligning
@@ -89,6 +91,9 @@ class AutoAlign(commands2.Command):
     self.led.changeStates(constants.RobotStates.aligning)
 
   def execute(self):
+    if self.flag():
+      self.cancel()
+      return
     # Update the time elapsed
     elapsed_time = self.timer.get()
     self.timeElapsedPub.set(elapsed_time)
