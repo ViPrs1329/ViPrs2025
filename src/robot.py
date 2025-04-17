@@ -780,6 +780,12 @@ class MyRobot(commands2.TimedCommandRobot):
         
         # set robot to be in the center half way on the black line
         self.waypointController.setStartingPose(Pose2d(7.5, 4, Rotation2d(0)))
+
+        # wait for a few seconds to let the other 
+        # robots around us score so we don't hit them
+        self.waypointController.addCommand(
+          commands2.WaitCommand(5)
+        )
        
         # go to the reef and turn around 
         self.waypointController.addWaypoint(Pose2d(6, 4, Rotation2d(math.pi)))
