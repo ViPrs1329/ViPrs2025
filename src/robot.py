@@ -111,8 +111,8 @@ class MyRobot(commands2.TimedCommandRobot):
 
   def ejectCoral(self):
     if self.elevatorController.currentLevel != 1:
-      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed * 3)
-      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed * 3)
+      self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed * 2)
+      self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed * 2)
     else:
       self.endEffector.coral_intake_left_motor.set(constants.intakeConsts.intakeSpeed / 2)
       self.endEffector.coral_intake_right_motor.set(constants.intakeConsts.intakeSpeed / 2)
