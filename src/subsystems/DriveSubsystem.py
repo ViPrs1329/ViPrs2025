@@ -2,30 +2,134 @@
 #
 # 
 
-import wpilib
-import wpilib.drive
-import commands2
-import rev
-import math
-import constants
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.config import RobotConfig
+from pathplannerlib.controller import PPHolonomicDriveController
 
-from team254.SparkMaxFactory import SparkMaxFactory
-from team254.LazySparkMax import LazySparkMax
+from wpimath.geometry import Pose2d
+from wpimath.geometry import Rotation2d
+from wpimath.geometry import Translation2d
+from wpimath.kinematics import ChassisSpeeds
+from wpimath.kinematics import SwerveDrive4Kinematics
+from wpimath.kinematics import SwerveDrive4Odometry
+from wpimath.kinematics import SwerveModulePosition
+from wpimath.kinematics import SwerveModuleState
+from wpilib import DriverStation
+from wpilib import Field2d
+from wpilib import SmartDashboard
 
+from phoenix6.hardware import Pigeon2
 
-class DriveSubsystem(commands2.Subsystem):
-    class Cache:
-        def __init__(self):
-            pass
+from commands2 import Subsystem
+from constants import CANIDs
+from constants import Drive
+
+class SwerveModule:
+
+    def __init__(self):
+        self.currentPosition: SwerveModulePosition = SwerveModulePosition()
+        self.currentState: SwerveModuleState = SwerveModuleState()
+
+    def getPosition(self) -> SwerveModulePosition:
+        return self.currentPosition
+    
+    def getState(self) -> SwerveModuleState:
+        return self.currentState
+    
+    def setTargetState(self, targetState: SwerveModuleState) -> None:
+        # optimize the state
+        self.currentState.optimize(self.currentState.angle)
+
+        # 0.02 is 50hz = rate at which main controll loop runs
+        self.currentPosition = SwerveModulePosition(
+            self.currentPosition.distance + (self.currentState.speed * 0.02),
+            self.currentState.angle
+        )
+
+class DriveSubsystem(Subsystem):
 
     def __init__(self):
         super().__init__()
 
-        self.cache = self.Cache()
-
         # Initialize swerve modules and other things...
+        self.gyro: Pigeon2 = Pigeon2(CANIDs.pigeon)
+        self.field: Field2d = Field2d()
+        self.modules: list[SwerveModule] = [
+            SwerveModule(),
+            SwerveModule(),
+            SwerveModule(),
+            SwerveModule()
+        ]
+        self.kinematics: SwerveDrive4Kinematics = SwerveDrive4Kinematics(
+            Drive.Consts.flModuleOffset,
+            Drive.Consts.frModuleOffset,
+            Drive.Consts.blModuleOffset,
+            Drive.Consts.brModuleOffset
+        )
+        self.odometry: SwerveDrive4Odometry = SwerveDrive4Odometry(
+            self.kinematics,
+            self.gyro.getRotation2d(),
+            getPositions()
+        )
 
+        try:
+            self.config: RobotConfig = RobotConfig.fromGUISettings()
+            AutoBuilder.configure(
+                self.getPose,
+                self.resetPose,
+                self.getSpeeds,
+                self.driveRobotRelative,
+                PPHolonomicDriveController(
+                    Drive.Consts.translationConstants,
+                    Drive.Consts.rotationConstants
+                ),
+                self.config,
+                self.shouldFlipPath,
+                self
+            )
+        except Exception as inst:
+            print("Failed to load PathPlanner config and configure AutoBuilder", inst)
+        
+        SmartDashboard.putData("Field", self.field)
 
+    def periodic(self):
+        self.odometry.update(self.gyro.getRotation2d(), self.getPositions())
+        self.field.setRobotPose(self.getPose())
+
+    def getPose(self) -> Pose2d:
+        return self.odometry.getPose()
+    
+    def resetPose(self, pose: Pose2d) -> None:
+        print(pose)
+        self.odometry.resetPosition(
+            self.gyro.getRotation2d(),
+            self.getPositions(),
+            pose
+        )
+
+    def getSpeeds(self) -> ChassisSpeeds:
+        return self.kinematics.toChassisSpeeds(self.getModuleStates())
+    
+    def driveFieldRelative(self, fieldRelativeSpeeds) -> None:
+        self.driveRobotRelative(
+            ChassisSpeeds.fromFieldRelativeSpeeds(
+                fieldRelativeSpeeds,
+                self.getPose().rotation()
+            )
+        )
+
+    def driveRobotRelative(self, robotRelativeSpeeds: ChassisSpeeds) -> None:
+        targetSpeeds: ChassisSpeeds = ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02)
+        targetStates = self.kinematics.toSwerveModuleStates(targetSpeeds)
+        self.setStates(targetStates)
+
+    def shouldFlipPath(self):
+        alliance = DriverStation.getAlliance()
+        if alliance == DriverStation.Alliance.kRed:
+            return True
+        else:
+            return False
+            
     def updateHardware(self):
         # This method gets called periodically to update hardware state
         pass

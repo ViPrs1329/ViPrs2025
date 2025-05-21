@@ -1,4 +1,3 @@
-
 import commands2.button
 from commands2 import SequentialCommandGroup
 from commands2.button import CommandXboxController
@@ -35,10 +34,10 @@ class RobotContainer:
                
         pass
 
-    def updateHardware(self):
-        """Call the update methods of each subsystem."""
-        pass
-
-    def cacheSensors(self):
-        """Retrieve and cache sensor data from each subsystem."""
-        pass
+    # not needed since commands2.Subsystem automatically 
+    # calls the update function inside the subsystem 
+    # each robot iteration
+    
+    # def updateHardware(self):
+    #     """Call the update methods of each subsystem."""
+    #     pass
