@@ -4,6 +4,7 @@
 
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import RobotConfig
+from pathplannerlib.util import DriveFeedforwards
 from pathplannerlib.controller import PPHolonomicDriveController
 
 from wpimath.geometry import Pose2d
@@ -69,7 +70,7 @@ class DriveSubsystem(Subsystem):
         self.odometry: SwerveDrive4Odometry = SwerveDrive4Odometry(
             self.kinematics,
             self.gyro.getRotation2d(),
-            getPositions()
+            self.getPositions()
         )
 
         try:
@@ -118,17 +119,39 @@ class DriveSubsystem(Subsystem):
             )
         )
 
-    def driveRobotRelative(self, robotRelativeSpeeds: ChassisSpeeds) -> None:
+    def driveRobotRelative(self, robotRelativeSpeeds: ChassisSpeeds, ff: DriveFeedforwards | None = None) -> None:
         targetSpeeds: ChassisSpeeds = ChassisSpeeds.discretize(robotRelativeSpeeds, 0.02)
-        targetStates = self.kinematics.toSwerveModuleStates(targetSpeeds)
+        targetStates: tuple[SwerveModuleState, SwerveModuleState, SwerveModuleState, SwerveModuleState] = self.kinematics.toSwerveModuleStates(targetSpeeds)
         self.setStates(targetStates)
 
+    def setStates(self, targetStates: tuple[SwerveModuleState, SwerveModuleState, SwerveModuleState, SwerveModuleState]) -> None:
+        targetStates = SwerveDrive4Kinematics.desaturateWheelSpeeds(targetStates, Drive.Consts.maxModuleSpeed)
+        for i in range(len(self.modules)):
+            self.modules[i].setTargetState(targetStates[i])
+
+    def getModuleStates(self) -> tuple[SwerveModuleState, SwerveModuleState, SwerveModuleState, SwerveModuleState]:
+        states = []
+        for i in range(len(self.modules)):
+            states.append(self.modules[i].getState())
+
+        return tuple(states)
+    
+    def getPositions(self) -> tuple[SwerveModulePosition, SwerveModulePosition, SwerveModulePosition, SwerveModulePosition]:
+        positions = []
+        for i in range(len(self.modules)):
+            positions.append(self.modules[i])
+
+        return tuple(positions)
+    
     def shouldFlipPath(self):
         alliance = DriverStation.getAlliance()
         if alliance == DriverStation.Alliance.kRed:
             return True
         else:
             return False
+        
+    def updateSpeeds(self):
+        pass
             
     def updateHardware(self):
         # This method gets called periodically to update hardware state

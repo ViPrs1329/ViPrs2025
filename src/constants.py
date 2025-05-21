@@ -59,6 +59,7 @@ class Drive:
         translationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
         rotationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
 
+        maxModuleSpeed = 1
     class States:
         pass
 
