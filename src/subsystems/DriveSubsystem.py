@@ -20,17 +20,55 @@ from wpilib import Field2d
 from wpilib import SmartDashboard
 
 from phoenix6.hardware import Pigeon2
+from phoenix6.hardware import CANcoder
+
+from rev import SparkMax
+from rev import SparkBaseConfig
+from rev import SparkBase
+from rev import SparkClosedLoopController
+from rev import ClosedLoopConfig
+from rev import ClosedLoopSlot
 
 from commands2 import Subsystem
 from constants import CANIDs
 from constants import Drive
 
+from math import pi
+
 class SwerveModule:
 
-    def __init__(self):
+    def __init__(self, driveMotorID: int, rotMotorID: int, rotEncoderID: int):
         self.currentPosition: SwerveModulePosition = SwerveModulePosition()
         self.currentState: SwerveModuleState = SwerveModuleState()
 
+        # create the motors and encoder
+        self.driveMotor: SparkMax = SparkMax(driveMotorID, SparkMax.MotorType.kBrushless)
+        self.rotMotor: SparkMax = SparkMax(rotMotorID, SparkMax.MotorType.kBrushless)
+        self.encoder: CANcoder = CANcoder(rotEncoderID)
+
+        # configure the motors
+        driveConfig: SparkBaseConfig = SparkBaseConfig()
+        driveConfig.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+        driveConfig.smartCurrentLimit(Drive.Consts.driveCurrentLimit)
+        driveConfig.openLoopRampRate(Drive.Consts.rampRate)
+        self.driveMotor.configure(driveConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
+
+        self.slot: ClosedLoopSlot = ClosedLoopSlot(0)
+        self.rotController: SparkClosedLoopController = self.rotMotor.getClosedLoopController()
+        self.rotController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
+        
+        rotConfig: SparkBaseConfig = SparkBaseConfig()
+        rotConfig.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
+        rotConfig.smartCurrentLimit(Drive.Consts.rotCurrentLimit)
+
+        rotConfig.closedLoop.pid(Drive.Consts.rotP, Drive.Consts.rotI, Drive.Consts.rotD, self.slot)
+        rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAlternateOrExternalEncoder)
+        rotConfig.closedLoop.positionWrappingEnabled(True)
+        rotConfig.closedLoop.positionWrappingInputRange(-pi, pi)
+        # this line doesn't work: 
+        # rotConfig.closedLoop.source(self.encoder)
+        self.rotMotor.configure(rotConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
+    
     def getPosition(self) -> SwerveModulePosition:
         return self.currentPosition
     
@@ -39,13 +77,18 @@ class SwerveModule:
     
     def setTargetState(self, targetState: SwerveModuleState) -> None:
         # optimize the state
-        self.currentState.optimize(self.currentState.angle)
+        targetState.optimize(self.currentState.angle)
+        self.currentState = targetState
 
         # 0.02 is 50hz = rate at which main controll loop runs
         self.currentPosition = SwerveModulePosition(
             self.currentPosition.distance + (self.currentState.speed * 0.02),
             self.currentState.angle
         )
+    
+    def update(self):
+        self.rotController.setReference(self.currentState.angle.radians(), SparkBase.ControlType.kPosition, self.slot)
+        self.driveMotor.set(self.currentState.speed)
 
 class DriveSubsystem(Subsystem):
 
@@ -53,13 +96,16 @@ class DriveSubsystem(Subsystem):
         super().__init__()
 
         # Initialize swerve modules and other things...
+
+        motors = []
+
         self.gyro: Pigeon2 = Pigeon2(CANIDs.pigeon)
         self.field: Field2d = Field2d()
         self.modules: list[SwerveModule] = [
-            SwerveModule(),
-            SwerveModule(),
-            SwerveModule(),
-            SwerveModule()
+            SwerveModule(CANIDs.flDrive, CANIDs.flRotation, CANIDs.flEncoder),
+            SwerveModule(CANIDs.frDrive, CANIDs.frRotation, CANIDs.frEncoder),
+            SwerveModule(CANIDs.blDrive, CANIDs.blRotation, CANIDs.blEncoder),
+            SwerveModule(CANIDs.brDrive, CANIDs.brRotation, CANIDs.brEncoder)
         ]
         self.kinematics: SwerveDrive4Kinematics = SwerveDrive4Kinematics(
             Drive.Consts.flModuleOffset,
@@ -94,6 +140,7 @@ class DriveSubsystem(Subsystem):
         SmartDashboard.putData("Field", self.field)
 
     def periodic(self):
+        self.updateSpeeds()
         self.odometry.update(self.gyro.getRotation2d(), self.getPositions())
         self.field.setRobotPose(self.getPose())
 
@@ -143,15 +190,17 @@ class DriveSubsystem(Subsystem):
 
         return tuple(positions)
     
-    def shouldFlipPath(self):
+    def shouldFlipPath(self) -> bool:
         alliance = DriverStation.getAlliance()
         if alliance == DriverStation.Alliance.kRed:
             return True
         else:
             return False
         
-    def updateSpeeds(self):
-        pass
+    # method that sets the speeds for the motors
+    def updateSpeeds(self) -> None:
+        for module in self.modules:
+            module.update()
             
     def updateHardware(self):
         # This method gets called periodically to update hardware state

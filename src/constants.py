@@ -16,27 +16,23 @@ from pathplannerlib.config import PIDConstants
     
 
 class CANIDs:
-    # Swerve CAD IDs
+    # Swerve CAN IDs
 
-    # this naming sucks
-    # SwerveModule_Drive1 = 1
-    # SwerveModule_Rotation1 = 2
-    # SwerveModule_Drive2 = 3
-    # SwerveModule_Rotation2 = 4
-    # SwerveModule_Drive3 = 5
-    # SwerveModule_Rotation3 = 6
-    # SwerveModule_Drive4 = 7
-    # SwerveModule_Rotation4 = 8
-
-    # this is much better
     flDrive: int = 1
     flRotation: int = 2
-    frDrive: int = 3
-    frRotation: int = 4
-    blDrive: int = 5
-    blRotation: int = 6
-    brDrive: int = 7
-    brRotation: int = 8
+    flEncoder: int = 3
+
+    frDrive: int = 4
+    frRotation: int = 5
+    frEncoder: int = 6
+
+    blDrive: int = 7
+    blRotation: int = 8
+    blEncoder: int = 9
+
+    brDrive: int = 10
+    brRotation: int = 11
+    brEncoder: int = 12
 
     pigeon: int = 100
 
@@ -44,7 +40,6 @@ class Input:
     class Consts:
         inputScale: float = 0.8
         inputDeadZone: float = 0.1
-        rampRate: float = 0.5
 
     class States:
         pass
@@ -59,7 +54,16 @@ class Drive:
         translationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
         rotationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
 
-        maxModuleSpeed = 1
+        maxModuleSpeed: float = 1
+
+        driveCurrentLimit: int = 30
+        rotCurrentLimit: int = 30
+
+        rampRate: float = 0.5
+
+        rotP: int = 1
+        rotI: int = 0
+        rotD: int = 0
     class States:
         pass
 
