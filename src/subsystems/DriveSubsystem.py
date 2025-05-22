@@ -37,7 +37,7 @@ from math import pi
 
 class SwerveModule:
 
-    def __init__(self, driveMotorID: int, rotMotorID: int, rotEncoderID: int):
+    def __init__(self, driveMotorID: int, rotMotorID: int, rotEncoderID: int) -> None:
         self.currentPosition: SwerveModulePosition = SwerveModulePosition()
         self.currentState: SwerveModuleState = SwerveModuleState()
 
@@ -96,8 +96,6 @@ class DriveSubsystem(Subsystem):
         super().__init__()
 
         # Initialize swerve modules and other things...
-
-        motors = []
 
         self.gyro: Pigeon2 = Pigeon2(CANIDs.pigeon)
         self.field: Field2d = Field2d()

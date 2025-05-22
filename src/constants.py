@@ -36,6 +36,11 @@ class CANIDs:
 
     pigeon: int = 100
 
+    # Elevator CAN IDs
+
+    leftElevatorMotor: int = 200
+    rightElevatorMotor: int = 201
+
 class Input:
     class Consts:
         inputScale: float = 0.8
@@ -75,9 +80,44 @@ class Intake:
 
 class Elevator:
     class Consts:
-        pass
+        currentLimit: int = 30
+
+        p: int = 1
+        i: int = 0
+        d: int = 0
+        ff: int = 0
+
+        # these are in revs not meters
+        groundIntakeAlgae: float = 0
+        l2IntakeAlgae: float = 1
+        l3IntakeAlgae: float = 2
+
+        groundIntakeCoral: float = 3
+        feederIntakeCoral: float = 4
+
+        scoreAlgaeNet: float = 5
+        scoreAlgaeProcessor: float = 6
+
+        scoreCoralL1: float = 7
+        scoreCoralL2: float = 8
+        scoreCoralL3: float = 9
+        scoreCoralL4: float = 10
+
     class States:
-        pass
+        groundIntakeAlgae: int = 0
+        l2IntakeAlgae: int = 1
+        l3IntakeAlgae: int = 2
+
+        groundIntakeCoral: int = 3
+        feederIntakeCoral: int = 4
+
+        scoreAlgaeNet: int = 5
+        scoreAlgaeProcessor: int = 6
+
+        scoreCoralL1: int = 7
+        scoreCoralL2: int = 8
+        scoreCoralL3: int = 9
+        scoreCoralL4: int = 10
 
 class Arm:
     class Consts:
