@@ -103,6 +103,11 @@ class Elevator:
         scoreCoralL3: float = 9
         scoreCoralL4: float = 10
 
+        default: int = 11
+
+        # tollerance for the elevator
+        tollerance: float = 0.1
+
     class States:
         groundIntakeAlgae: int = 0
         l2IntakeAlgae: int = 1
@@ -118,6 +123,8 @@ class Elevator:
         scoreCoralL2: int = 8
         scoreCoralL3: int = 9
         scoreCoralL4: int = 10
+
+        default: int = 11
 
 class Arm:
     class Consts:
