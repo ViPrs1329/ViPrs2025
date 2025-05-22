@@ -62,7 +62,7 @@ class SwerveModule:
         rotConfig.smartCurrentLimit(Drive.Consts.rotCurrentLimit)
 
         rotConfig.closedLoop.pid(Drive.Consts.rotP, Drive.Consts.rotI, Drive.Consts.rotD, self.slot)
-        rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kAlternateOrExternalEncoder)
+        rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         rotConfig.closedLoop.positionWrappingEnabled(True)
         rotConfig.closedLoop.positionWrappingInputRange(-pi, pi)
         # this line doesn't work: 
@@ -89,6 +89,12 @@ class SwerveModule:
     def update(self):
         self.rotController.setReference(self.currentState.angle.radians(), SparkBase.ControlType.kPosition, self.slot)
         self.driveMotor.set(self.currentState.speed)
+
+        if abs(self.rotMotor.getEncoder().getVelocity()) < 0.1:
+            self.rotMotor.getEncoder().setPosition(self.encoder.get_position().value_as_double)
+
+        elif abs(self.rotMotor.getEncoder().getPosition() - self.encoder.get_position().value_as_double) > 0.1:
+            self.rotMotor.getEncoder().setPosition(self.encoder.get_position().value_as_double)
 
 class DriveSubsystem(Subsystem):
 
