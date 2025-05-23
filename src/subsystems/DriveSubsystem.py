@@ -65,8 +65,6 @@ class SwerveModule:
         rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         rotConfig.closedLoop.positionWrappingEnabled(True)
         rotConfig.closedLoop.positionWrappingInputRange(-pi, pi)
-        # this line doesn't work: 
-        # rotConfig.closedLoop.source(self.encoder)
         self.rotMotor.configure(rotConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
     
     def getPosition(self) -> SwerveModulePosition:

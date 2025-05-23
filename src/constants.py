@@ -41,6 +41,15 @@ class CANIDs:
     leftElevatorMotor: int = 200
     rightElevatorMotor: int = 201
 
+    # Arm CAN IDs
+
+    leftArmMotor: int = 300
+    rightArmMotor: int = 301
+
+    # Intake CAN IDs
+
+    intakeMotor: int = 400
+
 class Input:
     class Consts:
         inputScale: float = 0.8
@@ -128,9 +137,51 @@ class Elevator:
 
 class Arm:
     class Consts:
-        pass
+        armCurrentLimit: int = 30
+        armP: int = 1
+        armI: int = 0
+        armD: int = 0
+        armFF: int = 0
+
+        intakeCurrentLimit: int = 30
+
+        intakeSpeed = 0.5
+
+        # these are in revs not meters
+        groundIntakeAlgae: int = 0
+        l2IntakeAlgae: int = 1
+        l3IntakeAlgae: int = 2
+
+        groundIntakeCoral: int = 3
+        feederIntakeCoral: int = 4
+
+        scoreAlgaeNet: int = 5
+        scoreAlgaeProcessor: int = 6
+
+        scoreCoralL1: int = 7
+        scoreCoralL2: int = 8
+        scoreCoralL3: int = 9
+        scoreCoralL4: int = 10
+
+        default: int = 11
+
     class States:
-        pass
+        groundIntakeAlgae: int = 0
+        l2IntakeAlgae: int = 1
+        l3IntakeAlgae: int = 2
+
+        groundIntakeCoral: int = 3
+        feederIntakeCoral: int = 4
+
+        scoreAlgaeNet: int = 5
+        scoreAlgaeProcessor: int = 6
+
+        scoreCoralL1: int = 7
+        scoreCoralL2: int = 8
+        scoreCoralL3: int = 9
+        scoreCoralL4: int = 10
+
+        default: int = 11
 
 class Sensor:
     class Consts:

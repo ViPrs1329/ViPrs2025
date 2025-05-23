@@ -30,9 +30,6 @@ class ElevatorSubsystem(Subsystem):
         # configure controllers
         self.leftController: SparkClosedLoopController = self.left.getClosedLoopController()
         self.rightController: SparkClosedLoopController = self.right.getClosedLoopController()
-        
-        self.leftController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
-        self.rightController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
 
         # configure motors
         leftConfig: SparkBaseConfig = SparkBaseConfig()
@@ -59,6 +56,10 @@ class ElevatorSubsystem(Subsystem):
         # initialise other variables
         self.targetRevs: float = Elevator.Consts.default
 
+    def initialize(self) -> None:
+        self.leftController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
+        self.rightController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
+
     def periodic(self) -> None:
         pass
 
@@ -80,45 +81,27 @@ class ElevatorSubsystem(Subsystem):
         match state:
             case Elevator.States.groundIntakeAlgae:
                 self.targetRevs = Elevator.Consts.groundIntakeAlgae
-                self.leftController.setReference(Elevator.Consts.groundIntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.groundIntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.l2IntakeAlgae:
                 self.targetRevs = Elevator.Consts.l2IntakeAlgae
-                self.leftController.setReference(Elevator.Consts.l2IntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.l2IntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.l3IntakeAlgae:
                 self.targetRevs = Elevator.Consts.l3IntakeAlgae
-                self.leftController.setReference(Elevator.Consts.l3IntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.l3IntakeAlgae, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.groundIntakeCoral:
                 self.targetRevs = Elevator.Consts.groundIntakeCoral
-                self.leftController.setReference(Elevator.Consts.groundIntakeCoral, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.groundIntakeCoral, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.feederIntakeCoral:
                 self.targetRevs = Elevator.Consts.feederIntakeCoral
-                self.leftController.setReference(Elevator.Consts.feederIntakeCoral, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.feederIntakeCoral, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreAlgaeNet:
                 self.targetRevs = Elevator.Consts.scoreAlgaeNet
-                self.leftController.setReference(Elevator.Consts.scoreAlgaeNet, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreAlgaeNet, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreAlgaeProcessor:
                 self.targetRevs = Elevator.Consts.scoreAlgaeProcessor
-                self.leftController.setReference(Elevator.Consts.scoreAlgaeProcessor, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreAlgaeProcessor, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreCoralL1:
                 self.targetRevs = Elevator.Consts.scoreCoralL1
-                self.leftController.setReference(Elevator.Consts.scoreCoralL1, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreCoralL1, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreCoralL2:
                 self.targetRevs = Elevator.Consts.scoreCoralL2
-                self.leftController.setReference(Elevator.Consts.scoreCoralL2, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreCoralL2, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreCoralL3:
                 self.targetRevs = Elevator.Consts.scoreCoralL3
-                self.leftController.setReference(Elevator.Consts.scoreCoralL3, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreCoralL3, SparkBase.ControlType.kPosition, self.slot)
             case Elevator.States.scoreCoralL4:
                 self.targetRevs = Elevator.Consts.scoreCoralL4
-                self.leftController.setReference(Elevator.Consts.scoreCoralL4, SparkBase.ControlType.kPosition, self.slot)
-                self.rightController.setReference(Elevator.Consts.scoreCoralL4, SparkBase.ControlType.kPosition, self.slot)
+            case Elevator.States.default:
+                self.targetRevs = Elevator.Consts.default
+        self.leftController.setReference(Elevator.Consts.default, SparkBase.ControlType.kPosition, self.slot)
+        self.rightController.setReference(Elevator.Consts.default, SparkBase.ControlType.kPosition, self.slot)
