@@ -193,3 +193,10 @@ class Sensor:
 
     class States:
         pass
+
+class Limelight:
+    class Consts:
+        tableNames: list[str] = ["limelight-lside", "limelight-rside"]
+        
+    class States:
+        pass

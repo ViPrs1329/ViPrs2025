@@ -30,6 +30,7 @@ from commands2.button import Trigger
 from subsystems.DriveSubsystem import DriveSubsystem
 from subsystems.ElevatorSubsystem import ElevatorSubsystem
 from subsystems.IntakeSubsystem import IntakeSubsystem
+from subsystems.LimelightSubsystem import LimelightSubsystem
 
 from constants import Drive
 
@@ -54,9 +55,17 @@ class RobotContainer:
     def initSubsystems(self):
         """Instantiate the robot's subsystems."""
         
+        # create subsystems
         self.drivetrain: DriveSubsystem = DriveSubsystem()
         self.elevator: ElevatorSubsystem = ElevatorSubsystem()
         self.intake: IntakeSubsystem = IntakeSubsystem()
+        self.limelight: LimelightSubsystem = LimelightSubsystem()
+
+        # register subsystems with the command scheduler
+        commands2.CommandScheduler.getInstance().registerSubsystem(self.drivetrain)
+        commands2.CommandScheduler.getInstance().registerSubsystem(self.elevator)
+        commands2.CommandScheduler.getInstance().registerSubsystem(self.intake)
+        commands2.CommandScheduler.getInstance().registerSubsystem(self.limelight)
 
     def initControls(self):
         """Instantiate the robot's control objects"""
