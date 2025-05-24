@@ -79,7 +79,7 @@ class SwerveModule:
         targetState.optimize(self.currentState.angle)
         self.currentState = targetState
 
-        # 0.02 is 50hz = rate at which main controll loop runs
+        # 0.02 is 50hz = rate at which main control loop runs
         self.currentPosition = SwerveModulePosition(
             self.currentPosition.distance + (self.currentState.speed * 0.02),
             self.currentState.angle
