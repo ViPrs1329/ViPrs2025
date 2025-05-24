@@ -78,6 +78,10 @@ class Drive:
         rotI: int = 0
         rotD: int = 0
 
+        driveP: int = 1
+        driveI: int = 0
+        driveD: int = 0
+
         maxSpeed = 0.5
         maxAngularSpeed = 0.5
         inputDeadzone = 0.1
@@ -197,6 +201,6 @@ class Sensor:
 class Limelight:
     class Consts:
         tableNames: list[str] = ["limelight-lside", "limelight-rside"]
-        
+
     class States:
         pass

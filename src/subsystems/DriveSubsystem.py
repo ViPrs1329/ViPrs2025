@@ -48,13 +48,21 @@ class SwerveModule:
         self.encoder: CANcoder = CANcoder(rotEncoderID)
 
         # configure the motors
+        self.slot: ClosedLoopSlot = ClosedLoopSlot(0)
+
+        self.driveController: SparkClosedLoopController = self.driveMotor.getClosedLoopController()
+        self.driveController.setReference(0, SparkBase.ControlType.kVelocity, self.slot)
+
         driveConfig: SparkBaseConfig = SparkBaseConfig()
         driveConfig.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
         driveConfig.smartCurrentLimit(Drive.Consts.driveCurrentLimit)
-        driveConfig.openLoopRampRate(Drive.Consts.rampRate)
+        driveConfig.closedLoopRampRate(Drive.Consts.rampRate)
+
+        driveConfig.closedLoop.pid(Drive.Consts.driveP, Drive.Consts.driveI, Drive.Consts.driveD, self.slot)
+        driveConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+        driveConfig.closedLoop.positionWrappingEnabled(False)
         self.driveMotor.configure(driveConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
 
-        self.slot: ClosedLoopSlot = ClosedLoopSlot(0)
         self.rotController: SparkClosedLoopController = self.rotMotor.getClosedLoopController()
         self.rotController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
         
@@ -86,9 +94,11 @@ class SwerveModule:
         )
     
     def update(self):
+        # update the motor speeds
         self.rotController.setReference(self.currentState.angle.radians(), SparkBase.ControlType.kPosition, self.slot)
-        self.driveMotor.set(self.currentState.speed)
+        self.driveController.setReference(self.currentState.speed, SparkBase.ControlType.kVelocity, self.slot)
 
+        # update the encoder position
         if abs(self.rotMotor.getEncoder().getVelocity()) < 0.1:
             self.rotMotor.getEncoder().setPosition(self.encoder.get_position().value_as_double)
 
