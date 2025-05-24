@@ -32,6 +32,7 @@ from rev import ClosedLoopSlot
 from commands2 import Subsystem
 from constants import CANIDs
 from constants import Drive
+from constants import Input
 
 from math import pi
 
@@ -120,7 +121,9 @@ class DriveSubsystem(Subsystem):
             self.gyro.getRotation2d(),
             self.getPositions()
         )
+        self.configureAutoBuilder()
 
+    def configureAutoBuilder(self) -> None:
         try:
             self.config: RobotConfig = RobotConfig.fromGUISettings()
             AutoBuilder.configure(
@@ -157,6 +160,9 @@ class DriveSubsystem(Subsystem):
             pose
         )
 
+    def rezeroGyro(self) -> None:
+        self.gyro.set_yaw(0)
+
     def getSpeeds(self) -> ChassisSpeeds:
         return self.kinematics.toChassisSpeeds(self.getModuleStates())
     
@@ -166,6 +172,32 @@ class DriveSubsystem(Subsystem):
                 fieldRelativeSpeeds,
                 self.getPose().rotation()
             )
+        )
+
+    def scalingFunction(self, x: float) -> float:
+        # Applies a scaling function to the input
+        # to make it more sensitive at low speeds
+        # and less sensitive at high speeds
+        if abs(x) < Drive.Consts.inputDeadzone:
+            return 0
+        else:
+            if x > 0:
+                return x * x
+            else:
+                return -x * x
+
+    def controllerDrive(self, vx, vy, omega) -> None:
+        self.driveFieldRelative(
+            ChassisSpeeds(
+                vx * Drive.Consts.maxSpeed,
+                vy * Drive.Consts.maxSpeed,
+                omega * Drive.Consts.maxAngularSpeed
+            )
+        )
+
+    def stopDrive(self) -> None:
+        self.driveRobotRelative(
+            ChassisSpeeds(0, 0, 0)
         )
 
     def driveRobotRelative(self, robotRelativeSpeeds: ChassisSpeeds, ff: DriveFeedforwards | None = None) -> None:

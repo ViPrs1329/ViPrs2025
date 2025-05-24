@@ -52,8 +52,7 @@ class CANIDs:
 
 class Input:
     class Consts:
-        inputScale: float = 0.8
-        inputDeadZone: float = 0.1
+        pass
 
     class States:
         pass
@@ -78,6 +77,11 @@ class Drive:
         rotP: int = 1
         rotI: int = 0
         rotD: int = 0
+
+        maxSpeed = 0.5
+        maxAngularSpeed = 0.5
+        inputDeadzone = 0.1
+
     class States:
         pass
 

@@ -11,29 +11,34 @@ import commands2
 from robotContainer import RobotContainer
 
 class MyRobot(commands2.TimedCommandRobot):
-    autonomousCommand = None
+
     def robotInit(self):
         """
         This function is called upon program startup and
         should be used for any initialization code.
         """
-        print("robotInit()")
+
+        self.robotContainer: RobotContainer = RobotContainer()
+        self.autonomousCommand: commands2.Command | None = None
 
     def robotPeriodic(self):
-        print("robotPeriodic()")
+        commands2.CommandScheduler.getInstance().run()
         
-    
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
-        print("autonomousInit()")
-        
-        pass
+        self.autonomousCommand = self.robotContainer.getAutonomousCommand()
+        if self.autonomousCommand is not None:
+            self.autonomousCommand.schedule()
 
     def autonomousPeriodic(self):
         """This function is called periodically during autonomous."""
-        print("autonomousPeriodic()")
-
         pass
+
+    def autonomousExit(self) -> None:
+        if self.autonomousCommand is not None:
+            self.autonomousCommand.cancel()
+
+        self.autonomousCommand = None
 
     def disabledInit(self):
         """This function is called initially when disabledd"""
@@ -44,14 +49,16 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def teleopInit(self): 
         """This function is called once each time the robot enters teleoperated mode."""
-        print("teleopInit()")
+        if self.autonomousCommand is not None:
+            self.autonomousCommand.cancel()
+            
+        self.autonomousCommand = None
         
         
     def teleopPeriodic(self):
         """This function is called periodically during teleoperated mode."""
-        print("teleopPeriodic()")
+        pass
         
-
     def testInit(self): 
         """This function is called once each time the robot enters test mode."""
         print("testInit()")
