@@ -89,14 +89,14 @@ class SwerveModule:
 
         # 0.02 is 50hz = rate at which main control loop runs
         self.currentPosition = SwerveModulePosition(
-            self.currentPosition.distance + (self.currentState.speed * 0.02),
+            self.currentPosition.distance / Drive.Consts.driveGearRatio + (self.currentState.speed * 0.02),
             self.currentState.angle
         )
     
     def update(self):
         # update the motor speeds
         self.rotController.setReference(self.currentState.angle.radians(), SparkBase.ControlType.kPosition, self.slot)
-        self.driveController.setReference(self.currentState.speed, SparkBase.ControlType.kVelocity, self.slot)
+        self.driveController.setReference(self.currentState.speed * Drive.Consts.driveGearRatio, SparkBase.ControlType.kVelocity, self.slot)
 
         # update the encoder position
         if abs(self.rotMotor.getEncoder().getVelocity()) < 0.1:
@@ -199,8 +199,8 @@ class DriveSubsystem(Subsystem):
     def controllerDrive(self, vx, vy, omega) -> None:
         self.driveFieldRelative(
             ChassisSpeeds(
-                vx * Drive.Consts.maxSpeed,
-                vy * Drive.Consts.maxSpeed,
+                self.scalingFunction(vx) * Drive.Consts.maxSpeed,
+                self.scalingFunction(vy) * Drive.Consts.maxSpeed,
                 omega * Drive.Consts.maxAngularSpeed
             )
         )

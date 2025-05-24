@@ -72,6 +72,8 @@ class Drive:
         driveCurrentLimit: int = 30
         rotCurrentLimit: int = 30
 
+        driveGearRatio: float = 6.75
+
         rampRate: float = 0.5
 
         rotP: int = 1
