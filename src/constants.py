@@ -51,6 +51,7 @@ class CANIDs:
     intakeMotor: int = 400
 
 class Input:
+
     class Consts:
         pass
 
@@ -58,7 +59,9 @@ class Input:
         pass
 
 class Drive:
+
     class Consts:
+        
         flModuleOffset: Translation2d = Translation2d()
         frModuleOffset: Translation2d = Translation2d()
         blModuleOffset: Translation2d = Translation2d()
@@ -95,11 +98,14 @@ class Drive:
         scoringDriveSpeed: float = 0.2
 
     class States:
+
         autonomous: int = 0
         teleop: int = 1
 
 class Elevator:
+
     class Consts:
+
         currentLimit: int = 30
 
         p: int = 1
@@ -137,6 +143,7 @@ class Elevator:
         algaeScoringTime: float = Drive.Consts.algaeScoringTime
 
     class States:
+
         groundIntakeAlgae: int = 0
         l2IntakeAlgae: int = 1
         l3IntakeAlgae: int = 2
@@ -160,7 +167,9 @@ class Elevator:
         scoringCoralL4: int = 15
 
 class Intake:
+
     class Consts:
+
         armCurrentLimit: int = 30
         armP: int = 1
         armI: int = 0
@@ -198,6 +207,7 @@ class Intake:
         algaeScoringTime: float = Elevator.Consts.algaeScoringTime
 
     class States:
+
         groundIntakeAlgae: int = 0
         l2IntakeAlgae: int = 1
         l3IntakeAlgae: int = 2
@@ -221,6 +231,7 @@ class Intake:
         scoringCoralL4: int = 15
 
 class Sensor:
+
     class Consts:
         pass
 
@@ -228,6 +239,7 @@ class Sensor:
         pass
 
 class Limelight:
+
     class Consts:
         tableNames: list[str] = ["limelight-lside", "limelight-rside"]
 
