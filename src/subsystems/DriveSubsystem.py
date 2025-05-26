@@ -29,6 +29,11 @@ from rev import SparkClosedLoopController
 from rev import ClosedLoopConfig
 from rev import ClosedLoopSlot
 
+from commands2 import InstantCommand
+from commands2 import ParallelCommandGroup
+from commands2 import SequentialCommandGroup
+from commands2 import WaitCommand
+
 from commands2 import Subsystem
 from constants import CANIDs
 from constants import Drive
@@ -134,6 +139,82 @@ class DriveSubsystem(Subsystem):
         )
         self.configureAutoBuilder()
 
+        self.driveState = Drive.States.autonomous
+
+        self.scoreCoralCommand = InstantCommand(
+            lambda: self.startScoringCoral(),
+            self
+        ).andThen(
+            WaitCommand(Drive.Consts.coralScoringTime)
+        ).andThen(
+            InstantCommand(
+                lambda: self.stopScoringCoral(),  # Stop driving after scoring
+                self
+            )
+        )
+
+        self.scoreAlgaeCommand = InstantCommand(
+            lambda: self.startScoringAlgae(),
+            self
+        ).andThen(
+            WaitCommand(Drive.Consts.algaeScoringTime)
+        ).andThen(
+            InstantCommand(
+                lambda: self.stopScoringAlgae(),  # Stop driving after scoring
+                self
+            )
+        )
+
+    def startScoringCoral(self) -> None:
+        """
+        Start scoring coral.
+        """
+        self.switchToAutonomous()
+        self.driveRobotRelative(
+            ChassisSpeeds(-Drive.Consts.scoringDriveSpeed, 0, 0)  # Automatically drive backwards to score coral
+        )
+    
+    def stopScoringCoral(self) -> None:
+        """
+        Stop scoring coral.
+        """
+        self.driveRobotRelative(
+            ChassisSpeeds(0, 0, 0)  # Stop driving after scoring
+        )
+        self.switchToTeleop()  # Switch back to teleop mode
+
+    def startScoringAlgae(self) -> None:
+        """
+        Start scoring algae.
+        """
+        self.switchToAutonomous()
+        self.driveRobotRelative(
+            ChassisSpeeds(-Drive.Consts.scoringDriveSpeed, 0, 0)  # Automatically drive forwards to score algae
+        )
+
+    def stopScoringAlgae(self) -> None:
+        """
+        Stop scoring algae.
+        """
+        self.driveRobotRelative(
+            ChassisSpeeds(0, 0, 0)  # Stop driving after scoring
+        )
+        self.switchToTeleop()
+
+    def switchToTeleop(self) -> None:
+        """
+        Switch the drive state to teleop.
+        This is called when the robot is in teleop mode.
+        """
+        self.driveState = Drive.States.teleop
+
+    def switchToAutonomous(self) -> None:
+        """
+        Switch the drive state to autonomous.
+        This is called when the robot is in autonomous mode.
+        """
+        self.driveState = Drive.States.autonomous
+
     def configureAutoBuilder(self) -> None:
         try:
             self.config: RobotConfig = RobotConfig.fromGUISettings()
@@ -198,13 +279,14 @@ class DriveSubsystem(Subsystem):
                 return -x * x
 
     def controllerDrive(self, vx, vy, omega) -> None:
-        self.driveFieldRelative(
-            ChassisSpeeds(
-                self.scalingFunction(vx) * Drive.Consts.maxSpeed,
-                self.scalingFunction(vy) * Drive.Consts.maxSpeed,
-                omega * Drive.Consts.maxAngularSpeed
+        if self.driveState == Drive.States.teleop:
+            self.driveFieldRelative(
+                ChassisSpeeds(
+                    self.scalingFunction(vx) * Drive.Consts.maxSpeed,
+                    self.scalingFunction(vy) * Drive.Consts.maxSpeed,
+                    omega * Drive.Consts.maxAngularSpeed
+                )
             )
-        )
 
     def stopDrive(self) -> None:
         self.driveRobotRelative(

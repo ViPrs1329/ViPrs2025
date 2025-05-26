@@ -32,6 +32,8 @@ from subsystems.ElevatorSubsystem import ElevatorSubsystem
 from subsystems.IntakeSubsystem import IntakeSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
 
+from controlsSubsystemWrapper import SubsystemWrapper
+
 from constants import Drive
 
 class RobotContainer:
@@ -60,6 +62,14 @@ class RobotContainer:
         self.elevator: ElevatorSubsystem = ElevatorSubsystem()
         self.intake: IntakeSubsystem = IntakeSubsystem()
         self.limelight: LimelightSubsystem = LimelightSubsystem()
+
+        # create a wrapper for the subsystems
+        self.subsystemWrapper: SubsystemWrapper = SubsystemWrapper(
+            self.elevator, 
+            self.intake, 
+            self.drivetrain, 
+            self.limelight
+        )
 
         # register subsystems with the command scheduler
         commands2.CommandScheduler.getInstance().registerSubsystem(self.drivetrain)

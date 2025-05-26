@@ -89,14 +89,14 @@ class Drive:
         maxAngularSpeed = 0.5
         inputDeadzone = 0.1
 
-    class States:
-        pass
+        coralScoringTime: float = 0.5
+        algaeScoringTime: float = 0.5
 
-class Intake:
-    class Consts:
-        pass
+        scoringDriveSpeed: float = 0.2
+
     class States:
-        pass
+        autonomous: int = 0
+        teleop: int = 1
 
 class Elevator:
     class Consts:
@@ -125,8 +125,16 @@ class Elevator:
 
         default: int = 11
 
+        scoringCoralL1: int = 12
+        scoringCoralL2: int = 13
+        scoringCoralL3: int = 14
+        scoringCoralL4: int = 15
+
         # tollerance for the elevator
         tollerance: float = 0.1
+
+        coralScoringTime: float = Drive.Consts.coralScoringTime
+        algaeScoringTime: float = Drive.Consts.algaeScoringTime
 
     class States:
         groundIntakeAlgae: int = 0
@@ -146,7 +154,12 @@ class Elevator:
 
         default: int = 11
 
-class Arm:
+        scoringCoralL1: int = 12
+        scoringCoralL2: int = 13
+        scoringCoralL3: int = 14
+        scoringCoralL4: int = 15
+
+class Intake:
     class Consts:
         armCurrentLimit: int = 30
         armP: int = 1
@@ -176,6 +189,14 @@ class Arm:
 
         default: int = 11
 
+        scoringCoralL1: int = 12
+        scoringCoralL2: int = 13
+        scoringCoralL3: int = 14
+        scoringCoralL4: int = 15
+
+        coralScoringTime: float = Elevator.Consts.coralScoringTime
+        algaeScoringTime: float = Elevator.Consts.algaeScoringTime
+
     class States:
         groundIntakeAlgae: int = 0
         l2IntakeAlgae: int = 1
@@ -193,6 +214,11 @@ class Arm:
         scoreCoralL4: int = 10
 
         default: int = 11
+
+        scoringCoralL1: int = 12
+        scoringCoralL2: int = 13
+        scoringCoralL3: int = 14
+        scoringCoralL4: int = 15
 
 class Sensor:
     class Consts:

@@ -11,6 +11,10 @@ from rev import ClosedLoopSlot
 from rev import SparkRelativeEncoder
 
 from commands2 import Subsystem
+from commands2 import InstantCommand
+from commands2 import ParallelCommandGroup
+from commands2 import SequentialCommandGroup
+from commands2 import WaitCommand
 from constants import CANIDs
 from constants import Elevator
 
@@ -55,6 +59,40 @@ class ElevatorSubsystem(Subsystem):
 
         # initialise other variables
         self.targetRevs: float = Elevator.Consts.default
+        self.targetState: int = Elevator.States.default
+
+        self.scoreCoralCommand: SequentialCommandGroup = InstantCommand(
+            lambda: self.startScoringCoral(),
+            self
+        ).andThen(
+            WaitCommand(Elevator.Consts.coralScoringTime)
+        ).andThen(
+            InstantCommand(
+                lambda: self.stopScoringCoral(),
+                self
+            )
+        )
+
+        self.scoreAlgaeCommand: SequentialCommandGroup = WaitCommand(Elevator.Consts.algaeScoringTime).andThen(
+            InstantCommand(
+                lambda: self.moveTo(Elevator.States.default),
+                self
+            )
+        )
+
+    def startScoringCoral(self) -> None:
+        match self.targetState:
+            case Elevator.States.scoreCoralL1:
+                self.moveTo(Elevator.States.scoringCoralL1)
+            case Elevator.States.scoreCoralL2:
+                self.moveTo(Elevator.States.scoringCoralL2)
+            case Elevator.States.scoreCoralL3:
+                self.moveTo(Elevator.States.scoringCoralL3)
+            case Elevator.States.scoreCoralL4:
+                self.moveTo(Elevator.States.scoringCoralL4)
+
+    def stopScoringCoral(self) -> None:
+        self.moveTo(Elevator.States.default)
 
     def initialize(self) -> None:
         self.leftController.setReference(0, SparkBase.ControlType.kPosition, self.slot)
@@ -77,7 +115,9 @@ class ElevatorSubsystem(Subsystem):
         else:
             return False
         
-    def moveTo(self, state: Elevator.States) -> None:
+    def moveTo(self, state: int) -> None:
+        self.targetState = state
+        # set the target revolutions based on the state
         match state:
             case Elevator.States.groundIntakeAlgae:
                 self.targetRevs = Elevator.Consts.groundIntakeAlgae

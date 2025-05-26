@@ -26,6 +26,8 @@ class MyRobot(commands2.TimedCommandRobot):
         
     def autonomousInit(self):
         """This function is run once each time the robot enters autonomous mode."""
+
+        self.robotContainer.drivetrain.switchToAutonomous()
         self.autonomousCommand = self.robotContainer.getAutonomousCommand()
         if self.autonomousCommand is not None:
             self.autonomousCommand.schedule()
@@ -53,6 +55,8 @@ class MyRobot(commands2.TimedCommandRobot):
             self.autonomousCommand.cancel()
             
         self.autonomousCommand = None
+
+        self.robotContainer.drivetrain.switchToTeleop()
         
         
     def teleopPeriodic(self):
