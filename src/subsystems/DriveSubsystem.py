@@ -69,6 +69,7 @@ class SwerveModule:
         rotConfig: SparkBaseConfig = SparkBaseConfig()
         rotConfig.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
         rotConfig.smartCurrentLimit(Drive.Consts.rotCurrentLimit)
+        rotConfig.encoder.positionConversionFactor(2 * pi / Drive.Consts.rotGearRatio)  # convert encoder ticks to radians
 
         rotConfig.closedLoop.pid(Drive.Consts.rotP, Drive.Consts.rotI, Drive.Consts.rotD, self.slot)
         rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
