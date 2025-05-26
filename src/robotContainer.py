@@ -1,6 +1,7 @@
 import commands2.button
 from commands2 import SequentialCommandGroup
 from commands2.button import CommandXboxController
+from commands2.button import CommandJoystick
 
 from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.auto import NamedCommands
@@ -38,8 +39,9 @@ from constants import Drive
 
 class RobotContainer:
     """
-    This class is where the bulk of the robot's resources are declared. Here, subsystems
-    are instantiated and commands and button bindings are configured.
+    This class is where the bulk of the robot's resources 
+    are declared. Here, subsystems are instantiated and commands 
+    and button bindings are configured.
     """
     def __init__(self):
         self.initSubsystems()
@@ -81,6 +83,7 @@ class RobotContainer:
         """Instantiate the robot's control objects"""
         
         self.drivingController: CommandXboxController = CommandXboxController(0)
+        self.operatorController: CommandJoystick = CommandJoystick(1)
 
 
     def initCommands(self):
@@ -101,12 +104,14 @@ class RobotContainer:
             )
         )
 
+        # Bind the reset gyro command to the X button on the controller
         self.drivingController.x().onTrue(
             InstantCommand(
                 lambda: self.drivetrain.rezeroGyro(),
                 self.drivetrain
             )
         )
+
     def getAutonomousCommand(self) -> Command:
         return self.autoChooser.getSelected()
 
