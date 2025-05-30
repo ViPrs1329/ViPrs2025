@@ -8,7 +8,14 @@ from commands2 import SequentialCommandGroup
 from commands2 import ParallelCommandGroup
 
 class SubsystemWrapper:
-    def __init__(self, elevator: ElevatorSubsystem, intake: IntakeSubsystem, drivetrain: DriveSubsystem, limelight):
+    def __init__(self, elevator: ElevatorSubsystem, intake: IntakeSubsystem, drivetrain: DriveSubsystem, limelight: LimelightSubsystem):
+        """
+        Wrapper class that coordinates multiple subsystems to perform complex robot actions.
+
+        This class provides a simplified interface for common robot operations by combining
+        movements from multiple subsystems into single method calls.
+        """        
+        
         self.elevator = elevator
         self.intake = intake
         self.drivetrain = drivetrain
