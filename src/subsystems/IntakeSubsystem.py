@@ -15,6 +15,7 @@ from commands2 import SequentialCommandGroup
 from commands2 import WaitCommand
 from constants import CANIDs
 from constants import Intake
+from armUtils import ArmAngle
 
 class IntakeSubsystem(Subsystem):
     def __init__(self) -> None:
@@ -55,7 +56,7 @@ class IntakeSubsystem(Subsystem):
         self.rightArmController: SparkClosedLoopController = self.rightArm.getClosedLoopController()
 
         # initialise other variables
-        self.targetRevs: float = Intake.Consts.default
+        self.targetArmAngle: ArmAngle = Intake.Consts.default
         self.targetState: int = Intake.States.default
 
         self.scoreCoralCommand: SequentialCommandGroup = InstantCommand(
@@ -109,11 +110,11 @@ class IntakeSubsystem(Subsystem):
 
     def initialize(self) -> None:
         """
-        This function is called once when the command is initialized.
+        This function is called once when the subsystem is initialized.
         """
-        self.targetRevs = Intake.Consts.default
-        self.leftArmController.setReference(self.targetRevs, SparkBase.ControlType.kPosition, self.slot)
-        self.rightArmController.setReference(self.targetRevs, SparkBase.ControlType.kPosition, self.slot)
+        self.targetArmAngle: ArmAngle = Intake.Consts.default
+        self.leftArmController.setReference(self.targetArmAngle.leftRot, SparkBase.ControlType.kPosition, self.slot)
+        self.rightArmController.setReference(self.targetArmAngle.rightRot, SparkBase.ControlType.kPosition, self.slot)
         self.intakeMotor.set(Intake.Consts.intakeSpeed)
         
     def periodic(self) -> None:
@@ -129,38 +130,38 @@ class IntakeSubsystem(Subsystem):
         # set the target position based on the target state
         match target:
             case Intake.States.groundIntakeAlgae:
-                self.targetRevs = Intake.Consts.groundIntakeAlgae
+                self.targetArmAngle = Intake.Consts.groundIntakeAlgae
             case Intake.States.l2IntakeAlgae:
-                self.targetRevs = Intake.Consts.l2IntakeAlgae
+                self.targetArmAngle = Intake.Consts.l2IntakeAlgae
             case Intake.States.l3IntakeAlgae:
-                self.targetRevs = Intake.Consts.l3IntakeAlgae
+                self.targetArmAngle = Intake.Consts.l3IntakeAlgae
             case Intake.States.groundIntakeCoral:  
-                self.targetRevs = Intake.Consts.groundIntakeCoral
+                self.targetArmAngle = Intake.Consts.groundIntakeCoral
             case Intake.States.feederIntakeCoral:
-                self.targetRevs = Intake.Consts.feederIntakeCoral
+                self.targetArmAngle = Intake.Consts.feederIntakeCoral
             case Intake.States.scoreAlgaeNet:
-                self.targetRevs = Intake.Consts.scoreAlgaeNet
+                self.targetArmAngle = Intake.Consts.scoreAlgaeNet
             case Intake.States.scoreAlgaeProcessor:
-                self.targetRevs = Intake.Consts.scoreAlgaeProcessor
+                self.targetArmAngle = Intake.Consts.scoreAlgaeProcessor
             case Intake.States.scoreCoralL1:
-                self.targetRevs = Intake.Consts.scoreCoralL1
+                self.targetArmAngle = Intake.Consts.scoreCoralL1
             case Intake.States.scoreCoralL2:
-                self.targetRevs = Intake.Consts.scoreCoralL2
+                self.targetArmAngle = Intake.Consts.scoreCoralL2
             case Intake.States.scoreCoralL3:
-                self.targetRevs = Intake.Consts.scoreCoralL3
+                self.targetArmAngle = Intake.Consts.scoreCoralL3
             case Intake.States.scoreCoralL4:
-                self.targetRevs = Intake.Consts.scoreCoralL4
+                self.targetArmAngle = Intake.Consts.scoreCoralL4
             case Intake.States.default:
-                self.targetRevs = Intake.Consts.default
+                self.targetArmAngle = Intake.Consts.default
             case Intake.States.scoringCoralL1:
-                self.targetRevs = Intake.Consts.scoringCoralL1
+                self.targetArmAngle = Intake.Consts.scoringCoralL1
             case Intake.States.scoringCoralL2:
-                self.targetRevs = Intake.Consts.scoringCoralL2
+                self.targetArmAngle = Intake.Consts.scoringCoralL2
             case Intake.States.scoringCoralL3:
-                self.targetRevs = Intake.Consts.scoringCoralL3
+                self.targetArmAngle = Intake.Consts.scoringCoralL3
             case Intake.States.scoringCoralL4:
-                self.targetRevs = Intake.Consts.scoringCoralL4
+                self.targetArmAngle = Intake.Consts.scoringCoralL4
 
         # set the target position for the arm motors
-        self.leftArmController.setReference(self.targetRevs, SparkBase.ControlType.kPosition, self.slot)
-        self.rightArmController.setReference(self.targetRevs, SparkBase.ControlType.kPosition, self.slot)
+        self.leftArmController.setReference(self.targetArmAngle.leftRot, SparkBase.ControlType.kPosition, self.slot)
+        self.rightArmController.setReference(self.targetArmAngle.rightRot, SparkBase.ControlType.kPosition, self.slot)

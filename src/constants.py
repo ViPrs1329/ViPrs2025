@@ -1,6 +1,7 @@
 import numpy
 from wpimath.geometry import Translation2d
 from pathplannerlib.config import PIDConstants
+from armUtils import ArmAngle
 
 # wpilib has us covered for simple conversions
 # class convert:
@@ -12,8 +13,6 @@ from pathplannerlib.config import PIDConstants
 
 #     def rad2rev(radians):
 #         return radians / (2 * numpy.pi)
-    
-    
 
 class CANIDs:
     # Swerve CAN IDs
@@ -61,7 +60,7 @@ class Input:
 class Drive:
 
     class Consts:
-        
+
         flModuleOffset: Translation2d = Translation2d()
         frModuleOffset: Translation2d = Translation2d()
         blModuleOffset: Translation2d = Translation2d()
@@ -181,27 +180,27 @@ class Intake:
         intakeSpeed = 0.5
 
         # these are in revs not meters
-        groundIntakeAlgae: int = 0
-        l2IntakeAlgae: int = 1
-        l3IntakeAlgae: int = 2
+        groundIntakeAlgae: ArmAngle = ArmAngle(0, 0)
+        l2IntakeAlgae: ArmAngle = ArmAngle(0, 0)
+        l3IntakeAlgae: ArmAngle = ArmAngle(0, 0)
 
-        groundIntakeCoral: int = 3
-        feederIntakeCoral: int = 4
+        groundIntakeCoral: ArmAngle = ArmAngle(0, 0)
+        feederIntakeCoral: ArmAngle = ArmAngle(0, 0)
 
-        scoreAlgaeNet: int = 5
-        scoreAlgaeProcessor: int = 6
+        scoreAlgaeNet: ArmAngle = ArmAngle(0, 0)
+        scoreAlgaeProcessor: ArmAngle = ArmAngle(0, 0)
 
-        scoreCoralL1: int = 7
-        scoreCoralL2: int = 8
-        scoreCoralL3: int = 9
-        scoreCoralL4: int = 10
+        scoreCoralL1: ArmAngle = ArmAngle(0, 0)
+        scoreCoralL2: ArmAngle = ArmAngle(0, 0)
+        scoreCoralL3: ArmAngle = ArmAngle(0, 0)
+        scoreCoralL4: ArmAngle = ArmAngle(0, 0)
 
-        default: int = 11
+        default: ArmAngle = ArmAngle(0, 0)
 
-        scoringCoralL1: int = 12
-        scoringCoralL2: int = 13
-        scoringCoralL3: int = 14
-        scoringCoralL4: int = 15
+        scoringCoralL1: ArmAngle = ArmAngle(0, 0)
+        scoringCoralL2: ArmAngle = ArmAngle(0, 0)
+        scoringCoralL3: ArmAngle = ArmAngle(0, 0)
+        scoringCoralL4: ArmAngle = ArmAngle(0, 0)
 
         coralScoringTime: float = Elevator.Consts.coralScoringTime
         algaeScoringTime: float = Elevator.Consts.algaeScoringTime
