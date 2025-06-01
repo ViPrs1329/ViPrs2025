@@ -105,14 +105,20 @@ class Elevator:
 
     class Consts:
 
-        currentLimit: int = 30
+        currentLimit: float = 30
 
-        p: int = 1
-        i: int = 0
-        d: int = 0
-        ff: int = 0
+        p: float = 1
+        i: float = 0
+        d: float = 0
+        ff: float = 0
 
-        # these are in revs not meters
+        maxHeightMeters: float = 1.5  # Maximum height of the elevator in meters
+        minHeightMeters: float = 0.0  # Minimum height of the elevator in meters
+        sprocketDiameterMeters: float = 0.05  # Diameter of the sprocket in meters
+        gearRatio: float = 16  # Gear ratio of the elevator mechanism
+
+        # these are in meters
+        # these values can be large since they are placeholders
         groundIntakeAlgae: float = 0
         l2IntakeAlgae: float = 1
         l3IntakeAlgae: float = 2
@@ -128,15 +134,15 @@ class Elevator:
         scoreCoralL3: float = 9
         scoreCoralL4: float = 10
 
-        default: int = 11
+        default: float = 11
 
-        scoringCoralL1: int = 12
-        scoringCoralL2: int = 13
-        scoringCoralL3: int = 14
-        scoringCoralL4: int = 15
+        scoringCoralL1: float = 12
+        scoringCoralL2: float = 13
+        scoringCoralL3: float = 14
+        scoringCoralL4: float = 15
 
-        # tollerance for the elevator
-        tollerance: float = 0.1
+        # tolerance for the elevator in meters
+        tolerance: float = 0.1
 
         coralScoringTime: float = Drive.Consts.coralScoringTime
         algaeScoringTime: float = Drive.Consts.algaeScoringTime
