@@ -7,5 +7,5 @@ class ArmAngle:
         """
         self.armAngle: float = armAngleRad
         self.endEffectorAngle: float = endEffectorAngleRad
-        self.rightRot: float = (armAngleRad + endEffectorAngleRad) / (2 * pi) * 100 # 100 is the gear ratio
-        self.leftRot: float = (armAngleRad - endEffectorAngleRad) / (2 * pi) * 100 # 100 is the gear ratio
+        self.rightRot: float = armAngleRad + endEffectorAngleRad
+        self.leftRot: float = armAngleRad - endEffectorAngleRad

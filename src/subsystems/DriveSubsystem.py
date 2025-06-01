@@ -21,6 +21,8 @@ from wpilib import SmartDashboard
 
 from phoenix6.hardware import Pigeon2
 from phoenix6.hardware import CANcoder
+from phoenix6.configs import CANcoderConfiguration
+from phoenix6.configs import MagnetSensorConfigs
 
 from rev import SparkMax
 from rev import SparkBaseConfig
@@ -66,6 +68,9 @@ class SwerveModule:
         driveConfig.closedLoop.pid(Drive.Consts.driveP, Drive.Consts.driveI, Drive.Consts.driveD, self.slot)
         driveConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         driveConfig.closedLoop.positionWrappingEnabled(False)
+        driveConfig.encoder.positionConversionFactor(2 * pi * Drive.Consts.wheelRadius / Drive.Consts.driveGearRatio)  # rot → meters
+        driveConfig.encoder.velocityConversionFactor(2 * pi * Drive.Consts.wheelRadius / (Drive.Consts.driveGearRatio * 60))  # rot/m → meters/s
+
         self.driveMotor.configure(driveConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
 
         self.rotController: SparkClosedLoopController = self.rotMotor.getClosedLoopController()
@@ -74,7 +79,8 @@ class SwerveModule:
         rotConfig: SparkBaseConfig = SparkBaseConfig()
         rotConfig.setIdleMode(SparkBaseConfig.IdleMode.kBrake)
         rotConfig.smartCurrentLimit(Drive.Consts.rotCurrentLimit)
-        rotConfig.encoder.positionConversionFactor(2 * pi / Drive.Consts.rotGearRatio)  # convert encoder ticks to radians
+        rotConfig.encoder.positionConversionFactor(2 * pi / Drive.Consts.rotGearRatio)  # rot → rad
+        rotConfig.encoder.velocityConversionFactor((2 * pi) / (Drive.Consts.rotGearRatio * 60))  # RPM → rad/s
 
         rotConfig.closedLoop.pid(Drive.Consts.rotP, Drive.Consts.rotI, Drive.Consts.rotD, self.slot)
         rotConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
@@ -95,21 +101,21 @@ class SwerveModule:
 
         # 0.02 is 50hz = rate at which main control loop runs
         self.currentPosition = SwerveModulePosition(
-            self.currentPosition.distance / Drive.Consts.driveGearRatio + (self.currentState.speed * 0.02),
+            self.currentPosition.distance + (self.currentState.speed * 0.02),
             self.currentState.angle
         )
     
     def update(self):
         # update the motor speeds
         self.rotController.setReference(self.currentState.angle.radians(), SparkBase.ControlType.kPosition, self.slot)
-        self.driveController.setReference(self.currentState.speed * Drive.Consts.driveGearRatio, SparkBase.ControlType.kVelocity, self.slot)
+        self.driveController.setReference(self.currentState.speed, SparkBase.ControlType.kVelocity, self.slot)
 
         # update the encoder position
         if abs(self.rotMotor.getEncoder().getVelocity()) < 0.1:
-            self.rotMotor.getEncoder().setPosition(self.encoder.get_position().value_as_double)
+            self.rotMotor.getEncoder().setPosition(2 * pi * self.encoder.get_position().value_as_double)
 
-        elif abs(self.rotMotor.getEncoder().getPosition() - self.encoder.get_position().value_as_double) > 0.1:
-            self.rotMotor.getEncoder().setPosition(self.encoder.get_position().value_as_double)
+        elif abs(self.rotMotor.getEncoder().getPosition() - 2 * pi * self.encoder.get_position().value_as_double) > 0.1:
+            self.rotMotor.getEncoder().setPosition(2 * pi * self.encoder.get_position().value_as_double)
 
 class DriveSubsystem(Subsystem):
 

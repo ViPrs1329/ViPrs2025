@@ -69,13 +69,12 @@ class Drive:
         translationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
         rotationConstants: PIDConstants = PIDConstants(0, 0, 0, 0)
 
-        maxModuleSpeed: float = 1
-
         driveCurrentLimit: int = 30
         rotCurrentLimit: int = 30
 
         driveGearRatio: float = 6.75
         rotGearRatio: float = 12.8
+        wheelRadius: float = 0.0508  # 2 inches in meters
 
         rampRate: float = 0.5
 
@@ -87,9 +86,10 @@ class Drive:
         driveI: int = 0
         driveD: int = 0
 
-        maxSpeed = 0.5
+        maxSpeed = 1 # in m/s
         maxAngularSpeed = 0.5
         inputDeadzone = 0.1
+        maxModuleSpeed: float = maxSpeed * 1.414
 
         coralScoringTime: float = 0.5
         algaeScoringTime: float = 0.5
@@ -204,6 +204,8 @@ class Intake:
 
         coralScoringTime: float = Elevator.Consts.coralScoringTime
         algaeScoringTime: float = Elevator.Consts.algaeScoringTime
+
+        gearRatio: float = 100 
 
     class States:
 

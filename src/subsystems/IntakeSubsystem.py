@@ -17,6 +17,8 @@ from constants import CANIDs
 from constants import Intake
 from armUtils import ArmAngle
 
+from math import cos, pi
+
 class IntakeSubsystem(Subsystem):
     def __init__(self) -> None:
         super().__init__()
@@ -41,6 +43,7 @@ class IntakeSubsystem(Subsystem):
         leftArmConfig.closedLoop.pidf(Intake.Consts.armP, Intake.Consts.armI, Intake.Consts.armD, Intake.Consts.armFF, self.slot)
         leftArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         leftArmConfig.closedLoop.positionWrappingEnabled(False)
+        leftArmConfig.encoder.positionConversionFactor(2 * pi / Intake.Consts.gearRatio)  # Set conversion factor for encoder
         self.leftArm.configure(leftArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
         
         rightArmConfig: SparkBaseConfig = SparkBaseConfig()
@@ -50,6 +53,7 @@ class IntakeSubsystem(Subsystem):
         rightArmConfig.closedLoop.pidf(Intake.Consts.armP, Intake.Consts.armI, Intake.Consts.armD, Intake.Consts.armFF, self.slot)
         rightArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         rightArmConfig.closedLoop.positionWrappingEnabled(False)
+        rightArmConfig.encoder.positionConversionFactor(2 * pi / Intake.Consts.gearRatio)  # Set conversion factor for encoder
         self.rightArm.configure(rightArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
         
         self.leftArmController: SparkClosedLoopController = self.leftArm.getClosedLoopController()
@@ -107,6 +111,24 @@ class IntakeSubsystem(Subsystem):
     def stopScoringAlgae(self) -> None:
         self.intakeMotor.set(Intake.Consts.intakeSpeed)
         self.moveTo(Intake.States.default)
+
+    def getArmAngle(self) -> float:
+        """
+        Get the current angle of the arm.
+        """
+        leftAngle: float = self.leftArm.getEncoder().getPosition()
+        rightAngle: float = self.rightArm.getEncoder().getPosition()
+
+        # average the angles of both arms
+        return (leftAngle + rightAngle) / 2.0
+
+    def calculateFF(self) -> float:
+        """
+        Calculate the feedforward value for the arm motors.
+        """
+        kG = Intake.Consts.armFF
+
+        return kG * cos(self.getArmAngle())
 
     def initialize(self) -> None:
         """
