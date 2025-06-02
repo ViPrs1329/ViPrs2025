@@ -44,6 +44,7 @@ class IntakeSubsystem(Subsystem):
         leftArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         leftArmConfig.closedLoop.positionWrappingEnabled(False)
         leftArmConfig.encoder.positionConversionFactor(2 * pi / Intake.Consts.gearRatio)  # Set conversion factor for encoder
+        leftArmConfig.encoder.velocityConversionFactor(2 * pi / (Intake.Consts.gearRatio * 60))  # Set conversion factor for velocity
         self.leftArm.configure(leftArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
         
         rightArmConfig: SparkBaseConfig = SparkBaseConfig()
@@ -54,6 +55,7 @@ class IntakeSubsystem(Subsystem):
         rightArmConfig.closedLoop.setFeedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
         rightArmConfig.closedLoop.positionWrappingEnabled(False)
         rightArmConfig.encoder.positionConversionFactor(2 * pi / Intake.Consts.gearRatio)  # Set conversion factor for encoder
+        rightArmConfig.encoder.velocityConversionFactor(2 * pi / (Intake.Consts.gearRatio * 60))  # Set conversion factor for velocity
         self.rightArm.configure(rightArmConfig, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kPersistParameters)
         
         self.leftArmController: SparkClosedLoopController = self.leftArm.getClosedLoopController()
@@ -62,6 +64,13 @@ class IntakeSubsystem(Subsystem):
         # initialise other variables
         self.targetArmAngle: ArmAngle = Intake.Consts.default
         self.targetState: int = Intake.States.default
+
+        self.flipState: bool = False
+
+        self.flipCommand: InstantCommand = InstantCommand(
+            lambda: self.flipEndEffector(),
+            self
+        )
 
         self.scoreCoralCommand: SequentialCommandGroup = InstantCommand(
             lambda: self.startScoringCoral(),
@@ -86,6 +95,10 @@ class IntakeSubsystem(Subsystem):
                 self
             )
         )
+
+    def flipEndEffector(self) -> None:
+        self.flipState = not self.flipState
+        # flip the end effector angle
 
     def startScoringCoral(self) -> None:
         self.intakeMotor.set(-Intake.Consts.intakeSpeed)
@@ -114,17 +127,39 @@ class IntakeSubsystem(Subsystem):
 
     def getArmAngle(self) -> float:
         """
-        Get the current angle of the arm.
+        Get the current elevation angle of the arm.
+        For a Hero's differential:
+        - Average of both motors gives elevation angle
+        - Difference between motors gives end effector rotation
+        Returns angle in radians from horizontal
         """
         leftAngle: float = self.leftArm.getEncoder().getPosition()
         rightAngle: float = self.rightArm.getEncoder().getPosition()
-
-        # average the angles of both arms
+        # Same direction motion = elevation
         return (leftAngle + rightAngle) / 2.0
+
+    def getEndEffectorAngle(self) -> float:
+        """
+        Get the current rotation angle of the end effector.
+        For a Hero's differential:
+        - Difference between motors gives end effector rotation
+        Returns angle in radians
+        """
+        leftAngle: float = self.leftArm.getEncoder().getPosition()
+        rightAngle: float = self.rightArm.getEncoder().getPosition()
+        # Differential motion = end effector rotation
+        return (leftAngle - rightAngle) / 2.0
 
     def calculateFF(self) -> float:
         """
         Calculate the feedforward value for the arm motors.
+        Uses cosine compensation for gravity.
+        
+        Returns:
+            float: Feedforward voltage to apply to motors
+            kG * cos(theta) where:
+            - kG is the gravity compensation constant
+            - theta is the arm angle from horizontal
         """
         kG = Intake.Consts.armFF
 
@@ -134,18 +169,75 @@ class IntakeSubsystem(Subsystem):
         """
         This function is called once when the subsystem is initialized.
         """
+        # reset the arm encoders
+        self.leftArm.getEncoder().setPosition(0)
+        self.rightArm.getEncoder().setPosition(0)
+
+        # reset the arm motors
         self.targetArmAngle: ArmAngle = Intake.Consts.default
+        self.targetState: int = Intake.States.default
+
+        # set the initial target position for the arm motors
         self.leftArmController.setReference(self.targetArmAngle.leftRot, SparkBase.ControlType.kPosition, self.slot)
         self.rightArmController.setReference(self.targetArmAngle.rightRot, SparkBase.ControlType.kPosition, self.slot)
         self.intakeMotor.set(Intake.Consts.intakeSpeed)
+
+        self.flipState = False
         
     def periodic(self) -> None:
-        pass
+        """Updates every robot loop (~50hz)"""
+        # update the motors to the target position
+        self.updateMotors()
+
+    def updateMotors(self) -> None:
+        # Calculate and apply FF based on current angle
+        feedForward: float = self.calculateFF()
+
+        # Set the target position for the arm motors
+        # If the flip state is active, flip the end effector angle
+        target: ArmAngle
+
+        if self.flipState:
+            if self.targetState in (
+                Intake.States.scoreCoralL1, 
+                Intake.States.scoreCoralL2, 
+                Intake.States.scoreCoralL3, 
+                Intake.States.scoreCoralL4, 
+                Intake.States.scoringCoralL1, 
+                Intake.States.scoringCoralL2, 
+                Intake.States.scoringCoralL3, 
+                Intake.States.scoringCoralL4
+            ):
+                # Flip the end effector angle for scoring coral
+                target = self.targetArmAngle.withEndEffectorAngle(-self.targetArmAngle.endEffectorAngle)
+            else:
+                # Set the flipState to false
+                self.flipState = False
+
+                # Don't flip the end effector angle for other states
+                target = self.targetArmAngle.withEndEffectorAngle(self.targetArmAngle.endEffectorAngle)
+        else:
+            target = self.targetArmAngle
+
+        self.leftArmController.setReference(
+            target.leftRot, 
+            SparkBase.ControlType.kPosition, 
+            self.slot,
+            arbFeedforward=feedForward
+        )
+        self.rightArmController.setReference(
+            target.rightRot, 
+            SparkBase.ControlType.kPosition, 
+            self.slot,
+            arbFeedforward=feedForward
+        )
     
     def moveTo(self, target: int) -> None:
         """
         Move the arm to the target state.
         """
+        if target not in Intake.States.__dict__.values():
+            raise ValueError(f"Invalid target state: {target}")
 
         self.targetState = target
 
@@ -183,7 +275,3 @@ class IntakeSubsystem(Subsystem):
                 self.targetArmAngle = Intake.Consts.scoringCoralL3
             case Intake.States.scoringCoralL4:
                 self.targetArmAngle = Intake.Consts.scoringCoralL4
-
-        # set the target position for the arm motors
-        self.leftArmController.setReference(self.targetArmAngle.leftRot, SparkBase.ControlType.kPosition, self.slot)
-        self.rightArmController.setReference(self.targetArmAngle.rightRot, SparkBase.ControlType.kPosition, self.slot)
