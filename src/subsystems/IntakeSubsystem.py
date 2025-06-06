@@ -198,12 +198,11 @@ class IntakeSubsystem(Subsystem):
         target: ArmAngle
 
         if self.flipState:
+            # don't need to flip end effector for l1
             if self.targetState in (
-                Intake.States.scoreCoralL1, 
                 Intake.States.scoreCoralL2, 
                 Intake.States.scoreCoralL3, 
                 Intake.States.scoreCoralL4, 
-                Intake.States.scoringCoralL1, 
                 Intake.States.scoringCoralL2, 
                 Intake.States.scoringCoralL3, 
                 Intake.States.scoringCoralL4
