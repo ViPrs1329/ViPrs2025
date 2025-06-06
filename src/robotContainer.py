@@ -25,6 +25,8 @@ from wpilib import XboxController
 from commands2 import Command
 from commands2 import PrintCommand
 from commands2 import InstantCommand
+from commands2 import RunCommand
+from commands2 import CommandScheduler
 from commands2.button import CommandXboxController
 from commands2.button import Trigger
 
@@ -46,16 +48,14 @@ class RobotContainer:
     def __init__(self):
         self.initSubsystems()
         self.initControls()
+        self.initAutoChooser()
         self.initCommands()
         self.configureButtonBindings()
-
+        
+    def initAutoChooser(self):
         self.autoChooser: SendableChooser = AutoBuilder.buildAutoChooser("Autos")
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
-        NamedCommands.registerCommand("marker1", PrintCommand("marker1"))
-        NamedCommands.registerCommand("marker2", PrintCommand("marker2"))
-        NamedCommands.registerCommand("Hello", PrintCommand("Hello"))
-        
     def initSubsystems(self):
         """Instantiate the robot's subsystems."""
         
@@ -78,6 +78,7 @@ class RobotContainer:
         commands2.CommandScheduler.getInstance().registerSubsystem(self.elevator)
         commands2.CommandScheduler.getInstance().registerSubsystem(self.intake)
         commands2.CommandScheduler.getInstance().registerSubsystem(self.limelight)
+        commands2.CommandScheduler.getInstance().registerSubsystem(self.subsystemWrapper)
 
     def initControls(self):
         """Instantiate the robot's control objects"""
@@ -89,18 +90,21 @@ class RobotContainer:
     def initCommands(self):
         """Instantiate the robot's commands."""
         
-        pass
+        NamedCommands.registerCommand("marker1", PrintCommand("marker1"))
+        NamedCommands.registerCommand("marker2", PrintCommand("marker2"))
+        NamedCommands.registerCommand("Hello", PrintCommand("Hello"))
 
     def configureButtonBindings(self):
         """Configure the button bindings for user input."""
                
         self.drivetrain.setDefaultCommand(
-            InstantCommand(
+            RunCommand(
                 lambda: self.drivetrain.controllerDrive(
                     -self.drivingController.getLeftY(),
                     -self.drivingController.getLeftX(),
                     -self.drivingController.getRightX()
-                )
+                ),
+                self.drivetrain
             )
         )
 
