@@ -46,6 +46,16 @@ class RobotContainer:
     and button bindings are configured.
     """
     def __init__(self):
+
+        self.autoChooser: SendableChooser
+        self.drivetrain: DriveSubsystem
+        self.elevator: ElevatorSubsystem
+        self.intake: IntakeSubsystem
+        self.limelight: LimelightSubsystem
+        self.subsystemWrapper: SubsystemWrapper
+        self.drivingController: CommandXboxController
+        self.operatorController: CommandJoystick
+
         self.initSubsystems()
         self.initControls()
         self.initAutoChooser()
@@ -53,20 +63,20 @@ class RobotContainer:
         self.configureButtonBindings()
         
     def initAutoChooser(self):
-        self.autoChooser: SendableChooser = AutoBuilder.buildAutoChooser("Autos")
+        self.autoChooser = AutoBuilder.buildAutoChooser("Autos")
         SmartDashboard.putData("Auto Chooser", self.autoChooser)
 
     def initSubsystems(self):
         """Instantiate the robot's subsystems."""
         
         # create subsystems
-        self.drivetrain: DriveSubsystem = DriveSubsystem()
-        self.elevator: ElevatorSubsystem = ElevatorSubsystem()
-        self.intake: IntakeSubsystem = IntakeSubsystem()
-        self.limelight: LimelightSubsystem = LimelightSubsystem()
+        self.drivetrain = DriveSubsystem()
+        self.elevator = ElevatorSubsystem()
+        self.intake = IntakeSubsystem()
+        self.limelight = LimelightSubsystem()
 
         # create a wrapper for the subsystems
-        self.subsystemWrapper: SubsystemWrapper = SubsystemWrapper(
+        self.subsystemWrapper = SubsystemWrapper(
             self.elevator, 
             self.intake, 
             self.drivetrain, 
@@ -83,8 +93,8 @@ class RobotContainer:
     def initControls(self):
         """Instantiate the robot's control objects"""
         
-        self.drivingController: CommandXboxController = CommandXboxController(0)
-        self.operatorController: CommandJoystick = CommandJoystick(1)
+        self.drivingController = CommandXboxController(0)
+        self.operatorController = CommandJoystick(1)
 
 
     def initCommands(self):

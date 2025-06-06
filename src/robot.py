@@ -12,15 +12,18 @@ from robotContainer import RobotContainer
 
 class MyRobot(commands2.TimedCommandRobot):
 
-    def robotInit(self):
+    def robotInit(self) -> None:
         """
         This function is called upon program startup and
         should be used for any initialization code.
         """
 
+        self.robotContainer: RobotContainer
+        self.autonomousCommand: commands2.Command | None
+
         try:
-            self.robotContainer: RobotContainer = RobotContainer()
-            self.autonomousCommand: commands2.Command | None = None
+            self.robotContainer = RobotContainer()
+            self.autonomousCommand = None
         except Exception as e:
             raise RuntimeError(f"Failed to initialize RobotContainer:\n{e}")
 

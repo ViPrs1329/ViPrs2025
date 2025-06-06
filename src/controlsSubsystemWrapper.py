@@ -8,6 +8,11 @@ from commands2 import SequentialCommandGroup
 from commands2 import ParallelCommandGroup
 from commands2 import Subsystem
 from ntcore import NetworkTableInstance
+from ntcore import NetworkTable
+from ntcore import DoublePublisher
+from ntcore import StringPublisher
+from ntcore import BooleanPublisher
+from ntcore import StructPublisher
 
 from wpimath.geometry import Pose2d
 
@@ -19,7 +24,33 @@ class SubsystemWrapper(Subsystem):
         This class provides a simplified interface for common robot operations by combining
         movements from multiple subsystems into single method calls.
         """        
-        
+
+        self.elevator: ElevatorSubsystem
+        self.intake: IntakeSubsystem
+        self.drivetrain: DriveSubsystem
+        self.limelight: LimelightSubsystem
+        self.resetBeforeTeleopCommand: SequentialCommandGroup
+        self.resetSubsystemsCommand: SequentialCommandGroup
+        self.scoreCoralCommand: ParallelCommandGroup
+        self.scoreAlgaeCommand: ParallelCommandGroup
+        self.nt: NetworkTableInstance
+        self.logTable: NetworkTable
+        self.elevatorHeightPub: DoublePublisher
+        self.elevatorStatePub: StringPublisher
+        self.intakeArmAnglePub: DoublePublisher
+        self.intakeEndEffectorPub: DoublePublisher
+        self.intakeFlipStatePub: BooleanPublisher
+        self.driveRotationPub: StructPublisher
+        self.targetVisiblePub: BooleanPublisher
+        """
+        self.elevatorStatePub = self.logTable.getStringTopic("elevator/state").publish()
+        self.intakeArmAnglePub = self.logTable.getDoubleTopic("intake/armAngle").publish()
+        self.intakeEndEffectorPub = self.logTable.getDoubleTopic("intake/endEffector").publish()
+        self.intakeFlipStatePub = self.logTable.getBooleanTopic("intake/flipState").publish()
+        self.driveRotationPub = self.logTable.getStructTopic("drive/odometry", Pose2d).publish()
+        self.targetVisiblePub = self.logTable.getBooleanTopic("limelight/targetVisible").publish()
+                
+        """
         self.elevator = elevator
         self.intake = intake
         self.drivetrain = drivetrain

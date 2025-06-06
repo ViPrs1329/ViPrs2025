@@ -86,9 +86,9 @@ class Drive:
         driveI: int = 0
         driveD: int = 0
 
-        maxSpeed = 1 # in m/s
-        maxAngularSpeed = 0.5
-        inputDeadzone = 0.1
+        maxSpeed: float = 1. # in m/s
+        maxAngularSpeed: float = 0.5
+        inputDeadzone: float = 0.1
         maxModuleSpeed: float = maxSpeed * 1.414
 
         coralScoringTime: float = 0.5

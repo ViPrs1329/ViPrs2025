@@ -11,8 +11,9 @@ from constants import Limelight
 class LimelightSubsystem(Subsystem):
     def __init__(self) -> None:
         super().__init__()
+        self.tables: list[NetworkTable]
         
-        self.tables: list[NetworkTable] = []
+        self.tables = []
         for name in Limelight.Consts.tableNames:
             table: NetworkTable = NetworkTableInstance.getDefault().getTable(name)
             self.tables.append(table)

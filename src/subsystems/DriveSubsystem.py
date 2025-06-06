@@ -122,23 +122,33 @@ class DriveSubsystem(Subsystem):
     def __init__(self):
         super().__init__()
 
+        self.gyro: Pigeon2
+        self.field: Field2d
+        self.modules: list[SwerveModule]
+        self.kinematics: SwerveDrive4Kinematics
+        self.odometry: SwerveDrive4Odometry
+        self.config: RobotConfig
+        self.driveState: int
+        self.scoreCoralCommand: SequentialCommandGroup
+        self.scoreAlgaeCommand: SequentialCommandGroup
+
         # Initialize swerve modules and other things...
 
-        self.gyro: Pigeon2 = Pigeon2(CANIDs.pigeon)
-        self.field: Field2d = Field2d()
-        self.modules: list[SwerveModule] = [
+        self.gyro = Pigeon2(CANIDs.pigeon)
+        self.field = Field2d()
+        self.modules = [
             SwerveModule(CANIDs.flDrive, CANIDs.flRotation, CANIDs.flEncoder),
             SwerveModule(CANIDs.frDrive, CANIDs.frRotation, CANIDs.frEncoder),
             SwerveModule(CANIDs.blDrive, CANIDs.blRotation, CANIDs.blEncoder),
             SwerveModule(CANIDs.brDrive, CANIDs.brRotation, CANIDs.brEncoder)
         ]
-        self.kinematics: SwerveDrive4Kinematics = SwerveDrive4Kinematics(
+        self.kinematics = SwerveDrive4Kinematics(
             Drive.Consts.flModuleOffset,
             Drive.Consts.frModuleOffset,
             Drive.Consts.blModuleOffset,
             Drive.Consts.brModuleOffset
         )
-        self.odometry: SwerveDrive4Odometry = SwerveDrive4Odometry(
+        self.odometry = SwerveDrive4Odometry(
             self.kinematics,
             self.gyro.getRotation2d(),
             self.getPositions()
@@ -223,7 +233,7 @@ class DriveSubsystem(Subsystem):
 
     def configureAutoBuilder(self) -> None:
         try:
-            self.config: RobotConfig = RobotConfig.fromGUISettings()
+            self.config = RobotConfig.fromGUISettings()
             AutoBuilder.configure(
                 self.getPose,
                 self.resetPose,
