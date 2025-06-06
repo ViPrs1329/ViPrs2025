@@ -18,8 +18,11 @@ class MyRobot(commands2.TimedCommandRobot):
         should be used for any initialization code.
         """
 
-        self.robotContainer: RobotContainer = RobotContainer()
-        self.autonomousCommand: commands2.Command | None = None
+        try:
+            self.robotContainer: RobotContainer = RobotContainer()
+            self.autonomousCommand: commands2.Command | None = None
+        except Exception as e:
+            raise RuntimeError(f"Failed to initialize RobotContainer:\n{e}")
 
     def robotPeriodic(self):
         commands2.CommandScheduler.getInstance().run()
@@ -44,7 +47,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
     def disabledInit(self):
         """This function is called initially when disabledd"""
-        print("disabledInit()")
+        self.robotContainer.subsystemWrapper.resetSubsystems()
 
     def disabledPeriodic(self):
         pass
@@ -56,6 +59,7 @@ class MyRobot(commands2.TimedCommandRobot):
             
         self.autonomousCommand = None
 
+        self.robotContainer.subsystemWrapper.resetBeforeTeleop()
         self.robotContainer.drivetrain.switchToTeleop()
         
         
@@ -77,7 +81,7 @@ class MyRobot(commands2.TimedCommandRobot):
         print("Simulation init...")
         
 
-    def SimulationPeriodic(self):
+    def simulationPeriodic(self):
         """"This function is called periodically during the simulation mode"""
         print("SimulationPeriodic()")
         
