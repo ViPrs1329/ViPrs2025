@@ -43,6 +43,8 @@ from constants import Input
 
 from math import pi
 
+from typing import Callable
+
 class SwerveModule:
 
     def __init__(self, driveMotorID: int, rotMotorID: int, rotEncoderID: int) -> None:
@@ -119,8 +121,10 @@ class SwerveModule:
 
 class DriveSubsystem(Subsystem):
 
-    def __init__(self):
+    def __init__(self, combinedPoseSupplier: Callable[[], Pose2d]) -> None:
         super().__init__()
+
+        self.combinedPoseSupplier: Callable[[], Pose2d] = combinedPoseSupplier
 
         self.gyro: Pigeon2
         self.field: Field2d
@@ -235,7 +239,7 @@ class DriveSubsystem(Subsystem):
         try:
             self.config = RobotConfig.fromGUISettings()
             AutoBuilder.configure(
-                self.getPose,
+                self.combinedPoseSupplier,
                 self.resetPose,
                 self.getSpeeds,
                 self.driveRobotRelative,
@@ -262,6 +266,8 @@ class DriveSubsystem(Subsystem):
     
     def resetPose(self, pose: Pose2d) -> None:
         print(pose)
+        self.gyro.set_yaw(pose.rotation().degrees())
+        self.field.setRobotPose(pose)
         self.odometry.resetPosition(
             self.gyro.getRotation2d(),
             self.getPositions(),

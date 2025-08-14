@@ -1,5 +1,5 @@
 import numpy
-from wpimath.geometry import Translation2d
+from wpimath.geometry import Translation2d, Rotation2d
 from pathplannerlib.config import PIDConstants
 from armUtils import ArmAngle
 
@@ -249,6 +249,15 @@ class Limelight:
 
     class Consts:
         tableNames: list[str] = ["limelight-lside", "limelight-rside"]
+
+    class States:
+        pass
+
+class FNS:
+
+    class Consts:
+        visionWheelTranslationPoseTolerance: float = 1.0  # in meters
+        visionWheelRotationPoseTolerance: float = 0.1  # in radians
 
     class States:
         pass

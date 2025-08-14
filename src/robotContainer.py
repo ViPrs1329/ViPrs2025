@@ -34,6 +34,7 @@ from subsystems.DriveSubsystem import DriveSubsystem
 from subsystems.ElevatorSubsystem import ElevatorSubsystem
 from subsystems.IntakeSubsystem import IntakeSubsystem
 from subsystems.LimelightSubsystem import LimelightSubsystem
+from subsystems.fnsSubsystem import FnsSubsystem
 
 from controlsSubsystemWrapper import SubsystemWrapper
 
@@ -52,6 +53,7 @@ class RobotContainer:
         self.elevator: ElevatorSubsystem
         self.intake: IntakeSubsystem
         self.limelight: LimelightSubsystem
+        self.fns: FnsSubsystem
         self.subsystemWrapper: SubsystemWrapper
         self.drivingController: CommandXboxController
         self.operatorController: CommandJoystick
@@ -70,10 +72,11 @@ class RobotContainer:
         """Instantiate the robot's subsystems."""
         
         # create subsystems
-        self.drivetrain = DriveSubsystem()
+        self.drivetrain = DriveSubsystem(self.fns.getOdometry)
         self.elevator = ElevatorSubsystem()
         self.intake = IntakeSubsystem()
         self.limelight = LimelightSubsystem()
+        self.fns = FnsSubsystem(self.drivetrain.getPose, self.limelight.getRobotPositionFieldRelative, self.drivetrain.resetPose)
 
         # create a wrapper for the subsystems
         self.subsystemWrapper = SubsystemWrapper(
